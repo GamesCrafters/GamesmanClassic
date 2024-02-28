@@ -459,57 +459,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 	return generic_hash_hash(string_board, player);
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	POSITION initialPosition;
-	int current_node, i, player;
-	char* string_board = (char*)SafeMalloc(sizeof(char)*MAX_NODES);
-
-	for(i = 0; i < num_nodes; i++)
-		string_board[i] = '_';
-
-	printBoard(global_board, FALSE);
-	printf("Enter the nodes of the black pieces, ending with -1:\n");
-
-	scanf("%d", &current_node);
-	while(current_node != -1) {
-		string_board[current_node-1] = global_black[0].pic;
-		scanf("%d", &current_node);
-	}
-
-	printf("Enter the nodes of the white pieces, ending with -1:\n");
-
-	scanf("%d", &current_node);
-	while(current_node != -1) {
-		string_board[current_node-1] = global_white[0].pic;
-		scanf("%d", &current_node);
-	}
-
-	printf("Enter the number of the player:\n");
-	scanf("%d", &player);
-
-	string_board[num_nodes] = '\0';
-
-	initialPosition = generic_hash_hash(string_board, player);
-
-	free(string_board);
-
-	return initialPosition;
-}
-
-
 /************************************************************************
 **
 ** NAME:        PrintComputersMove

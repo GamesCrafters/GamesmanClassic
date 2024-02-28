@@ -139,11 +139,6 @@ void InitializeGame() {
     }
 }
 
-/* Return the hash value of the initial position within the initial tier. */
-POSITION GetInitialPosition() {
-    return 0;
-}
-
 /* Return a linked list of moves. A move is encoded as the index of the top square
 of a vertical piece being placed or by the left square of a horizontal piece being
 placed. If the nth bit of the bitBoard is set, that means that index n (space n) 
@@ -265,7 +260,7 @@ POSITION GetCanonicalPosition(POSITION position) {
     1x1 spaces on the board).
 */
 TIERLIST *getTierChildren(TIER tier) {
-    if (tier < boardSize >> 1) {
+    if (tier < ((unsigned int) boardSize) >> 1) {
         return CreateTierlistNode(tier + 1, NULL);
     }
     return NULL;

@@ -45,7 +45,6 @@ MOVE hashMove(BOOLEAN isGridMove, int from, int to);
 void unhashMove(MOVE move, BOOLEAN *isGridMove, int *from, int *to);
 void GameSpecificMenu();
 POSITION DoMove(POSITION position, MOVE move);
-POSITION GetInitialPosition();
 void PrintComputersMove(MOVE computersMove, STRING computersName);
 VALUE Primitive(POSITION position);
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
@@ -599,21 +598,6 @@ POSITION DoMove(POSITION position, MOVE move) {
   POSITION toReturn = hash(board, xPlaced, oPlaced, gridPos, turn);
   SafeFree(board);
   return toReturn;
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-  return gInitialPosition;
 }
 
 /************************************************************************
@@ -1178,26 +1162,30 @@ MOVE ConvertTextInputToMove(STRING input) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
   BOOLEAN isGridMove;
   int from, to;
-  unhashMove(move % 100000, &isGridMove, &from, &to);
+  unhashMove(move & 0xFFFF, &isGridMove, &from, &to);
   // 0: placing new pieces
   // message: "A-DEST"
-  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
-    snprintf(moveStringBuffer, 4, "G");
-  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
-    snprintf(moveStringBuffer, 8, "M-%d", from);
-  } else {
+  if (move & 0x80000) { // Move is "choose to move grid" partmove
+    sprintf(moveStringBuffer, "G-%d", from + 1);
+  } else if (move & 0x40000) { // Move is "select piece to move" partmove
+    sprintf(moveStringBuffer, "M-%d", from + 1);
+  } else if (move & 0x30000) { 
+    // Move is partmove: either select where to move grid or
+    // select where to move piece
+    sprintf(moveStringBuffer, "%d", to + 1);
+  } else { // fullmove
     if (from == to) {
-      snprintf(moveStringBuffer, 8, "A-%d", to + 1);
+      sprintf(moveStringBuffer, "A-%d", to + 1);
     }
     // 1: moving existing pieces
     // message: "M-SRC-DEST"
     else if (!isGridMove) {
-      snprintf(moveStringBuffer, 8, "M-%d-%d", from + 1, to + 1);
+      sprintf(moveStringBuffer, "M-%d-%d", from + 1, to + 1);
     }
     // 2: moving the grid
     // message: "G-SRC-DEST"
     else {
-      snprintf(moveStringBuffer, 8, "G-%d-%d", from + 1, to + 1); 
+      sprintf(moveStringBuffer, "G-%d-%d", from + 1, to + 1); 
     }
   }
 }
@@ -1341,9 +1329,14 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 
   if (isIntermediate) {
     if (isGridMove) {
+      // Show "Choose a grid center" SVG message at bottom
       finalBoard[entityStringSize - 2] = 'T';
     } else {
-      finalBoard[entityStringSize - 2] = 'a' + from;
+      // For making the different intermediate positions have
+      // different autogui position strings
+      // This is needed to distinguish the intermediate positions because
+      // We need to show a different set of part-moves from each
+      finalBoard[entityStringSize - 2] = 'a' + from; // will not be shown
     }
   }
   finalBoard[entityStringSize - 1] = '\0';
@@ -1354,14 +1347,14 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
   (void) position;
   int isGridMove, from, to;
-  unhashMove(move % 100000, &isGridMove, &from, &to);
-  if (move >= 500000) { // Move is "choose to move grid"; 500000 + move
-    AutoGUIMakeMoveButtonStringA('g', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
-  } else if (move >= 400000) { // Move is "choose where to move grid"; 400000 + move
-    AutoGUIMakeMoveButtonStringA('h', to, 'z', autoguiMoveStringBuffer);
-  } else if (move >= 300000) { // Move is "select piece to move"; 300000 + move
+  unhashMove(move & 0xFFFF, &isGridMove, &from, &to);
+  if (move & 0x80000) { // Move is "choose to move grid";
+    AutoGUIMakeMoveButtonStringA('Z', boardSize + numGridPlacements, 'x', autoguiMoveStringBuffer);
+  } else if (move & 0x40000) { // Move is "select piece to move";
     AutoGUIMakeMoveButtonStringA('h', from, 'y', autoguiMoveStringBuffer);
-  } else if (move >= 200000) { // Move is "select where to move piece"; 200000 + move
+  } else if (move & 0x20000) { // Move is "select where to move grid";
+    AutoGUIMakeMoveButtonStringA('h', to, 'z', autoguiMoveStringBuffer);
+  } else if (move & 0x10000) { // Move is "select where to move piece"
     AutoGUIMakeMoveButtonStringM(from, to, 'z', autoguiMoveStringBuffer);
   } else {
     if (from == to) { // Single-part move
@@ -1372,7 +1365,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   }
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
   int edgeFromAdded = 0;
@@ -1386,19 +1378,20 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
     if (isGridMove) {
       if (!gridMoveAdded) {
         // Add "choose to move grid" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 500000 + moveList->move, 0, mpel);
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 0x80000 | moveList->move, 0, mpel);
         gridMoveAdded = TRUE;
       }
       // Add "choose where to move grid" partMove
-      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 400000 + moveList->move, moveList->move, mpel);
+      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 0x20000 | moveList->move, moveList->move, mpel);
     } else if (from != to) {
       POSITION slideMoveInterPos = encodeIntermediatePosition(position, FALSE, from);
       if (!(edgeFromAdded & (1 << from))) {
         // Add "select piece to move" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 300000 + moveList->move, 0, mpel);
+        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 0x40000 | moveList->move, 0, mpel);
         edgeFromAdded ^= (1 << from);
       }
-      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 200000 + moveList->move, moveList->move, mpel);
+      // Add "select where to move the piece" partMove
+      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 0x10000 | moveList->move, moveList->move, mpel);
     }
     // Ignore placement moves, they're single-part
 

@@ -173,21 +173,6 @@ POSITION DoMove(POSITION position, MOVE move) {
 
 /************************************************************************
 **
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-  return gInitialPosition;
-}
-
-/************************************************************************
-**
 ** NAME: PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -757,7 +742,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-  snprintf(moveStringBuffer, 10, "%2d %2d", origin, target);
+  snprintf(moveStringBuffer, 20, "%2d %2d", origin, target);
 }
 
 int NumberOfOptions() {

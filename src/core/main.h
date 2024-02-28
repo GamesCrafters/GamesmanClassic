@@ -2,10 +2,10 @@
 #ifndef GMCORE_MAIN_H
 #define GMCORE_MAIN_H
 
-void    Initialize              ();
+void    Initialize              (void);
 
 void    StartGame               (STRING executableName);
-void    SolveAndStore           ();
+void    SolveAndStore           (void);
 VALUE   DetermineValue          (POSITION start);
 void    HandleArguments         (int argc, char *argv[]);
 int     main                    (int argc, char *argv[]);

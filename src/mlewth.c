@@ -114,6 +114,7 @@ void* gGameSpecificTclInit = NULL;
 *************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION position);
+POSITION GetInitialPosition(void);
 
 int boardSize = 25;
 int sideLength = 5;

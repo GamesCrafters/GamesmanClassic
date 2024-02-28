@@ -225,11 +225,7 @@ BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d);
 
 void InitializeGame()
 {
-	kCombinatorial = TRUE;
-}
-
-void FreeGame()
-{
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************
@@ -668,18 +664,18 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
-	char m[20];
+	char m[40];
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf(moveStringBuffer, 20, "[ " );
-	snprintf(m, 20, "%s", moveStringBuffer);
+	sprintf(moveStringBuffer, "[ " );
+	sprintf(m, "%s", moveStringBuffer);
 	for(int i = 0; i < gBoardSize; i++) {
 		if(theMove & g2Array[i]) {
-			snprintf(moveStringBuffer, 20, "%s%d ", m, i+1);
-			snprintf(m, 20, "%s", moveStringBuffer);
+			sprintf(moveStringBuffer, "%s%d ", m, i+1);
+			sprintf(m, "%s", moveStringBuffer);
 		}
 	}
-	snprintf(moveStringBuffer, 20, "%s]", m);
+	sprintf(moveStringBuffer, "%s]", m);
 }
 
 /************************************************************************

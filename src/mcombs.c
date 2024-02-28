@@ -70,11 +70,6 @@ void InitializeGame()
 	//gCustomTraits = CUSTOM_TRAITS;
 }
 
-// Not sure what this is supposed to do
-void FreeGame()
-{
-}
-
 // Probably not going to implement this
 void DebugMenu()
 {
@@ -161,11 +156,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
     }
   }
 	return thePosition;
-}
-
-POSITION GetInitialPosition()
-{
-	return gInitialPosition;
 }
 
 // Print out a computer's move

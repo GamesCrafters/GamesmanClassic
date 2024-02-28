@@ -128,7 +128,6 @@ BOOLEAN ValidTextInput (STRING input);
 MOVE ConvertTextInputToMove (STRING input);
 void GameSpecificMenu ();
 void SetTclCGameSpecificOptions (int options[]);
-POSITION GetInitialPosition ();
 int NumberOfOptions ();
 int getOption ();
 void setOption (int option);
@@ -1040,13 +1039,15 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 	int removeIdx = move & 0x1F;
 
 	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
-		snprintf(moveStringBuffer, 12, "%d-%dr%d",fromIdx, toIdx, removeIdx);
+		sprintf(moveStringBuffer, "%d-%dr%d",fromIdx, toIdx, removeIdx);
 	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
-		snprintf(moveStringBuffer, 12, "%d-%d", fromIdx, toIdx);
+		sprintf(moveStringBuffer, "%d-%d", fromIdx, toIdx);
+	} else if (fromIdx == 31 && toIdx == 31 && removeIdx != 31) {
+		sprintf(moveStringBuffer, "r%d", removeIdx);
 	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
-		snprintf(moveStringBuffer, 12, "%d", toIdx);
+		sprintf(moveStringBuffer, "%d", toIdx);
 	} else {
-		snprintf(moveStringBuffer, 12, "%dr%d", toIdx, removeIdx);
+		sprintf(moveStringBuffer, "%dr%d", toIdx, removeIdx);
 	}
 }
 
@@ -1293,7 +1294,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 void GameSpecificMenu() {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -1383,25 +1383,6 @@ void GameSpecificMenu() {
 void SetTclCGameSpecificOptions(int options[]) {
 	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -2014,7 +1995,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	}
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	(void) position;
 	// Assumes moveList/positionList is same ordering as generated in GenerateMoves

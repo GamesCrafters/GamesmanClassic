@@ -179,6 +179,7 @@ void LeftGravity(BlankOX *theBlankOX, int *pieceToGravitate);
 void RightGravity(BlankOX *theBlankOX, int *pieceToGravitate);
 void Gravity(BlankOX *theBlankOX, int *pieceToGravitate, int bound, int increment);
 BlankOX NinARow(BlankOX *theBlankOX, int i);
+POSITION GetInitialPosition(void);
 
 void InitializeGame()
 {
@@ -188,11 +189,6 @@ void InitializeGame()
 	}
 
 }
-
-void FreeGame()
-{
-}
-
 
 /************************************************************************
 **

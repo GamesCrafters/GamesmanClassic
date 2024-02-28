@@ -55,10 +55,10 @@ extern seList evaluatorList;
 
 // Function Prototypes
 
-extern USERINPUT StaticEvaluatorMenu();
+extern USERINPUT StaticEvaluatorMenu(void);
 extern float evaluatePosition(POSITION);
 extern VALUE evaluatePositionValue(POSITION);
-extern void TryToLoadAnEvaluator();
+extern void TryToLoadAnEvaluator(void);
 
 BOOLEAN FullInitializeSEval(char*);
 float numPieces(void*,void*,int[]);
@@ -79,7 +79,7 @@ void freeFeatureList(fList);
 void freeEvaluatorList(seList);
 STRING copyString(STRING);
 fList copyFeatureList(fList);
-void updateCurrentEvaluator();
+void updateCurrentEvaluator(void);
 BOOLEAN loadDataFromXML(STRING);
 BOOLEAN writeEvaluatorToXMLFile(seList, STRING);
 BOOLEAN initializeStaticEvaluator(STRING);

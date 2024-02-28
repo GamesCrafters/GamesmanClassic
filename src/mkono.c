@@ -500,7 +500,7 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 ************************************************************************/
 
 void MoveToString (MOVE theMove, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 10, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
+	sprintf(moveStringBuffer, "%d %d", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
 }
 
 
@@ -706,26 +706,6 @@ void SetTclCGameSpecificOptions (int options[])
 {
 	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return 0;
-}
-
 
 /************************************************************************
 **

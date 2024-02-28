@@ -261,10 +261,6 @@ void InitializeGame()
 	gInitialPosition = BlankOXToPosition(board);
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu

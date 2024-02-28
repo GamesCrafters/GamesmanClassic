@@ -118,9 +118,8 @@ adjacency *adjacent;
 void* gGameSpecificTclInit = NULL;
 
 /* Internal */
-void displayasciiboard(char *, char *);
-int NumberOfOptions();
-int getOption();
+int NumberOfOptions(void);
+int getOption(void);
 void setOption(int);
 char *emptyboard(char *);
 POSITION hash(char *,int, int);
@@ -133,7 +132,7 @@ char *getprediction(char *);
 BOOLEAN isValidMove(MOVE, char);      /* helper for GenerateMoves */
 VALUE countWinner(POSITION);              /* helper for Primitive */
 BOOLEAN isSurrounded(char *, MOVE, char, BOOLEAN *);  /* helper for DoMove, isValidMove */
-void zeroChecked(); /* helper for InitializeGame, isSurrounded, isTerritory */
+void zeroChecked(void); /* helper for InitializeGame, isSurrounded, isTerritory */
 BOOLEAN isTerritory(char *, MOVE, char, BOOLEAN *);  /* helper for Primitive */
 void removeStones(char *, MOVE, char, BOOLEAN *); /* helper for DoMove */
 char getmovechar(MOVE);
@@ -169,7 +168,7 @@ POSITION GetCanonicalPosition(POSITION position);
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame (void)
 {
 	/* need to change this to reflect the board size */
 	maxsize=5+4*boardsize;
@@ -736,7 +735,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	return position;
 }
 
-void zeroChecked() {
+void zeroChecked(void) {
 	int i;
 	for(i = 0; i < maxsize; i++)
 		checked[i] = FALSE;
@@ -1330,7 +1329,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
+void GameSpecificMenu (void)
 {
 	char choice;
 	int boardsizechoice;
@@ -1427,7 +1426,7 @@ void SetTclCGameSpecificOptions (int options[])
 **
 ************************************************************************/
 
-POSITION GetInitialPosition() {
+POSITION GetInitialPosition(void) {
 	char *moves;
 	char in;
 	char *prediction="";
@@ -1507,7 +1506,7 @@ POSITION GetInitialPosition() {
 **
 ************************************************************************/
 
-int NumberOfOptions ()
+int NumberOfOptions (void)
 {
 	int curoptions=getOption();
 	int numberOfOptions;
@@ -1535,7 +1534,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
+int getOption (void)
 {
 	/**
 	** Options:
@@ -1583,7 +1582,7 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-void DebugMenu ()
+void DebugMenu (void)
 {
 	printf("DEBUG MENU\n\n\n");
 }

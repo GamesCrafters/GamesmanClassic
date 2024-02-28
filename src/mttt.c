@@ -274,8 +274,6 @@ void InitializeGame() {
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
 }
 
-void FreeGame() {}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu
@@ -398,42 +396,6 @@ void UndoMove(MOVE move) {
 	gPosition.board[move] = Blank;
 	gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
 	--gPosition.piecesPlaced;
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	BlankOX theBlankOX[BOARDSIZE];
-	signed char c;
-	int i;
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		/* else do nothing */
-	}
-
-	return(BlankOXToPosition(theBlankOX));
 }
 
 /************************************************************************
@@ -714,7 +676,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 void MoveToString(MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf(moveStringBuffer, 2, "%d", move + 1);
+	sprintf(moveStringBuffer, "%d", move + 1);
 }
 
 /************************************************************************

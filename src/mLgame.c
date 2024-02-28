@@ -327,6 +327,7 @@ int clearS2(int L1, int L2, int S1, int S2);
 int checkCor(int Lo, int Lc);
 int checkOrient(int Lo, int L1);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
+POSITION GetInitialPosition(void);
 
 /************************************************************************
 **
@@ -339,10 +340,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 void InitializeGame()
 {
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -529,42 +526,36 @@ void SetTclCGameSpecificOptions(int theOptions[])
 
 
 POSITION DoMove(POSITION thePosition, MOVE theMove) {
-	int L1, L2, S1, S2, whosMove, origL1, origL2, origS1, origS2, L, SPiece, SValue;
+	int L1, L2, S1, S2, origL1, origL2, origS1, origS2, origTurn, L, SPiece, SValue;
 	origL1 = unhashL1(thePosition);
 	origL2 = Make48(origL1, unhashL2(thePosition));
 	origS1 = Make8to16(origL1, origL2, unhashS1(thePosition));
 	origS2 = Make7to16(origL1, origL2, origS1, unhashS2(thePosition));
-	whosMove = unhashTurn(thePosition);
+	origTurn = unhashTurn(thePosition);
 	L = unhashMoveL(theMove);
 	SPiece = unhashMoveSPiece(theMove);
 	SValue = unhashMoveSValue(theMove);
-	if (whosMove == 1) {
+	if (origTurn == 1) {
 		L2 = origL2;
 		L1 = L;
-	}
-	else {
+	} else {
 		L1 = origL1;
 		L2 = L;
 	}
 	if (SPiece == 0) {
 		S1 = origS1;
 		S2 = origS2;
-	}
-	else if (SPiece == 1) {
+	} else if (SPiece == 1) {
 		S2 = origS2;
 		S1 = SValue;
-	}
-	else {
+	} else {
 		S1 = origS1;
 		S2 = SValue;
 	}
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-	if (whosMove == 1)
-		whosMove = 2;
-	else whosMove = 1;
-	return (POSITION)hash(L1, L2, S1, S2, whosMove);
+	return (POSITION) hash(L1, L2, S1, S2, (origTurn == 1) ? 2 : 1);
 }
 
 /************************************************************************
@@ -912,7 +903,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	int i, j;
 
 	if (whosMove == 1) {
-		for (i = 1; i<49; i++) {
+		for (i = 1; i < 49; i++) {
 			if ((memberOf(i, FOURSQUARES[newL2Piece][0])==0) &&
 			    (memberOf(i, FOURSQUARES[newL2Piece][1])==0) &&
 			    (memberOf(i, FOURSQUARES[newL2Piece][2])==0) &&
@@ -943,28 +934,9 @@ MOVELIST *GenerateMoves(POSITION position) {
 						}
 					}
 				}
-				/*
-				for (j = 0; j<6; j++) {
-					if (white1) {
-						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-					}
-					else {
-						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-					}
-				}*/
 			}
 		}
-	}
-
-	else if (whosMove == 2) {
+	} else if (whosMove == 2) {
 		for (i = 1; i<49; i++) {
 			if ((memberOf(i, FOURSQUARES[L1][0])==0) &&
 			    (memberOf(i, FOURSQUARES[L1][1])==0) &&
@@ -996,24 +968,6 @@ MOVELIST *GenerateMoves(POSITION position) {
 						}
 					}
 				}
-
-				/*
-				for (j = 0; j<6; j++) {
-					if (white1) {
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-					}
-					else {
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-					}
-				}*/
 			}
 		}
 	}
@@ -1192,14 +1146,26 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-void MoveToString(MOVE theMove, char *moveStringBuffer) {
-	int L = unhashMoveL(theMove);
-	if (unhashMoveSPiece(theMove) == 0) {
-		snprintf( moveStringBuffer, 16, "%d %d", transPairs[L][0], transPairs[L][1]);
-	} else if (unhashMoveSPiece(theMove) == 1) {
-		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	MOVE partMoveData = (move & 0xF00000);
+	move &= 0xFFFFF;
+	int L = unhashMoveL(move);
+	int SPiece = unhashMoveSPiece(move);
+	if (partMoveData & 0x800000) {
+		sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+	} else if (partMoveData & 0x600000) {
+		snprintf(moveStringBuffer, 10, "pass");
+	} else if (partMoveData & 0x100000) {
+		char p = (SPiece == 1) ? 'w' : 'g';
+		sprintf(moveStringBuffer, "%c %d", p, unhashMoveSValue(move));
 	} else {
-		snprintf( moveStringBuffer, 16, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
+		if (SPiece == 0) {
+			sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+		} else if (SPiece == 1) {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(move));
+		} else {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(move));
+		}
 	}
 }
 
@@ -1950,57 +1916,47 @@ void setOption(int option)
 	mustMove = option/(2*3)%2==1;
 }
 
-// 1 11111111 11111 isIntermediate(2), fromLPiece (8), NPiece(2), fromNPiece (5), toLPiece(8)
-
-POSITION encodeInterpos(POSITION origPos, POSITION isIntermediate, POSITION fromLPiece, POSITION SPiece, POSITION fromSPiece, POSITION toLPiece) {
-	return origPos | (isIntermediate << 62) | (fromLPiece << 54) | (SPiece << 52) | (fromSPiece << 47) | (toLPiece << 39);
+POSITION encodeInterPos(POSITION origPos, int isIntermediate, int toLPiece) {
+	return origPos | (((POSITION) isIntermediate) << 63) | (((POSITION) toLPiece) << 55);
 }
 
-POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece, int *SPiece, int *fromSPiece, int *toLPiece) {
-	(*isIntermediate) = interPos >> 62;
-	(*fromLPiece) = (interPos >> 54) & 0xFF;
-	(*SPiece) = (interPos >> 52) & 0b11;
-	(*fromSPiece) = (interPos >> 47) & 0x1F;
-	(*toLPiece) = (interPos >> 39) & 0xFF;
+POSITION decodeInterPos(POSITION interPos, int *isIntermediate, int *toLPiece) {
+	(*isIntermediate) = interPos >> 63;
+	(*toLPiece) = (interPos >> 55) & 0xFF;
 	return interPos & 0x0000000FFFFFFFFF;
 }
 
 /* 1_WRR--BR--BR--BBG */
 POSITION StringToPosition(char *positionString) {
-	int whoseMove = positionString[0] == '1' ? 1 : 2;
+	int turn = positionString[0] == '1' ? 1 : 2;
 	char *board = positionString + 1;
-	int L1 = 0, L2 = 0, S1 = 0, S2 = 0;
+	int i, L1 = 0, L2 = 0, S1 = 0, S2 = 0;
 
-	for (int i = 1; i <= 16; i++) {
+	for (i = 1; i <= 16; i++) {
 		if (board[i] == 'W') {
 			S1 = i;
 			break;
 		}
 	}
 	
-	for (int i = 1; i <= 16; i++) {
+	for (i = 1; i <= 16; i++) {
 		if (board[i] == 'G') {
 			S2 = i;
 			break;
 		}
 	}
 
-
-	for (int i = 1; i <= 48; i++) {
-		if (board[FOURSQUARES[i][0]] == 'R' && 
-			board[FOURSQUARES[i][1]] == 'R' &&
-			board[FOURSQUARES[i][2]] == 'R' &&
-			board[FOURSQUARES[i][3]] == 'R') {
+	for (i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'B' && board[FOURSQUARES[i][1]] == 'B' &&
+			board[FOURSQUARES[i][2]] == 'B' && board[FOURSQUARES[i][3]] == 'B') {
 			L1 = i;
 			break;
 		}
 	}
 	
-	for (int i = 1; i <= 48; i++) {
-		if (board[FOURSQUARES[i][0]] == 'B' && 
-			board[FOURSQUARES[i][1]] == 'B' &&
-			board[FOURSQUARES[i][2]] == 'B' &&
-			board[FOURSQUARES[i][3]] == 'B') {
+	for (i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'R' && board[FOURSQUARES[i][1]] == 'R' &&
+			board[FOURSQUARES[i][2]] == 'R' && board[FOURSQUARES[i][3]] == 'R') {
 			L2 = i;
 			break;
 		}
@@ -2009,153 +1965,128 @@ POSITION StringToPosition(char *positionString) {
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-
-	return hash(L1, L2, S1, S2, whoseMove);
+	return hash(L1, L2, S1, S2, turn);
 }
 
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
-	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
-	POSITION pos = decodeInterpos(position, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
-	char board[23] = "-----------------aaaaa\0";
-	int L1 = unhashL1(pos);
-	int L2 = unhashL2(pos);
-	int S1 = unhashS1(pos);
-	int S2 = unhashS2(pos);
-	int whoseTurn = unhashTurn(pos);
-
-	int turn = (whoseTurn == 1) ? 1 : 2;
-
-	L2 = Make48(L1, L2);
-	S1 = Make8to16(L1, L2, S1);
-	S2 = Make7to16(L1, L2, S1, S2);
-
-	if (isIntermediate > 0) {
-		if (isIntermediate > 1) {
-			if (SPiece == 1) {
-				board[fromSPiece] = '-';
-				board[S2] = 'G';
-			} else {
-				board[S1] = 'W';
-				board[fromSPiece] = '-';
-			}
-		} else {
-			board[S1] = 'W';
-			board[S2] = 'G';
-		}
-		
-		if (whoseTurn == 1) {
-			for (int i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i]] = 'R';
-			for (int i = 0; i < 4; i++) board[FOURSQUARES[L2][i]] = 'B';
-		} else {
-			for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
-			for (int i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i]] = 'B';
-		}
-	} else {
-		board[S1] = 'W';
-		board[S2] = 'G';
-		for (int i = 0; i < 4; i++) board[FOURSQUARES[L1][i]] = 'R';
-		for (int i = 0; i < 4; i++) board[FOURSQUARES[L2][i]] = 'B';
-	}
-	board[17] = '\0';
-	AutoGUIMakePositionString(turn, board + 1, autoguiPositionStringBuffer);
-}
-
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-  (void) position;
-  if (move >= 300000) { // Selecting L: corner and orientation
-		int L = unhashMoveL(move % 100000);
-		return AutoGUIMakeMoveButtonStringA(((L - 1) / 6) + '1', 20 + L, 'x');
-	} else if (move >= 200000) { // Selecting which neutral piece to place
-		int SP = unhashMoveSPiece(move % 100000); // SP will NOT be 0 if mv is a part-move
-		int L1 = unhashL1(position);
-		int L2 = unhashL2(position);
-		int S1 = unhashS1(position);
-		int S2 = unhashS2(position);
-
-		L2 = Make48(L1, L2);
-		S1 = Make8to16(L1, L2, S1);
-		S2 = Make7to16(L1, L2, S1, S2);
-		if (SP == 1) { 
-			return AutoGUIMakeMoveButtonStringA('h', S1 - 1, 'y');
-		} else {
-			return AutoGUIMakeMoveButtonStringA('h', S2 - 1, 'y');
-		}
-	} else if (move >= 100000) { // Choosing where to place neutral piece
-		int SV = unhashMoveSValue(move % 100000);
-		return AutoGUIMakeMoveButtonStringA('h', SV - 1, 'z');
-	} else {
-		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
-	}
-}
-
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	// Assumes moveList is in reverse order of what is returned by GenerateMoves, i.e. 
-	// The order of elements appended to the linked list of moves i.e.
-	// Assumes moveList is grouped by L, then grouped by SPiece. Assumes no-neutral-move move comes before neutral-move moves
-	MULTIPARTEDGELIST *mpel = NULL;
-	int prevL = -1;
-	int prevSP = -1;
-
-	POSITION interPos1 = 0, interPos2w = 0, interPos2g = 0, interPos2 = 0;
-	MOVE moveW = 0, moveG = 0;
-
+void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) {
+	int isIntermediate, toLPiece;
+	POSITION position = decodeInterPos(state, &isIntermediate, &toLPiece);
+	char board[17];
+	memset(board, '-', 17);
 	int L1 = unhashL1(position);
 	int L2 = unhashL2(position);
 	int S1 = unhashS1(position);
 	int S2 = unhashS2(position);
-	int whoseTurn = unhashTurn(position);
+	int turn = unhashTurn(position);
+	int i;
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
+	board[S1 - 1] = 'W';
+	board[S2 - 1] = 'G';
+	if (isIntermediate) {		
+		if (turn == 1) {
+			for (i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i] - 1] = 'B';
+			for (i = 0; i < 4; i++) board[FOURSQUARES[L2][i] - 1] = 'R';
+		} else {
+			for (i = 0; i < 4; i++) board[FOURSQUARES[L1][i] - 1] = 'B';
+			for (i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i] - 1] = 'R';
+		}
+	} else {
+		for (i = 0; i < 4; i++) board[FOURSQUARES[L1][i] - 1] = 'B';
+		for (i = 0; i < 4; i++) board[FOURSQUARES[L2][i] - 1] = 'R';
+	}
+	board[16] = '\0';
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE partMove, char *autoguiMoveStringBuffer) {
+	MOVE fullMove = partMove & 0xFFFFF;
+	int L, SV, L1, L2, S1, S2;
+	if (partMove & 0x800000) {
+		// Part-Move 1: Selecting L-piece corner and orientation
+		L = unhashMoveL(fullMove);
+		AutoGUIMakeMoveButtonStringA(((L - 1) / 6) + '1', 20 + L, 'x', autoguiMoveStringBuffer);
+	} else if (partMove & 0x600000) {
+		// Part-Move 2: Choosing not to move a neutral piece
+		// Buttons for choosing not to move a neutral piece
+		// There are two buttons/partMoves that the user can click to indicate that
+		// they wish not to move a neutral piece
+		L1 = unhashL1(position);
+		L2 = unhashL2(position);
+		S1 = unhashS1(position);
+		L2 = Make48(L1, L2);
+		S1 = Make8to16(L1, L2, S1);
+
+		if (partMove & 0x400000) {
+			// Circle Button that appears on S1
+			AutoGUIMakeMoveButtonStringA('-', S1 - 1, 'y', autoguiMoveStringBuffer);
+		} else {
+			// Circle Button that appears on S2
+			S2 = unhashS2(position);
+			S2 = Make7to16(L1, L2, S1, S2);
+			AutoGUIMakeMoveButtonStringA('-', S2 - 1, 'y', autoguiMoveStringBuffer);
+		}
+	} else if (partMove & 0x100000) {
+		// Part-Move 2: Choosing where to slide neutral piece (arrow button)
+		SV = unhashMoveSValue(fullMove);
+		L1 = unhashL1(position);
+		L2 = unhashL2(position);
+		S1 = unhashS1(position);
+		L2 = Make48(L1, L2);
+		S1 = Make8to16(L1, L2, S1);
+		if (unhashMoveSPiece(fullMove) == 1) { 
+			AutoGUIMakeMoveButtonStringM(S1 - 1, SV - 1, 'z', autoguiMoveStringBuffer);
+		} else {
+			S2 = unhashS2(position);
+			S2 = Make7to16(L1, L2, S1, S2);
+			AutoGUIMakeMoveButtonStringM(S2 - 1, SV - 1, 'z', autoguiMoveStringBuffer);
+		}
+	} else {
+		// The input `partMove` is actually a full-move, and does not have an Autogui movestring.
+		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+	}
+}
+
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Can assume moveList is in same order of what is returned by GenerateMoves
+	MULTIPARTEDGELIST *mpel = NULL;
+	int L, SP, prevL = -1;
+	POSITION interPos;
+
+	int L1 = unhashL1(position); // L1 is "base 48"
+	int L2 = unhashL2(position); // L2 is "base 24"
+	int S1 = unhashS1(position); // S1 is "base 8"
+	int S2 = unhashS2(position); // S2 is "base 7"
+
+	L2 = Make48(L1, L2);            // Convert L2 from "base 24" to "base 48"
+	S1 = Make8to16(L1, L2, S1);     // Convert S1 from "base 8"  to "base 16"
+	S2 = Make7to16(L1, L2, S1, S2); // Convert S2 from "base 7"  to "base 16"
+
 	while (moveList != NULL) {
-		int L = unhashMoveL(moveList->move);
-		int SP = unhashMoveSPiece(moveList->move);
+		L = unhashMoveL(moveList->move);       // Where L-piece is being moved (1-48)
+		SP = unhashMoveSPiece(moveList->move); // Which S-piece is being moved (1-2, or 0 for neither)
 
 		if (L != prevL) {
-			if (whoseTurn == 1) {
-				interPos1 = encodeInterpos(position, 1, L1, 0, 0, L);
-			} else {
-				interPos1 = encodeInterpos(position, 1, L2, 0, 0, L);
-			}
-			mpel = CreateMultipartEdgeListNode(position, interPos1, moveList->move + 300000, 0, FALSE, mpel); // from position to L
+			// This part-move corresponds to selecting the L-piece corner and orientation
+			// The condition is to ensure we don't add the same part-move twice
+			interPos = encodeInterPos(position, 1, L);
+			mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, 0x800000 | moveList->move, 0, mpel);
 			prevL = L;
 		}
-		if (SP != prevSP) {
-			if (SP == 0) {
-				if (whoseTurn == 1) {
-					interPos2w = encodeInterpos(position, 2, L1, 1, S1, L);
-					moveW = hashMove(L1, 1, S1);
-					interPos2g = encodeInterpos(position, 2, L1, 2, S2, L);
-					moveG = hashMove(L1, 2, S2);
-				} else {
-					interPos2w = encodeInterpos(position, 2, L2, 1, S1, L);
-					moveW = hashMove(L2, 1, S1);
-					interPos2g = encodeInterpos(position, 2, L2, 2, S2, L);
-					moveG = hashMove(L2, 2, S2);
-				}
-				
-				mpel = CreateMultipartEdgeListNode(interPos1, interPos2w, moveW + 200000, 0, FALSE, mpel); // from L to w
-				mpel = CreateMultipartEdgeListNode(interPos2w, positionList->position, moveW + 100000, moveList->move, TRUE, mpel); // from w to end
-				mpel = CreateMultipartEdgeListNode(interPos1, interPos2g, moveG + 200000, 0, FALSE, mpel); // from L to g
-				mpel = CreateMultipartEdgeListNode(interPos2g, positionList->position, moveG + 100000, moveList->move, TRUE, mpel); // from g to end
-				moveList = moveList->next;
-				positionList = positionList->next;
-				prevSP = SP;
-				continue;
-			} else {
-				if (SP == 1) {
-					interPos2 = interPos2w;
-				} else {
-					interPos2 = interPos2g;
-				}
-				prevSP = SP;
-			}
-		}
 
-		mpel = CreateMultipartEdgeListNode(interPos2, positionList->position, moveList->move + 100000, moveList->move, TRUE, mpel); // from SP to end
+		if (SP == 0) {
+			// This is reached if the current move is a don't-move-either-neutral-piece move.
+			// We create two part-moves because we want two circle buttons on each neutral piece,
+			// either of which the user can click to indicate that they don't want to move the neutral piece
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x400000 | moveList->move, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x200000 | moveList->move, moveList->move, mpel);
+		} else {
+			// This is reached if the current move is a move-a-neutral-piece move
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x100000 | moveList->move, moveList->move, mpel);
+		}
 
 		moveList = moveList->next;
 		positionList = positionList->next;

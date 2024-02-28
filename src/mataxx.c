@@ -541,16 +541,12 @@ void GameSpecificMenu ()
 		PrintPosition(gInitialPosition, "Gamesman", 0);
 		printf("\tGame Options:\n\n"
 		       "\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
-		       "\ti)\tSet the (I)nitial position\n"
 		       "\tb)\t(B)ack to the main menu\n"
 		       "\nSelect an option:  ", width, length);
 		c = GetMyChar();
 		switch(c) {
 		case 'c': case 'C':
 			ChangeBoardSize();
-			break;
-		case 'i': case 'I':
-			GetInitialPosition();
 			break;
 		case 'b': case 'B':
 			cont = FALSE;
@@ -576,26 +572,6 @@ void SetTclCGameSpecificOptions (int options[])
 {
 	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return 0;
-}
-
 
 /************************************************************************
 **

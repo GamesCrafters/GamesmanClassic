@@ -232,6 +232,7 @@ MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(char *theBoard, SLOT fromSlot, int direction, char whosTurn);
 char OnlyPlayerLeft(char *theBoard);
 BOOLEAN AllFilledIn(char *theBoard);
+POSITION GetInitialPosition(void);
 
 void InitializeGame()
 {
@@ -249,10 +250,6 @@ void InitializeGame()
 	if (numDragons>3) initialBoard[12] = 'x';
 
 	gInitialPosition = generic_hash_hash2(initialBoard, 'o', 1, numSwans);
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -843,11 +840,11 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	phase = theMove & 1;
 	theMove = theMove >> 1;
 	if(phase == 0)
-		snprintf(moveStringBuffer, 15, "%d", theMove + 1);
+		sprintf(moveStringBuffer, "%d", theMove + 1);
 	else {
 		MoveToSlots(theMove,&fromSlot,&toSlot);
 		/* The plus 1 is because the user thinks it's 1-16, but MOVE is 0-15 */
-		snprintf(moveStringBuffer, 15, "%d %d", fromSlot + 1, toSlot + 1);
+		sprintf(moveStringBuffer, "%d %d", fromSlot + 1, toSlot + 1);
 	}
 }
 

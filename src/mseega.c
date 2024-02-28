@@ -511,40 +511,6 @@ POSITION DoMove (POSITION position, MOVE m) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-//TODO change - default for now
-POSITION GetInitialPosition ()
-{
-	// TODO: find a one-line way to say the following:
-	//char tempname[BOARDARRAYSIZE];
-	//Board b = tempname;
-
-	//printf("\n\n\t----- Get Initial Position -----\n");
-	//printf("\n\tPlease input the position to begin with.\n");
-	//printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
-	//printf("Example:\n");
-
-	//printf("\nTEMP: On second thought let me just give you a random board.\n");
-	//printf("TODO: allow you to enter something.\n");
-	//setWhoseBoard(b, 'x');
-	//makeRandomBoard(b);
-	//InitializeGame();
-	//printf("d",);
-	//gInitialPosition;
-	return gInitialPosition;
-}
-
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.

@@ -194,7 +194,6 @@ BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
 void                    GameSpecificMenu();
 void                    SetTclCGameSpecificOptions(int options[]);
-POSITION                GetInitialPosition();
 int                     NumberOfOptions();
 int                     getOption();
 void                    setOption(int option);
@@ -1089,67 +1088,6 @@ void SetTclCGameSpecificOptions (int options[])
 	(void)options;
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	int turn, i;
-	char piece, turnString;
-
-	gBoard = (char*) SafeMalloc(boardSize*sizeof(char));
-
-	getchar(); // for the enter after picking option 1 on the debug menu
-
-	for(i = 0; i < boardSize; i++) {
-		do {
-			printf("Input the character at cell %i: ", i);
-			piece = (char) getchar();
-			getchar();
-		} while((piece != neutral) && (piece != aPiece) && (piece != bPiece));
-		gBoard[i] = piece;
-	}
-
-
-	do {
-		printf("Input whose turn it is (1 for player A, 2 for player B): ");
-		turnString = (char) getchar();
-		getchar();
-	} while((turnString != '1') && (turnString != '2'));
-	turn = atoi(&turnString);
-
-	if(colcount == 3) {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray3, NULL, 0);
-	}
-	else if(colcount == 4) {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray4, NULL, 0);
-	}
-	else {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray5, NULL, 0);
-	}
-
-	// boardSize^3 to avoid conflict with Tier
-	generic_hash_set_context(boardSize*boardSize*boardSize);
-
-	gInitialPosition = generic_hash_hash(gBoard, turn);
-
-	SafeFree(gBoard);
-
-	return gInitialPosition;
-}
-
-
 /************************************************************************
 **
 ** NAME:        NumberOfOptions
@@ -1578,131 +1516,6 @@ char *PositionToBoard(POSITION position) {
 		return (char *) generic_hash_unhash(position, gBoard);
 	}
 }
-
-// $Log: not supported by cvs2svn $
-// Revision 1.35  2007/01/08 02:53:03  simontaotw
-// Fixed original gamesman; changed game inputs so they do not conflict with system inputs.
-//
-// Revision 1.33  2006/12/19 20:23:48  simontaotw
-// Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
-//
-// Revision 1.31  2006/10/17 10:45:20  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.30  2006/10/06 05:47:13  simontaotw
-//
-// Deleted unnecessary functions. 5x5 player vs. player does not work...
-// too big for hash...
-//
-// Revision 1.29  2006/05/08 19:09:49  simontaotw
-// Code cleanup.
-//
-// Revision 1.28  2006/05/08 07:15:41  simontaotw
-// Fixed some bugs. Game solves.
-//
-// Revision 1.27  2006/05/04 04:59:29  simontaotw
-// Changed winning condition in DoMove.
-//
-// Revision 1.26  2006/05/03 20:15:50  simontaotw
-// Fix small bug in DoMove, changed GetAndPrintPlayersMove.
-//
-// Revision 1.25  2006/04/29 01:40:56  simontaotw
-// Added new input format with 3x3 board.
-//
-// Revision 1.19  2006/03/19 20:39:15  simontaotw
-// Changed the legend so it looks less cramped.
-//
-// Revision 1.18  2006/03/19 06:21:27  albertchae
-// DoMove() works somewhat. Able to play human v human except for a bug
-// with alternating player's move and challenger's move.
-//
-// Revision 1.17  2006/03/18 10:36:35  albertchae
-// Wrote the code for GenerateMoves and PrintMoves. Tried to keep
-// the logic general in case we have variant board sizes. Still needs some
-// testing.
-//
-// Revision 1.16  2006/03/14 12:38:29  albertchae
-// Minor edit. Changed help strings to reflect 4x4. Added some ideas for
-// generate move.
-//
-// Revision 1.15  2006/03/14 12:06:05  albertchae
-// Changed game to 4x4 variant. Added test case to Primitive().
-//
-// Revision 1.14  2006/03/13 06:15:12  albertchae
-// Removed blanks as a possible piece. By rewriting the instructions, we can play using only neutrals.
-//
-// Revision 1.13  2006/03/12 22:16:55  albertchae
-// I fixed the PrintPosition() seg fault. generic_hash requires an empty board which we did not have allocated before.
-// I also fixed the loop in GetInitialPosition() that asks for input. There is something wrong with hashing.
-//
-// Revision 1.12  2006/03/12 22:13:02  albertchae
-// *** empty log message ***
-//
-// Revision 1.11  2006/03/08 06:25:41  simontaotw
-// Updated GetInitialPosition().
-//
-// Revision 1.10  2006/03/07 07:59:11  albertchae
-// Minor change to the help strings regarding ties.
-//
-// Revision 1.9  2006/03/06 06:07:10  simontaotw
-// Updated tie possible.
-//
-// Revision 1.8  2006/03/06 01:57:32  simontaotw
-// Updated Primitive() and added FiveInARow().
-//
-// Revision 1.7  2006/03/05 03:28:15  yanpeichen
-// Yanpei Chen changing mcambio.c
-//
-// deleted two stray characters that caused a compiler error.
-//
-// Revision 1.6  2006/03/04 20:00:54  simontaotw
-// Fixed compile errors.
-//
-// Revision 1.5  2006/03/03 05:19:49  simontaotw
-// Fixed various errors.
-//
-// Revision 1.4  2006/02/26 20:36:53  simontaotw
-// Updated PrintPosition() (Modified PrintPosition() in mtopitop.c).
-//
-// Revision 1.3  2006/02/22 02:54:48  simontaotw
-// Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
-//
-// Revision 1.1  2006/02/21 03:17:00  simontaotw
-// Updated game-specific constants
-//
-// Revision 1.7  2006/01/29 09:59:47  ddgarcia
-// Removed "gDatabase" reference from comment in InitializeGame
-//
-// Revision 1.6  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.5  2005/10/06 03:06:11  hevanm
-// Changed kDebugDetermineValue to be FALSE.
-//
-// Revision 1.4  2005/05/02 17:33:01  nizebulous
-// mtemplate.c: Added a comment letting people know to include gSymmetries
-//           in their getOption/setOption hash.
-// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
-//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
-// analysis.c: Changed initialization of option variable in analyze() to -1.
-// db.c: Changed check in the getter functions (GetValueOfPosition and
-//       getRemoteness) to check if gMenuMode is Evaluated.
-// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
-//             which is a generic version of the two that uses to PLAYER's.
-// gameplay.h: Created the necessary structs and types to have PLAYER's, both
-//          Human and Computer to be sent in to the PlayGame function.
-// gamesman.h: Really don't think I changed anything....
-// globals.h: Also don't think I changed anything....both these I just looked at
-//            and possibly made some format changes.
-// textui.c: Redid the portion of the menu that allows you to choose opponents
-//        and then play a game.  Added computer vs. computer play.  Also,
-//           changed the analysis part of the menu so that analysis should
-//        work properly with symmetries (if it is in getOption/setOption hash).
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
 
 void MoveToString(MOVE move, char *moveStringBuffer) {
 	(void) move;

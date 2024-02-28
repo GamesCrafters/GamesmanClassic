@@ -111,7 +111,6 @@ MOVE MoveEncode(int, int, int, int);
 void MoveDecode(MOVE, int*, int*, int*, int*);
 int boardStatus(POSITION);
 void InitializeGame();
-POSITION GetInitialPosition();
 MOVELIST *GenerateMoves(POSITION);
 POSITION DoMove(POSITION, MOVE);
 VALUE Primitive(POSITION);
@@ -453,10 +452,6 @@ void InitializeGame() {
 
 	// InitializeHelpStrings();
 }
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
-}
 
 MOVELIST *dfs(char* board, MOVE moveValue, MOVELIST* moves, int ox, int oy, int depth, int intermediate){
   BOOLEAN canjump = FALSE;
@@ -743,7 +738,7 @@ void MoveToString(MOVE move, char *movestring) {
     move /= 3;
     int from = move / BOARDSIZE;
     int to = move % BOARDSIZE;
-    snprintf(movestring, 40, "m %d %d", from, to);
+    sprintf(movestring, "m %d %d", from, to);
   } else {
     int stack[6];
     int top = -1;
@@ -754,12 +749,12 @@ void MoveToString(MOVE move, char *movestring) {
       move /= moveOffset;
     }
     if (top == -1){
-      snprintf(movestring, 40, "%s", "s");
+      sprintf(movestring, "%s", "s");
     } else {
-      snprintf(movestring, 40, "%s", "j");
+      sprintf(movestring, "%s", "j");
       for (; top >= 0; top--){
-        snprintf(temp, 40, "%s", movestring);
-        snprintf(movestring, 40, "%s %d", temp, stack[top]);
+        sprintf(temp, "%s", movestring);
+        sprintf(movestring, "%s %d", temp, stack[top]);
       }
     }
   }

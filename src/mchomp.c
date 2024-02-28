@@ -86,12 +86,7 @@ solving or playing the game. */
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gPositionToStringFunPtr = &PositionToString;
-    kCombinatorial = TRUE;
-}
-
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-    return gNumberOfPositions - 1;
+    gSupportsMex = TRUE;
 }
 
 /* Return a linked list of moves. */

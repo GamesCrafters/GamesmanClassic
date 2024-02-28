@@ -486,13 +486,11 @@ void DebugMenu ()
 void GameSpecificMenu ()
 {
 	char selection = 'Z';
-	POSITION GetInitialPosition();
 	do
 	{
 		printf("\n\t----- Game Specific Options for Asalto ----- \n\n");
 		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
-		printf("\tm)\t(M)odify Board\n");
 		printf("\tg)\tToggle (G)o Again from ");
 		if(variant_goAgain)
 		{
@@ -527,9 +525,6 @@ void GameSpecificMenu ()
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-		case 'M':
-			gInitialPosition = GetInitialPosition();
-			break;
 		case 'G':
 			variant_goAgain = (variant_goAgain) ? 0 : 1;
 			selection = 'Z';
@@ -712,73 +707,6 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 		return 0;
 	}
 	return 0;
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	int boardStats[3];
-	char selection = 'Z';
-
-	do
-	{
-		boardPieceStats(start_standard_board, boardStats);
-		printf("\n\t----- Asalto Initial Position Setup -----\n\n");
-		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
-		printf("\n\n");
-		printf("\tCurrent Board\n");
-
-		PrintBoard(start_standard_board);
-
-		printf("\tg)\tAdd/Remove (G)eese\n");
-
-		if (numFoxes(boardStats) < 2)
-		{
-			printf("\tf)\tAdd/Remove (F)oxes [REQUIRED]\n");
-			printf("\t  \tYou must place two foxes to play the game.\n");
-		}
-		else
-		{
-			printf("\tf)\tAdd/Remove (F)oxes\n");
-			printf("\tb)\t(B)ack to previous menu\n\n");
-		}
-		printf("Select an option: ");
-		selection = toupper(GetMyChar());
-		switch (selection)
-		{
-		case 'G':
-			AddRemoveGeese(start_standard_board);
-			selection = 'Z';
-			break;
-		case 'F':
-			AddRemoveFoxes(start_standard_board);
-			selection= 'Z';
-			break;
-		case 'B':
-			break;
-		default:
-			printf("Invalid option. Try again\n");
-			selection = -1;
-		}
-		boardPieceStats(start_standard_board, boardStats);
-		GEESE_MAX = numGeese(boardStats);
-		FOX_MAX = numFoxes(boardStats);
-
-		init_board_hash();
-	} while (selection != 'B');
-
-
-	return mergePositionGoAgain(generic_hash_hash(start_standard_board, GEESE_PLAYER),0);
 }
 
 /************************************************************************

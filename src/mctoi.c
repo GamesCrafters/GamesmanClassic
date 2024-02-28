@@ -450,6 +450,9 @@ POSITION BlankoxOXToPosition (BlankoxOX*, BlankoxOX    );
 /* Changing Variants */
 void InitializeHelpString    (                         );
 
+/* Interact Functions */
+void PositionToString        (POSITION, char *         );
+
 /**********************************************/
 
 void InitializeGame(){
@@ -458,10 +461,7 @@ void InitializeGame(){
 
 	gCustomUnhash = unhash;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
-}
-
-void FreeGame() {
-
+	gPositionToStringFunPtr = &PositionToString;
 }
 
 // Set up the help strings based on the current variant being played
@@ -748,70 +748,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	 * Returning the equivalent position of BlankoxOX
 	 */
 	return BlankoxOXToPosition(theBlankoxOX, newTurn);
-}
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-POSITION GetInitialPosition() {
-	static BlankoxOX theBlankoxOX[BOARDSIZE];
-	BlankoxOX whosTurn;
-	signed char c;
-	int i;
-
-	blankoxOX_init(theBlankoxOX);
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("Rx -- Wx\nW+ -- R+            <----- EXAMPLE \n-- -- Rx\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'r' || c == 'R') {       /* if the first char is R or r  */
-			if ((c = getchar()) == 'x' || c == 'X') { /* if the second char is x or X */
-				theBlankoxOX[i++] = Rx; /* put Rx into blankoxOX        */
-			} else {                 /* otherwise                    */
-				theBlankoxOX[i++] = Rt; /* put Rt into blankoxOX        */
-			}
-		} else if (c == 'w' || c == 'W') { /* if the first char is W or w  */
-			if ((c = getchar()) == 'x' || c == 'X') { /* if the second char is x or X */
-				theBlankoxOX[i++] = Wx; /* put Wx into blankoxOX        */
-			} else {                 /* otherwise                    */
-				theBlankoxOX[i++] = Wt; /* put Wt into blankoxOX        */
-			}
-		} else if (c == '-') {           /* if the first char is -       */
-			getchar();               /* get the other dash, skip one */
-			theBlankoxOX[i++] = Blank; /* input blank or -- in blanoxOX*/
-		} else {                         /* otherwise                    */
-			;                        /* do nothing                   */
-		}
-	}
-
-	getchar();
-	printf("\nNow, whose turn is it? [R/W] : ");
-	scanf("%c",&c);
-	if(c == 'r' || c == 'R') {               /* if it's red's turn           */
-
-		whosTurn = Rx;                   /* assign Rx to whoseTurn       */
-	}
-	else {                                   /* otherwise                    */
-
-		whosTurn = Wx;                   /* assign Wx to whoseTurn       */
-	}
-
-	/*
-	 * Returning the equivalent POSITION to BlankoxOX
-	 */
-	return(BlankoxOXToPosition(theBlankoxOX,whosTurn));
 }
 
 /************************************************************************
@@ -1206,20 +1142,20 @@ MOVE ConvertTextInputToMove(STRING input) {
 **
 ************************************************************************/
 
-void MoveToString (MOVE theMove, char *move) {
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1s are because the user thinks it's 1-9, but MOVE is 0-8 */
-	if (theMove & (1 << 18)) {
-		theMove ^= (1 << 18);
-		int from = MoveFrom(theMove & 0xFFFF);
-		int to = MoveTo(theMove & 0xFFFF);
-		snprintf(move, 8, "%d%d", from + 1, to + 1);
+	if (move & 0x40000) {
+		move ^= 0x40000;
+		sprintf(moveStringBuffer, "%d%d", MoveFrom(move) + 1, MoveTo(move) + 1);
+	} else if (move & 0x20000) {
+		// All part-moves from the same intermediate state must have different part-move names
+		move ^= 0x20000;
+		sprintf(moveStringBuffer, "%c", MoveOrientation(move) ? '+' : 'x');
 	} else {
-
-		if (MoveFrom(theMove) == 9) { /* if placing pieces into the board */
-			snprintf(move, 8, "%d%c", MoveTo(theMove) + 1, (MoveOrientation(theMove) ? '+' : 'x'));
+		if (MoveFrom(move) == 9) { /* if placing pieces into the board */
+			sprintf(moveStringBuffer, "%d%c", MoveTo(move) + 1, MoveOrientation(move) ? '+' : 'x');
 		} else {                  
-			snprintf(move, 8, "%d%d%c", MoveFrom(theMove) + 1,
-					MoveTo(theMove) + 1, (MoveOrientation(theMove) ? '+' : 'x'));
+			sprintf(moveStringBuffer, "%d%d%c", MoveFrom(move) + 1, MoveTo(move) + 1, (MoveOrientation(move) ? '+' : 'x'));
 		}
 	}
 }
@@ -2227,26 +2163,6 @@ void printMask(int mask) {
 
 }
 
-
-//// Changed starting here, by Sunil
-
-/***    printf("\tS)\t(S)pinning a piece in place toggle from %s to %s\n",
-           gRotateInPlace ? "ON" : "OFF",
-           !gRotateInPlace ? "ON" : "OFF");
-    printf("\tO)\t(O)ne space hops toggle from %s to %s\n",
-           gHopOne ? "ON" : "OFF",
-           !gHopOne ? "ON" : "OFF");
-    printf("\tT)\t(T)wo space hops toggle from %s to %s\n",
-           gHopTwo ? "ON" : "OFF",
-           !gHopTwo ? "ON" : "OFF");
-    printf("\tL)\tAllow (l)anding in different orientation toggle from %s to %s \n",
-           gRotateOnHop ? "ON" : "OFF",
-           !gRotateOnHop ? "ON" : "OFF");
-    printf("\tP)\tTrapped (p)layer toggle from %s to %s\n",
-           gStuckAWin ? "WINNER" : "LOSER",
-           !gStuckAWin ? "WINNER" : "LOSER");
- ***/
-
 CONST_STRING kDBName = "ctoi";
 
 int NumberOfOptions()
@@ -2313,7 +2229,7 @@ STRING unhash (POSITION pos) {
 }
 
 POSITION encodeIntermediatePosition(POSITION position, POSITION from, POSITION to) {
-	// 0b1 1 00000 0; intermediate marker (1), from (5), to (5)
+	// intermediate marker (1), from (5), to (5)
 	return position | (1LL << 30) | (from << 25) | (to << 20);
 }
 
@@ -2323,7 +2239,6 @@ BOOLEAN decodeIntermediatePosition(POSITION interPos, POSITION *origPos, int *fr
 	*to = (interPos >> 20) & 0x1F;
 	return (interPos >> 30) ? TRUE : FALSE;
 }
-
 
 POSITION StringToPosition(char *positionString) {
 	int turn;
@@ -2373,17 +2288,20 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 
 	int turn = (GetTurn(origPosition) == Rx) ? 1 : 2;
 	char *board = unhash(origPosition);
-	char entityString[BOARDSIZE + 1];
+	char entityString[BOARDSIZE + 2];
 	memcpy(entityString, board, BOARDSIZE * sizeof(char));
 	SafeFree(board);
 
+	entityString[BOARDSIZE] = '-';
 	if (isIntermediate) {
 		entityString[to] = entityString[from];
 		if (from != to) {
 			entityString[from] = '-';
+		} else {
+			entityString[BOARDSIZE] = from + 'a';
 		}
 	}
-	entityString[BOARDSIZE] = '\0';
+	entityString[BOARDSIZE + 1] = '\0';
 	AutoGUIMakePositionString(turn, entityString, autoguiPositionStringBuffer);
 }
 
@@ -2391,20 +2309,20 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   	(void) position;
   	int from = MoveFrom(move & 0xFFFF);
 	int to = MoveTo(move & 0xFFFF);
-	if (move & (1 << 18)) { // PartMove: selecting which piece to move and where to move it. Encoded as 1 << 18 | original move
+	if (move & 0x40000) { // PartMove: selecting which piece to move and where to move it. Encoded as 0x40000 | original move
 		if (from == to) {
 			AutoGUIMakeMoveButtonStringA('-', to, 'y', autoguiMoveStringBuffer);
 		} else {
 			AutoGUIMakeMoveButtonStringM(from, to, 'z', autoguiMoveStringBuffer);
 		}
-	} else if (move & (1 << 17)) { // PartMove: After slide, select orientation. Encoded as 1 << 17 | original move
-		move ^= (1 << 17);
+	} else if (move & 0x20000) { // PartMove: After slide, select orientation. Encoded as 0x20000 | original move
+		move ^= 0x20000;
 		int orientation = MoveOrientation(move);
 		char *board = unhash(position & 0x0000FFFFFFFFFFFF);
 		BOOLEAN isDifferentOrientation = (orientation && (board[from] == 'X' || board[from] == 'x')) || (!orientation && (board[from] == 'T' || board[from] == 't'));
 		SafeFree(board);
 		if (isDifferentOrientation) {
-			AutoGUIMakeMoveButtonStringA('r', to + 9, 'x', autoguiMoveStringBuffer);
+			AutoGUIMakeMoveButtonStringA('r', to, 'x', autoguiMoveStringBuffer);
 		} else {
 			AutoGUIMakeMoveButtonStringA('-', to, 'y', autoguiMoveStringBuffer);
 		}
@@ -2423,13 +2341,13 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 				c = 'q';
 				at = to + 9;
 			}
-			AutoGUIMakeMoveButtonStringA(c, 18 + at, 'x', autoguiMoveStringBuffer);
+			AutoGUIMakeMoveButtonStringA(c, 10 + at, 'x', autoguiMoveStringBuffer);
 		}
 	}
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	(void) positionList;
 	MULTIPARTEDGELIST *mpel = NULL;
 	int from = 10, to = 10;
 	int lastFrom = 10, lastTo = 10;
@@ -2441,14 +2359,13 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 			to = MoveTo(moveList->move);
 			interPos = encodeIntermediatePosition(position, from, to);
 			if (from != lastFrom || to != lastTo) { // Make sure we do not add duplicate multipart edges
-				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, (1 << 18) | moveList->move, 0, mpel);
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, 0x40000 | moveList->move, 0, mpel);
 				lastFrom = from;
 				lastTo = to;
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, (1 << 17) | moveList->move, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x20000 | moveList->move, moveList->move, mpel);
 		}
 		moveList = moveList->next;
-		positionList = positionList->next;
 	}
 	return mpel;
 }

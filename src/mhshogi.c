@@ -568,7 +568,7 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	struct cleanMove x;
 	x = unhashMove(theMove);
-	snprintf( moveStringBuffer, 10, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
+	sprintf( moveStringBuffer, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
 }
 
 /************************************************************************
@@ -818,27 +818,6 @@ void SetTclCGameSpecificOptions (int options[])
 {
 	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	InitializeGame();
-	return gInitialPosition;
-}
-
 
 /************************************************************************
 **

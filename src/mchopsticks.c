@@ -134,9 +134,6 @@ void InitializeGame() {
     gSymmetries = TRUE;
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() { return hashPosition(FALSE, 1, 1, 1, 1); }
-
 BOOLEAN isLegalTransfer(int left, int right, int i) {
     int newLeft = left + i;
     int newRight = right - i;

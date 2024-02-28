@@ -88,10 +88,6 @@ void InitializeGame()
   kUsePureDraw = TRUE;
 }
 
-void FreeGame()
-{
-}
-
 /************************************************************************
 **
 ** NAME: DebugMenu
@@ -167,22 +163,6 @@ void UndoMove(MOVE move)
 {
   (void)move;
   ExitStageRightErrorString("UndoMove not implemented.");
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-  return gInitialPosition;
 }
 
 /************************************************************************

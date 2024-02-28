@@ -260,6 +260,9 @@ BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
 
 void InitializeGame ()
 {
+	if (gIsInteract) {
+		gLoadTierdbArray = FALSE;
+	}
 	int i, zeroPiece = 0, onePiece = 1, twoPiece = 9, threePiece = 37, fourPiece = 93, fivePiece = 163, sixPiece = 219, sevenPiece = 247, eightPiece = 255, numBits;
 	int  *piecesArray, minBlank, maxBlank;
 	gCanonicalPosition = GetCanonicalPosition;
@@ -826,28 +829,6 @@ void SetTclCGameSpecificOptions (int options[])
 {
 	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-
-	return gInitialPosition;
-
-}
-
 
 /************************************************************************
 **

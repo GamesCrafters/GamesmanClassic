@@ -270,7 +270,7 @@ POSITION hash(char *board) {
 
   tierPosition <<= tier;
   TIERPOSITION one = 1;
-  int c = 0;
+  unsigned int c = 0;
   for (i = 0; i < boardSize && c < tier; i++) {
     if (board[i] == U || board[i] == u) {
       tierPosition |= (one << c);
@@ -318,7 +318,7 @@ void unhash(POSITION position, char *board, BOOLEAN *p1Turn) {
     }
   }
 
-  int c = 0;
+  unsigned int c = 0;
   TIERPOSITION one = 1;
   for (i = 0; i < boardSize && c < tier; i++) {
     if (board[i] == d) {
@@ -369,10 +369,6 @@ void InitializeGame() {
   gSymmetries = TRUE;
 
   combinationsInit();  
-}
-
-POSITION GetInitialPosition() {
-  return 0;
 }
 
 /* Return a linked list of moves. */
@@ -501,7 +497,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TIER/UNDOMOVE FUNCTIONS ***********/
 
 TIERLIST *getTierChildren(TIER tier) {
-  if (tier != boardSize) {
+  if (tier != (unsigned int) boardSize) {
     return CreateTierlistNode(tier + 1, NULL);
   } else {
     return NULL;

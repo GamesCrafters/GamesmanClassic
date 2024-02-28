@@ -103,14 +103,14 @@ int orthogonalAdjacencies[16][5] = {
 };
 
 int boardSize = 16;
-#define DOWN 0b0
-#define UP 0b1
-#define U 0b111
-#define D 0b110
-#define u 0b101
-#define d 0b100
-#define BLANK 0b000
-#define NONE 0b10000
+#define DOWN 0       // 0b0
+#define UP 1         // 0b1
+#define U 7          // 0b111
+#define D 6          // 0b110
+#define u 5          // 0b101
+#define d 4          // 0b100
+#define BLANK 0      // 0b000
+#define NONE 16       // 0b10000
 
 int gSymmetryMatrix[8][16] = {
 	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
@@ -123,7 +123,7 @@ int gSymmetryMatrix[8][16] = {
 	{3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12}
 };
 
-void DebugMenu() {}
+void DebugMenu(void) {}
 void SetTclCGameSpecificOptions(int theOptions[]) {
   (void)theOptions;
 }
@@ -168,7 +168,7 @@ unsigned long long getNumPos(int boardsize, int numX, int numO) {
 // Pre-calculate the number of combinations and store in combinations array
 // Combinations can be retrieved using combinations[boardsize][numx][numo]
 unsigned long long combinations[17][9][9];
-void combinationsInit() {
+void combinationsInit(void) {
     for (int boardsize = 0; boardsize <= 16; boardsize++)
         for (int numx = 0; numx <= 8; numx++)
             for (int numo = 0; numo <= 8; numo++)
@@ -205,7 +205,7 @@ POSITION hash(char *board) {
 
   tierPosition <<= tier;
   TIERPOSITION one = 1;
-  int c = 0;
+  unsigned int c = 0;
   for (i = 0; i < boardSize && c < tier; i++) {
     if (board[i] == U || board[i] == u) {
       tierPosition |= (one << c);
@@ -253,7 +253,7 @@ void unhash(POSITION position, char *board, BOOLEAN *p1Turn) {
     }
   }
 
-  int c = 0;
+  unsigned int c = 0;
   TIERPOSITION one = 1;
   for (i = 0; i < boardSize && c < tier; i++) {
     if (board[i] == d) {
@@ -283,7 +283,7 @@ void unhashMove(MOVE move, int *moveFrom, int *moveTo, int *placeAt, int *isUp) 
 
 /* Initialize any global variables or data structures needed before
 solving or playing the game. */
-void InitializeGame() {
+void InitializeGame(void) {
   /* FOR THE PURPOSES OF INTERACT. FEEL FREE TO CHANGE IF SOLVING. */
   if (gIsInteract) {
 	gLoadTierdbArray = FALSE; // SET TO TRUE IF SOLVING
@@ -304,8 +304,6 @@ void InitializeGame() {
 
   combinationsInit();  
 }
-
-POSITION GetInitialPosition() { return 0; }
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
@@ -400,7 +398,7 @@ VALUE Primitive(POSITION position) {
   char invBrd[boardSize];
   for (i = 0; i < boardSize; i++) {
     if (brd[i]) {
-      invBrd[i] = brd[i] ^ 0b10; // This flips the turn bit of piece
+      invBrd[i] = brd[i] ^ 2; // This flips the turn bit of piece
     } else {
       invBrd[i] = BLANK;
       filled = FALSE;
@@ -420,7 +418,7 @@ VALUE Primitive(POSITION position) {
   for (i = 0; i < 72; i += 3) {
     bi = board[lineChecks[i]];
     if (
-      bi & 0b10 &&
+      bi & 2 &&
       bi == board[lineChecks[i + 1]] &&
       bi == board[lineChecks[i + 2]]
     ) {
@@ -432,11 +430,11 @@ VALUE Primitive(POSITION position) {
   for (i = 0, j = 0; i < 72; i += 3, j++) {
     bi = invBoard[lineChecks[i]];
     if (
-      bi & 0b10 &&
+      bi & 2 &&
       bi == invBoard[lineChecks[i + 1]] &&
       bi == invBoard[lineChecks[i + 2]]
     ) {
-      andResult = 0b100;
+      andResult = 4;
       lockCheck = lockChecks[j];
       for (k = 0; k < lockCheck[7]; k++) {
         andResult &= invBoard[lockCheck[k]];
@@ -472,7 +470,7 @@ POSITION GetCanonicalPosition(POSITION position) {
   
   for (i = 0; i < boardSize; i++) {
     if (board[i]) {
-      board[i] ^= 0b1; // flip orientations
+      board[i] ^= 1; // flip orientations
     }
   }
 
@@ -498,7 +496,7 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TIER/UNDOMOVE FUNCTIONS ***********/
 
 TIERLIST *getTierChildren(TIER tier) {
-  return tier < boardSize ? CreateTierlistNode(tier + 1, NULL) : NULL;
+  return tier < ((unsigned int) boardSize) ? CreateTierlistNode(tier + 1, NULL) : NULL;
 }
 
 TIERPOSITION numberOfTierPositions(TIER tier) {
@@ -626,6 +624,13 @@ void MoveToString(MOVE move, char *moveString) {
 		moveFrom = (move >> 11) & 0x1F;
     moveTo = (move >> 6) & 0x1F;
     writeFullMoveString = FALSE;
+  } else if (move & (1 << 19)) {
+    unhashMove(move, &moveFrom, &moveTo, &placeAt, &isUp);
+    moveString[0] = 'a' + (placeAt % 4);
+    moveString[1] = '1' + (placeAt / 4);
+    moveString[2] = isUp ? 'U' : 'D';
+    moveString[3] = '\0';
+    return;
   } else {
     // FullMove
     unhashMove(move, &moveFrom, &moveTo, &placeAt, &isUp);
@@ -679,10 +684,12 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
-void GameSpecificMenu () {}
-int NumberOfOptions() { return 1; }
-int getOption() { return 0; }
-void setOption(int option) {}
+void GameSpecificMenu (void) {}
+int NumberOfOptions(void) { return 1; }
+int getOption(void) { return 0; }
+void setOption(int option) {
+  (void) option;
+}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
@@ -771,7 +778,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   }
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
 	int prevMoveFrom = -1, prevMoveTo = -1;

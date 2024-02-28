@@ -152,8 +152,6 @@ void InitializeGame()
 	InitializeHelpStrings();
 }
 
-void FreeGame() {}
-
 /*****
 ** void InitializeHelpStrings()
 **
@@ -444,46 +442,6 @@ POSITION GetCanonicalPosition(POSITION position) {
 	}
 
 	return(theCanonicalPosition);
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-/*  we haven't changed this, but we probably should */
-
-POSITION GetInitialPosition() {
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		/* else do nothing */
-	}
-
-	whosTurn = o;
-	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
 
 /************************************************************************
@@ -1056,9 +1014,9 @@ POSITION ActualNumberOfPositions(int variant) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (move < 9) {
-		snprintf(moveStringBuffer, 5, "%d", move + 1);
+		sprintf(moveStringBuffer, "%d", move + 1);
 	} else {
-		snprintf(moveStringBuffer, 5, "%d", move);
+		sprintf(moveStringBuffer, "%d", move);
 	}
 }
 

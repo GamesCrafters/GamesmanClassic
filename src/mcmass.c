@@ -183,8 +183,6 @@ void InitializeGame()
 	free( theBoard );
 }
 
-void FreeGame() {}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu
@@ -350,24 +348,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	}
 
 	return outPosition;
-}
-
-
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return((POSITION)0);
 }
 
 /************************************************************************
@@ -687,7 +667,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf( moveStringBuffer, 10, "%d", move + 1 );
+	sprintf( moveStringBuffer, "%d", move + 1 );
 }
 
 

@@ -76,14 +76,9 @@ void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
     gPositionToStringFunPtr = &PositionToString;
     kUsePureDraw = TRUE;
-    kCombinatorial = FALSE;
+    gSupportsMex = FALSE;
     kLoopy = TRUE;
     setOption(getOption());
-}
-
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-    return gInitialPosition;
 }
 
 /* Return a linked list of moves. */
@@ -98,6 +93,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 /* Return the position that results from making the
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
+    (void) position;
     return move;
 }
 
@@ -135,6 +131,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+    (void) playerName;
+    (void) usersTurn;
     printf("%llu\n", position);
 }
 
@@ -201,7 +199,7 @@ int getOption() {
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-    kCombinatorial = FALSE;
+    gSupportsMex = FALSE;
     kUsePureDraw = FALSE;
     kLoopy = TRUE;
     gInitialPosition = 0;
@@ -210,7 +208,7 @@ void setOption(int option) {
         listOfMoves = listOfMoves0;
         gNumberOfPositions = 21;
     } else if (option == 1) {
-        kCombinatorial = TRUE;
+        gSupportsMex = TRUE;
         kLoopy = FALSE;
         gInitialPosition = 10;
         listOfMoves = listOfMoves1;

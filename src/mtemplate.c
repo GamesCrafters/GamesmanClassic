@@ -25,10 +25,14 @@ CONST_STRING kDBName = "yourgamename";      // Use this spacing and case
 POSITION gNumberOfPositions = 0;
 
 /**
- * @brief An upper bound on the number of positions here.
- *
- * @details The hash value of each reachable position must be less
- * than this `gNumberOfPositions`.
+ * @brief The hash value of the initial position of the default
+ * variant of the game.
+ * 
+ * @note If multiple variants are supported and the hash value
+ * of the initial position is different among those variants,
+ * then ensure that gInitialPosition is modified appropriately
+ * in both setOption() and GameSpecificMenu(). You may also
+ * choose to modify `gInitialPosition` in InitializeGame().
  */
 POSITION gInitialPosition = 0;
 
@@ -45,9 +49,9 @@ BOOLEAN kPartizan = FALSE;
 BOOLEAN kTieIsPossible = FALSE;
 
 /**
- * @brief TRUE if there exists a position P in the game such
- * that, there is a sequence of N >= 1 moves one can make starting from P
- * that allows them to revisit P.
+ * @brief Whether the game is loopy. It is TRUE if there exists a position
+ * P in the game such that, there is a sequence of N >= 1 moves one can
+ * make starting from P that allows them to revisit P.
  */
 BOOLEAN kLoopy = FALSE;
 
@@ -117,7 +121,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 /**
  * @brief Initialize any global variables.
  */
-void InitializeGame() {
+void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
 
     // If you want formal position strings to
@@ -129,28 +133,11 @@ void InitializeGame() {
 }
 
 /**
- * @brief If you allocated heap memory in InitializeGame(), free all of
- * that memory here.
- */
-void FreeGame() {}
-
-/**
- * @brief Return the hash of the initial position. Different variants of
- * the game may have different initial positions.
- * 
- * @return The initial position, encoded as a 64-bit integer. See the
- * POSITION typedef in src/core/types.h.
- */
-POSITION GetInitialPosition() {
-    return 0;
-}
-
-/**
- * @brief Return a list of the legal moves from the input position.
+ * @brief Return the head of a list of the legal moves from the input position.
  * 
  * @param position The position to branch off of.
  * 
- * @return A linked list of the legal moves from the input position.
+ * @return The head of a linked list of the legal moves from the input position.
  * 
  * @note Moves are encoded as 32-bit integers. See the MOVE typedef
  * in src/core/types.h.
@@ -158,7 +145,7 @@ POSITION GetInitialPosition() {
  * @note It may be helpful to use the CreateMovelistNode() function
  * to assemble the linked list. But remember that this allocates heap space. 
  * If you use GenerateMoves in any of the other functions in this file, 
- * make sure to free the linked list using FreeMoveList(). 
+ * make sure to free the returned linked list using FreeMoveList(). 
  * See src/core/misc.c for more information on CreateMovelistNode() and
  * FreeMoveList().
  */
@@ -244,15 +231,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 /**
- * @brief Print the position in a pretty format, including the
- * prediction of the game's outcome.
+ * @brief Find out if the player wants to undo, abort, or neither.
+ * If so, return Undo or Abort and don't change `move`.
+ * Otherwise, get the new `move` and fill the pointer up.
  * 
- * @param position   : The position to pretty-print.
- * @param playerName : The name of the player.
- * @param usersTurn  : TRUE <==> it's a user's turn.
+ * @param position The position the user is at.
+ * @param move The move to fill with user's move.
+ * @param playerName The name of the player whose turn it is
  * 
- * @note See GetPrediction() in src/core/gameplay.h to see how
- * to print the prediction of the game's outcome.
+ * @return One of (Undo, Abort, Continue)
  */
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
     USERINPUT ret;
@@ -260,10 +247,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
         /* List of available moves */
         // Modify the player's move prompt as you wish
         printf("%8s's move: ", playerName);
-
         ret = HandleDefaultTextInput(position, move, playerName);
-        if (ret != Continue) return (ret);
-
+        if (ret != Continue) return ret;
     } while (TRUE);
     return (Continue); /* this is never reached, but lint is now happy */
 }
@@ -273,7 +258,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * TextUI, return TRUE if the input move string is of the right "form"
  * and can be converted to a move hash.
  * 
- * @param input : The string input the user typed.
+ * @param input The string input the user typed.
  * 
  * @return TRUE iff the input is a valid text input.
  */
@@ -302,8 +287,10 @@ MOVE ConvertTextInputToMove(STRING input) {
  * @param moveStringBuffer The buffer to write the move string
  * to.
  * 
- * @note Ensure that the move string written to `moveStringBuffer`
- * is properly null-terminated.
+ * @note The space available in `moveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure
+ * that the move string written to `moveStringBuffer` is properly 
+ * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
     return NULL;
@@ -325,7 +312,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
  * @brief Menu used to debug internal problems. 
  * Does nothing if kDebugMenu == FALSE.
  */
-void DebugMenu() {}
+void DebugMenu(void) {}
 
 /*********** END TEXTUI FUNCTIONS ***********/
 
@@ -334,14 +321,14 @@ void DebugMenu() {}
 /**
  * @return The total number of variants supported.
  */
-int NumberOfOptions() {
+int NumberOfOptions(void) {
     return 1;
 }
 
 /**
  * @return The current variant ID.
  */
-int getOption() {
+int getOption(void) {
     return 0;
 }
 
@@ -355,11 +342,11 @@ void setOption(int option) {
 }
 
 /**
- * @brief Menu used to change the variant, i.e., change game-specific 
- * parameters, such as the side-length of a tic-tac-toe board, for example. 
- * Does nothing if kGameSpecificMenu == FALSE.
+ * @brief Interactive menu used to change the variant, i.e., change
+ * game-specific parameters, such as the side-length of a tic-tac-toe
+ * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu() {}
+void GameSpecificMenu(void) {}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
@@ -381,14 +368,17 @@ void GameSpecificMenu() {}
  * position string.
  * @param positionStringBuffer The buffer to write the position string to.
  * 
+ * @note The space available in `positionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `positionStringBuffer` is properly null-terminated.
+ * 
  * @note You need not implement this function if you wish for the
  * AutoGUI Position String to be the same as the Human-Readable Formal
  * Position String. You can in fact delete this function and leave
  * gStringToPositionFunPtr as NULL in InitializeGame().
  */
-void PositionToString(POSITION position, char *positionStringBuffer) {
-
-}
+void PositionToString(POSITION position, char *positionStringBuffer) {}
 
 /**
  * @brief Convert the input position string to
@@ -426,15 +416,18 @@ POSITION StringToPosition(char *positionString) {
  * @note You may find AutoGUIMakePositionString() helpful. 
  * (See src/core/autoguistrings.h)
  * 
- * @note Ensure that your position string is null-terminated.
- * AutoGUIMakePositionString() should do this for you, if you choose to use it.
+ * @note The space available in `autoguiPositionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `autoguiPositionStringBuffer` is properly null-terminated.
+ * AutoGUIMakePositionString() should handle the null-terminator, 
+ * if you choose to use it.
  * 
  * @note If the game is impartial and a turn is not encoded, set the turn
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
-}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
@@ -447,9 +440,11 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @param autoguiMoveStringBuffer : The buffer to write the AutoGUI
  * move string to.
  * 
+ * @note The space available in `autoguiMoveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure that
+ * the move string written to `moveStringBuffer` is properly null-terminated.
+ * 
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-  (void) position;
-}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}

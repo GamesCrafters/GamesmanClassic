@@ -25,7 +25,6 @@ BOOLEAN kSupportsSymmetries = TRUE; // TODO: Whether symmetries are supported (i
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
@@ -96,16 +95,6 @@ int (*symmetriesToUse)[20] = gSymmetryMatrix3x3; //default
 const int DX[4] = {0, 1, 0, -1};
 const int DY[4] = {1, 0, -1, 0};
 const int INVALID = 25;
-const int leftxIndex = 8;
-const int leftoIndex = 9;
-const int numxIndex = 10;
-const int numoIndex = 11;
-const int multipartFromIndex = 12;
-const int multipartPassIndex = 13;
-const int multipartToIndex = 14;
-const int boardOffset = 15;
-char initialInteractString[] = "R_A_0_0_--------------------------------------------------------";
-
 
 #define BLANK '.'
 #define X 'X'
@@ -129,7 +118,6 @@ MOVE MoveEncode(int, int, int, int);
 void MoveDecode(MOVE, int*, int*, int*, int*);
 int boardStatus(POSITION);
 void InitializeGame();
-POSITION GetInitialPosition();
 MOVELIST *GenerateMoves(POSITION);
 POSITION DoMove(POSITION, MOVE);
 VALUE Primitive(POSITION);
@@ -143,14 +131,8 @@ void PrintComputersMove(MOVE, STRING);
 USERINPUT GetAndPrintPlayersMove(POSITION, MOVE *, STRING);
 BOOLEAN ValidTextInput(STRING);
 MOVE ConvertTextInputToMove(STRING);
-STRING MoveToString(MOVE);
 
-
-// Interact functions
-POSITION InteractStringToPosition(STRING);
-STRING InteractPositionToString(POSITION);
-STRING InteractPositionToEndData(POSITION);
-STRING InteractMoveToString(POSITION, MOVE);
+// Interact Functions
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 
@@ -471,10 +453,6 @@ void InitializeGame() {
 
 	// InitializeHelpStrings();
 }
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return 0;
-}
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
@@ -697,13 +675,6 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   char *board = unhash(position, &turn, &leftx, &lefto, &numx, &numo);
   PrintBoard(board);
   printf("X left: %d, O left: %d, turn: %c\n", leftx, lefto, turn);
-  // printf("%s", InteractPositionToString(position));  
-}
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-  (void) computersName;
-    printf("%s", "computer's move: ");
-    PrintMove(computersMove);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -761,24 +732,31 @@ MOVE ConvertTextInputToMove(STRING input) {
   return MoveEncode(from, to, pass, remove);
 }
 
-/* Return the string representation of the move. 
-Ideally this matches with what the user is supposed to
-type when they specify moves. */
-STRING MoveToString(MOVE move) {
-	STRING movestring = (STRING) SafeMalloc(30);
+void MoveToString(MOVE move, char *moveStringBuffer) {
   int from, to, pass, remove;
   MoveDecode(move, &from, &to, &pass, &remove);
 
-  if (from == INVALID){
-    sprintf(movestring, "(p %d)", to);
+  if (pass != INVALID) { // jumping
+    if (remove != INVALID) { // jump (with jumping and removal) fullmove
+      sprintf(moveStringBuffer, "j %d %d %d %d", from, pass, to, remove);
+    } else { // either jump-without-remove fullmove or jump partmove
+      sprintf(moveStringBuffer, "j %d %d %d", from, pass, to);
+    }
+  } else {
+    if (remove != INVALID) { // remove partmove
+      sprintf(moveStringBuffer, "%d", remove);
+    } else if (from != INVALID) { // move (without jumping or removal) fullmove
+      sprintf(moveStringBuffer, "m %d %d", from, to);
+    } else { // place fullmove
+      sprintf(moveStringBuffer, "p %d", to);
+    }
   }
-  else if (pass == INVALID){
-    sprintf(movestring, "(m %d %d)", from, to);
-  }
-  else {
-    sprintf(movestring, "(j %d %d %d %d)", from, pass, to, remove);
-  }
-  return movestring;
+}
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+    char msb[40];
+    MoveToString(computersMove, msb);
+    printf("%s's move: %s", computersName, msb);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -836,150 +814,110 @@ void setOption(int option) {
 
 
 
+POSITION StringToPosition(char *positionString) {
+	int turnInt;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turnInt, &board)) {
+		char realBoard[BOARDSIZE];
+    char turn = (turnInt == 1) ? X : O;
+    int leftx = board[BOARDSIZE] - '0';
+    int lefto = board[BOARDSIZE + 1] - '0';
+    int numx = 0;
+    int numo = 0;
 
-
-
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-	char realBoard[BOARDSIZE];
-	char turn = (board[2] == 'A') ? X : O;
-	int numx = board[numxIndex] - '0';
-	int numo = board[numoIndex] - '0';
-  int leftx = board[leftxIndex] - '0';
-  int lefto = board[leftoIndex] - '0';
-
-	for (int i = 0; i < BOARDSIZE; i++) {
-    if (board[i+boardOffset] == '-'){
-      realBoard[i] = BLANK;
-    } else {
-      realBoard[i] = (board[i+boardOffset] == 'W') ? X : O;
+    for (int i = 0; i < BOARDSIZE; i++) {
+      if (board[i] == 'W') {
+        realBoard[i] = X;
+        numx++;
+      } else if (board[i] == 'B') {
+        realBoard[i] = O;
+        numo++;
+      } else {
+        realBoard[i] = BLANK;
+      }
     }
+    gInitializeHashWindow(SetTier(leftx, lefto, numx, numo), FALSE);
+    return hash(realBoard, turn, leftx, lefto, numx, numo);
 	}
-
-	// Conversion from intermediate to real
-  if (board[multipartFromIndex] != '-'){
-    int from = board[multipartFromIndex] - 'A';
-    int to = board[multipartToIndex] - 'A';
-    int pass = board[multipartPassIndex] -'A';
-    if (realBoard[to] == X){
-      realBoard[pass] = O;
-      numo++;
-    } else {
-      realBoard[pass] = X;
-      numx++;
-    }
-    realBoard[from] = realBoard[to];
-    realBoard[to] = BLANK;
-  }
-	// End Conversion from intermediate to real
-	gInitializeHashWindow(SetTier(leftx, lefto, numx, numo), FALSE);
-	return hash(realBoard, turn, leftx, lefto, numx, numo);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  char* result = calloc(boardOffset + BOARDSIZE + 1, sizeof(char));
-  memcpy(result, initialInteractString, boardOffset+BOARDSIZE);
-	int origFrom = INVALID, origTo = INVALID, origPass = INVALID;
-  // printf("%llx", position);
-	if (position >> 63) {
-		origFrom = (position >> 58) & 0x1F;
-		origPass = (position >> 53) & 0x1F;
-		origTo = (position >> 48) & 0x1F;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+  char result[BOARDSIZE + 3];
+  memset(result, '-', BOARDSIZE + 3);
+	int partMoveFrom = INVALID, partMoveTo = INVALID, partMovePass = INVALID;
+	if (position >> 63) { // Is intermediate state
+		partMoveFrom = (position >> 58) & 0x1F;
+		partMovePass = (position >> 53) & 0x1F;
+		partMoveTo = (position >> 48) & 0x1F;
 		position &= 0xFFFFFFFFFF;
-    // printf("%llx", position);
 	}
-  // printf("\n");
 
   char turn;
   int leftx, lefto, numx, numo;
   char *board = unhash(position, &turn, &leftx, &lefto, &numx, &numo);
-
-  result[2] = (turn == X) ? 'A' : 'B';
-
 	for (int i = 0; i < BOARDSIZE; i++) {
     if (board[i] != BLANK) {
-      result[i+boardOffset] = (board[i] == X) ? 'W' : 'B';
+      result[i] = (board[i] == X) ? 'W' : 'B';
     }
 	}
 	SafeFree(board);
 
-	if (origTo != INVALID) {
-		result[origTo+boardOffset] = (turn == X) ? 'W' : 'B';
-    if (turn == X){
-      numo--;
-    } else {
-      numx--;
-    }
-		result[multipartToIndex] = origTo + 'A';
-    result[origFrom+boardOffset] = '-';
-    result[multipartFromIndex] = origFrom + 'A';
-    result[origPass+boardOffset] = '-';
-    result[multipartPassIndex] = origPass + 'A';
+	if (partMoveTo != INVALID) { // If is intermediate state
+    result[partMoveTo] = result[partMoveFrom];
+    result[partMoveFrom] = '-';
+    result[partMovePass] = '-';
 	}
 
-  result[numxIndex] = numx + '0';
-	result[numoIndex] = numo + '0';
-	result[leftxIndex] = leftx + '0';
-	result[leftoIndex] = lefto + '0';
-
-  result[boardOffset + BOARDSIZE] = '\0';
-	return result;
+	result[BOARDSIZE] = leftx + '0';
+	result[BOARDSIZE + 1] = lefto + '0';
+  result[BOARDSIZE + 2] = '\0';
+  AutoGUIMakePositionString(turn == X ? 1 : 2, result, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
   int from, to, pass, remove;
   MoveDecode(move, &from, &to, &pass, &remove);
-  
-  char turn;
-  int leftx, lefto, numx, numo;
-  char *board = unhash(position, &turn, &leftx, &lefto, &numx, &numo);
-	SafeFree(board);
 
-	if (pass == INVALID && remove == INVALID) { // Fullmove
-    if (from != INVALID) { // move or jump but cannot remove
-			return UWAPI_Board_Regular2D_MakeMoveString(7+from, 7+to);
-    } else { // put
-			return UWAPI_Board_Regular2D_MakeAddString('-', to+7);
+  if (pass != INVALID && remove != INVALID) {
+    // This is a jumping-with-removal full-move. Since jumping full-moves must necessarily be done
+    // in multipart, this shall itself have no autogui movestring
+    AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+  } else {
+    if (from != INVALID) {
+      // Jumping-without-removal fullmove OR Jumping-with-removal partmove
+      AutoGUIMakeMoveButtonStringM(from, to, '-', autoguiMoveStringBuffer);
+    } else if (to != INVALID) {
+      // Placing fullmove
+      AutoGUIMakeMoveButtonStringA('-', to, '-', autoguiMoveStringBuffer);
+    } else {
+      // Removing opponent piece partmove
+      AutoGUIMakeMoveButtonStringA('-', remove, '-', autoguiMoveStringBuffer);
     }
-	} else {
-		if (from != INVALID && to != INVALID) { // jumping piece partmove
-			return UWAPI_Board_Regular2D_MakeMoveString(7+from, 7+to);
-		} else { // Removing opponent piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString('-', remove+7);
-		}
-	}
+  }
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	// Assumes moveList/positionList is same ordering as generated in GenerateMoves
+  (void) positionList;
 	MULTIPARTEDGELIST *mpel = NULL;
-  char turn;
-  int leftx, lefto, numx, numo;
-  char *board = unhash(position, &turn, &leftx, &lefto, &numx, &numo);
 	POSITION currIntermediatePosition = 0;
+  int from, to, pass, remove;
+  int prevFrom = -1, prevTo = -1;
 
 	while (moveList != NULL) {
-		MOVE move = moveList->move;
-
-    int from, to, pass, remove;
-    MoveDecode(move, &from, &to, &pass, &remove);
-
+    MoveDecode(moveList->move, &from, &to, &pass, &remove);
 		if (remove != INVALID) {
-			if (to != INVALID) {
-				currIntermediatePosition = (1LL << 63) | ((POSITION)from << 58) | ((POSITION)pass << 53) | ((POSITION)to << 48) | position;
-				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MoveEncode(from, to, pass, INVALID), 0, FALSE, mpel);
+			if (from != prevFrom || to != prevTo) {
+				currIntermediatePosition = (1LL << 63) | (((POSITION) from) << 58) | (((POSITION) pass) << 53) | (((POSITION) to) << 48) | position;
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, currIntermediatePosition, MoveEncode(from, to, pass, INVALID), 0, mpel);
+        prevTo = to;
+        prevFrom = from;
 			}
-			
-			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, positionList->position, MoveEncode(INVALID, INVALID, INVALID, remove), move, TRUE, mpel);
+			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, NULL_POSITION, MoveEncode(INVALID, INVALID, INVALID, remove), moveList->move, mpel);
 		}
-
 		moveList = moveList->next;
-		positionList = positionList->next;
 	}
-
-	SafeFree(board);
 	return mpel;
 }

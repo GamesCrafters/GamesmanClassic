@@ -71,12 +71,6 @@ void InitializeGame() {
   
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  /* YOUR CODE HERE */
-  return 0;
-}
-
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;

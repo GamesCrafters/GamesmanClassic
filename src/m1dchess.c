@@ -77,11 +77,6 @@ void InitializeGame() {
   gInitialPosition = generic_hash_hash(initial, 1);
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
-}
-
 BOOLEAN CheckCheck(POSITION position, int player) {
   char board[boardSize];
   generic_hash_unhash(position, board);
@@ -411,7 +406,7 @@ type when they specify moves. */
 void MoveToString(MOVE move, char *moveStringBuffer) {
   int origin = move / 100;
   int target = move % 100;
-  snprintf(moveStringBuffer, 10, "%d %d", origin + 1, target + 1);
+  snprintf(moveStringBuffer, 5, "%c %c", origin + '1', target + '1');
 }
 
 /* Basically just print the move. */

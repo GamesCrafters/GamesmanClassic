@@ -108,6 +108,7 @@ int colEmptyPos(BlankOX* theBoard, int col);
 BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c);
 void printBoard(POSITION thePos);
 void PositionToString(POSITION position, char *positionStringBuffer);
+POSITION GetInitialPosition(void);
 
 /* The position contains a last digit that records the turn, 1 - o's, 2 - x's*/
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
@@ -154,10 +155,6 @@ BOOLEAN gExtraSlider = FALSE; /*only the horizontal sliders by default*/
 void InitializeGame()
 {
 	gPositionToStringFunPtr = &PositionToString;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -853,7 +850,7 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 5, "%d", theMove+1);
+	sprintf(moveStringBuffer, "%d", theMove + 1);
 }
 
 /************************************************************************

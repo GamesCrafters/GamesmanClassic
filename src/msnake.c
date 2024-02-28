@@ -1024,7 +1024,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(move, &fromSlot, &toSlot);
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	snprintf(moveStringBuffer, 8, "%d %d", fromSlot + 1, toSlot + 1);
+	sprintf(moveStringBuffer, "%d %d", fromSlot + 1, toSlot + 1);
 }
 
 
@@ -1303,6 +1303,7 @@ POSITION StringToPosition(char *positionString) {
 /* This function will only be called on the initial position because we have
 implemented gPositionStringDoMoveFunPtr. */
 void PositionToString(POSITION position, char *positionStringBuffer) {
+	(void) position;
 	char board[17] = "-----h5---t-----";
 	board[16] = '\0'; // Make sure to null-terminate your board.
 	AutoGUIMakePositionString(1, board, positionStringBuffer);
@@ -1311,6 +1312,7 @@ void PositionToString(POSITION position, char *positionStringBuffer) {
 /* This function will only be called on the initial position because we have
 implemented gPositionStringDoMoveFunPtr. */
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
 	char board[33] = "-----85---7----------h----t-----";
 	board[32] = '\0'; // Make sure to null-terminate your board.
 	AutoGUIMakePositionString(1, board, autoguiPositionStringBuffer);

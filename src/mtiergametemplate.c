@@ -25,10 +25,14 @@ CONST_STRING kDBName = "yourgamename";      // use this spacing and case
 POSITION gNumberOfPositions = 0;
 
 /**
- * @brief An upper bound on the number of positions here.
- *
- * @details The hash value of each reachable position must be less
- * than this `gNumberOfPositions`.
+ * @brief The hash value of the initial position WITHIN THE
+ * INITIAL TIER OF THE GAME.
+ * 
+ * @note If multiple variants are supported and the hash value
+ * of the initial position is different among those variants,
+ * then ensure that gInitialPosition is modified appropriately
+ * in both setOption() and GameSpecificMenu(). You may also
+ * choose to modify `gInitialPosition` in InitializeGame().
  */
 POSITION gInitialPosition = 0;
 
@@ -45,9 +49,9 @@ BOOLEAN kPartizan = FALSE;
 BOOLEAN kTieIsPossible = FALSE;
 
 /**
- * @brief TRUE if there exists a position P in the game such
- * that, there is a sequence of N >= 1 moves one can make starting from P
- * that allows them to revisit P.
+ * @brief Whether the game is loopy. It is TRUE if there exists a position
+ * P in the game such that, there is a sequence of N >= 1 moves one can
+ * make starting from P that allows them to revisit P.
  */
 BOOLEAN kLoopy = FALSE;
 
@@ -109,11 +113,17 @@ CONST_STRING kHelpExample = "";
 void *gGameSpecificTclInit = NULL;
 void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 
-/* Tier Functions for TierGamesman Support */
+/**
+ * @brief Tier-related functions for Tier-Gamesman support.
+ */
 TIERLIST *getTierChildren(TIER tier);
 TIERPOSITION numberOfTierPositions(TIER tier);
+STRING tierToString(TIER tier);
 
-/* The following are not needed if not using undomove. */
+/**
+ * @brief The following function declarations are not needed 
+ * if not using UndoMove.
+ */
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
 POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
 
@@ -122,7 +132,22 @@ POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
 /**
  * @brief Initialize any global variables.
  */
-void InitializeGame() {
+void InitializeGame(void) {
+    if (gIsInteract) {
+        // We set this so that once the game is solved and if 
+        // we are in interact mode,
+        // we need not malloc a buffer for the entire tier.
+        // We only need a buffer for the entire tier WHILE
+        // solving, but when the solve is finished, the buffer
+        // is split into gzipped chunks. So AFTER the solve,
+        // we need only need to load the gzipped chunk rather
+        // than the whole tier.
+        // If you don't understand what any of this means,
+        // just don't change this if statement and this assignment.
+		gLoadTierdbArray = FALSE;
+	}
+    kSupportsTierGamesman = TRUE;
+    kExclusivelyTierGamesman = TRUE;
     gCanonicalPosition = GetCanonicalPosition;
 
     // If you want formal position strings to
@@ -131,23 +156,14 @@ void InitializeGame() {
     // delete this next line and also feel free
     // to delete the PositionToString function.
     gPositionToStringFunPtr = &PositionToString;
-}
 
-/**
- * @brief If you allocated heap memory in InitializeGame(), free all of
- * that memory here.
- */
-void FreeGame() {}
+    gTierChildrenFunPtr = &getTierChildren;
+    gNumberOfTierPositionsFunPtr = &numberOfTierPositions;
+    gTierToStringFunPtr = &tierToString;
 
-/**
- * @brief Return the hash of the initial position. Different variants of
- * the game may have different initial positions.
- * 
- * @return The initial position, encoded as a 64-bit integer. See the
- * POSITION typedef in src/core/types.h.
- */
-POSITION GetInitialPosition() {
-    return 0;
+    // Uncomment the following if using UndoMove.
+    // gUnDoMoveFunPtr = &UnDoMove;
+	// gGenerateUndoMovesToTierFunPtr = &GenerateUndoMovesToTier;
 }
 
 /**
@@ -155,7 +171,7 @@ POSITION GetInitialPosition() {
  * 
  * @param position The position to branch off of.
  * 
- * @return A linked list of the legal moves from the input position.
+ * @return The head of a linked list of the legal moves from the input position.
  * 
  * @note Moves are encoded as 32-bit integers. See the MOVE typedef
  * in src/core/types.h.
@@ -163,7 +179,7 @@ POSITION GetInitialPosition() {
  * @note It may be helpful to use the CreateMovelistNode() function
  * to assemble the linked list. But remember that this allocates heap space. 
  * If you use GenerateMoves in any of the other functions in this file, 
- * make sure to free the linked list using FreeMoveList(). 
+ * make sure to free the returned linked list using FreeMoveList(). 
  * See src/core/misc.c for more information on CreateMovelistNode() and
  * FreeMoveList().
  */
@@ -228,6 +244,13 @@ POSITION GetCanonicalPosition(POSITION position) {
 
 /*********** BEGIN TIER/UNDOMOVE FUNCTIONS ***********/
 
+/**
+ * @brief Return the head of a linked list of child tiers 
+ * of this tier.
+ * If making a move from some position in this tier can
+ * lead to another position in this tier, then include
+ * this tier in the linked list as well.
+ */
 TIERLIST *getTierChildren(TIER tier) {
     /*
       Return a linked list of child tiers of this tier.
@@ -238,38 +261,54 @@ TIERLIST *getTierChildren(TIER tier) {
       You can use CreateTierlistNode(tier, <tierchild linked list>) to append to
       linked list.
     */
-
-    /* YOUR CODE HERE */
     return NULL;
 }
 
-/* How many positions are in the input tier? You may return
-an upper bound on the number of positions (if perhaps
-the way you encode positions includes unreachable positions).
-Try to make that upper bound as small as you can. */
+/**
+ * @brief How many positions are in the input tier? You may return
+ * an upper bound on the number of positions (if perhaps
+ * the way you encode positions includes unreachable positions).
+ * Try to make that upper bound as small as you can.
+ * 
+ * @note Remember that every position within this tier must
+ * hash to a value (tierposition) smaller than the number
+ * returned by this function.
+ */
 TIERPOSITION numberOfTierPositions(TIER tier) {
-    /* YOUR CODE HERE */
     return 1;
 }
 
-/* If not using undomove, you can remove this function.
-If using undomove, return a linked list of all possible moves from parent
-positions in the input tier that could have been made in order to arrive
-at the input position. */
+/**
+ * @brief Return the string representation of the input
+ * tier. This allocates heap space, so be sure to
+ * free the output of this function.
+ */
+STRING tierToString(TIER tier) {
+    return NULL;
+}
+
+/**
+ * @brief If not using undomove, you can remove this function.
+ * If using undomove, return a linked list of all possible moves from parent
+ * positions in the input tier that could have been made in order to arrive
+ * at the input position.
+ * 
+ * @note This allocates heap space, so be sure to free the returned
+ * linked list.
+ */
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
     /*
       You can use CreateUndoMovelistNode() to append to a linked list
       of undomoves.
     */
-
-    /* YOUR CODE HERE */
     return NULL;
 }
 
-/* If not using undomove, you can remove this function.
-Return the parent position given the undoMove. */
+/**
+ * @brief If not using undomove, you can remove this function.
+ * Return the parent position given the undoMove.
+ */
 POSITION UndoMove(POSITION position, UNDOMOVE undoMove) {
-    /* YOUR CODE HERE */
     return 0;
 }
 
@@ -293,15 +332,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 }
 
 /**
- * @brief Print the position in a pretty format, including the
- * prediction of the game's outcome.
+ * @brief Find out if the player wants to undo, abort, or neither.
+ * If so, return Undo or Abort and don't change `move`.
+ * Otherwise, get the new `move` and fill the pointer up.
  * 
- * @param position   : The position to pretty-print.
- * @param playerName : The name of the player.
- * @param usersTurn  : TRUE <==> it's a user's turn.
+ * @param position The position the user is at.
+ * @param move The move to fill with user's move.
+ * @param playerName The name of the player whose turn it is
  * 
- * @note See GetPrediction() in src/core/gameplay.h to see how
- * to print the prediction of the game's outcome.
+ * @return One of (Undo, Abort, Continue)
  */
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
     USERINPUT ret;
@@ -351,8 +390,10 @@ MOVE ConvertTextInputToMove(STRING input) {
  * @param moveStringBuffer The buffer to write the move string
  * to.
  * 
- * @note Ensure that the move string written to `moveStringBuffer`
- * is properly null-terminated.
+ * @note The space available in `moveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure
+ * that the move string written to `moveStringBuffer` is properly 
+ * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
     return NULL;
@@ -374,7 +415,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
  * @brief Menu used to debug internal problems. 
  * Does nothing if kDebugMenu == FALSE.
  */
-void DebugMenu() {}
+void DebugMenu(void) {}
 
 /*********** END TEXTUI FUNCTIONS ***********/
 
@@ -383,14 +424,14 @@ void DebugMenu() {}
 /**
  * @return The total number of variants supported.
  */
-int NumberOfOptions() {
+int NumberOfOptions(void) {
     return 1;
 }
 
 /**
  * @return The current variant ID.
  */
-int getOption() {
+int getOption(void) {
     return 0;
 }
 
@@ -404,11 +445,11 @@ void setOption(int option) {
 }
 
 /**
- * @brief Menu used to change the variant, i.e., change game-specific 
- * parameters, such as the side-length of a tic-tac-toe board, for example. 
- * Does nothing if kGameSpecificMenu == FALSE.
+ * @brief Interactive menu used to change the variant, i.e., change 
+ * game-specific parameters, such as the side-length of a tic-tac-toe
+ * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu() {}
+void GameSpecificMenu(void) {}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
@@ -434,14 +475,17 @@ void GameSpecificMenu() {}
  * position string.
  * @param positionStringBuffer The buffer to write the position string to.
  * 
+ * @note The space available in `positionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `positionStringBuffer` is properly null-terminated.
+ * 
  * @note You need not implement this function if you wish for the
  * AutoGUI Position String to be the same as the Human-Readable Formal
  * Position String. You can in fact delete this function and leave
  * gStringToPositionFunPtr as NULL in InitializeGame().
  */
-void PositionToString(POSITION position, char *positionStringBuffer) {
-
-}
+void PositionToString(POSITION position, char *positionStringBuffer) {}
 
 /**
  * @brief Convert the input position string to
@@ -484,20 +528,23 @@ POSITION StringToPosition(char *positionString) {
  * @param position The position for which to generate the AutoGUI 
  * position string.
  * @param autoguiPositionStringBuffer The buffer to write the AutoGUI
- * position String to.
+ * position string to.
  * 
  * @note You may find AutoGUIMakePositionString() helpful. 
  * (See src/core/autoguistrings.h)
  * 
- * @note Ensure that your position string is null-terminated.
- * AutoGUIMakePositionString() should do this for you, if you choose to use it.
+ * @note The space available in `autoguiPositionStringBuffer` is 
+ * MAX_POSITION_STRING_LENGTH (see src/core/autoguistrings.h). Do not write
+ * past this limit and ensure that the position string written to 
+ * `autoguiPositionStringBuffer` is properly null-terminated.
+ * AutoGUIMakePositionString() should handle the null-terminator, 
+ * if you choose to use it.
  * 
  * @note If the game is impartial and a turn is not encoded, set the turn
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
-}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
@@ -510,9 +557,11 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @param autoguiMoveStringBuffer : The buffer to write the AutoGUI
  * move string to.
  * 
+ * @note The space available in `autoguiMoveStringBuffer` is MAX_MOVE_STRING_LENGTH 
+ * (see src/core/autoguistrings.h). Do not write past this limit and ensure that
+ * the move string written to `moveStringBuffer` is properly null-terminated.
+ * 
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-  (void) position;
-}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}

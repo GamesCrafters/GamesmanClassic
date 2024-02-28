@@ -241,6 +241,7 @@ int RowWidth(int i);
 void printBoard(char * board);
 char ThreeInARow(char *theBlankORB, int a, int b, int c);
 BOOLEAN AllFilledIn(char *theBlankORB);
+POSITION GetInitialPosition(void);
 
 /************************************************************************
 **

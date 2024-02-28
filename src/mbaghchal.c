@@ -668,7 +668,6 @@ char* unhash(POSITION, int*, int*,char*);
 void ChangeBoardSize();
 POSITION GetCanonicalPosition(POSITION position);
 POSITION DoSymmetry(POSITION position, int symmetry);
-POSITION GetInitialPosition();
 
 //TIER GAMESMAN
 void SetupTierStuff();
@@ -1118,21 +1117,6 @@ void SetTclCGameSpecificOptions (int options[]) {
 ************************************************************************/
 
 void DebugMenu() {
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return gInitialPosition;
 }
 
 /************************************************************************

@@ -87,7 +87,7 @@ void GameSpecificMenu() {
 solving or playing the game. */
 void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
-  kCombinatorial = TRUE;
+  gSupportsMex = TRUE;
   boardSize = numberOfBoards * 9;
 
   // {char, min, max, char, min, max, ..., -1}
@@ -101,11 +101,6 @@ void InitializeGame() {
   }
 
   gInitialPosition = generic_hash_hash(initialBoard, 1);
-}
-
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
 }
 
 BOOLEAN checkBoard(char board[], int boardNum) {

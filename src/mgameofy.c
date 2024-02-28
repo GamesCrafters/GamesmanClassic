@@ -160,11 +160,6 @@ void InitializeGame() {
   SafeFree(initialBoard);
 }
 
-/* Return the hash value of the initial position. */
-POSITION GetInitialPosition() {
-  return gInitialPosition;
-}
-
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
@@ -577,7 +572,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
     current++;
   }
 
-  snprintf(moveStringBuffer, 5, "%c%d", (char) (row + 97), col);  
+  sprintf(moveStringBuffer, "%c%d", (char) (row + 97), col);  
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/

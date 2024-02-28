@@ -178,10 +178,6 @@ EXTERNC void InitializeGame()
     InitializeDatabasesForReal();
 }
 
-EXTERNC void FreeGame()
-{}
-
-
 #ifndef NO_GRAPHICS
 
 static int
@@ -334,22 +330,6 @@ EXTERNC POSITION DoMove(POSITION thePosition, MOVE theMove)
   Con board(thePosition);
   board.DoMove(theMove);
   return board;
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-** 
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-EXTERNC POSITION GetInitialPosition()
-{
-  return 0;
 }
 
 /************************************************************************

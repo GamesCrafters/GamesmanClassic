@@ -291,13 +291,6 @@ void GameSpecificMenu() {
 		printf("\tCurrent Initial Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
 
-		/* printf("\tI)\tChoose the (I)nitial position\n"); */
-		/*
-		   printf("\tw)\tToggle Buckets at (W)in spots from %s to %s\n",
-		       gBuckets ? "ON" : "OFF",
-		       !gBuckets ? "ON" : "OFF");
-		 */
-
 		printf("\ta)\tToggle start moves (a)dvance forward only from %s to %s\n",
 		       gForwardStart ? "ON" : "OFF",
 		       !gForwardStart ? "ON" : "OFF");
@@ -350,11 +343,6 @@ void GameSpecificMenu() {
 		case 'H': case 'h':
 			HelpMenus();
 			break;
-		/*
-		   case 'I': case'i':
-		   gInitialPosition = GetInitialPosition();
-		   break;
-		 */
 		case 'T': case 't':
 			gToTrapIsToWin = !gToTrapIsToWin;
 			break;
@@ -487,98 +475,6 @@ void UndoMove(MOVE theMove)
 			gBucketIndicator[0][BUCKET_O(from)] = FALSE;
 		else gBucketIndicator[1][BUCKET_X(from)] = FALSE;
 	}
-}
-
-/************************************************************************
-** NAME:        GetInitialPosition
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-** OUTPUTS:     POSITION initialPosition : The position returned
-************************************************************************/
-POSITION GetInitialPosition()
-{
-	BlankOX theBlankOX[boardsize], whosTurn;
-	signed char c;
-	int row, col;
-	int numX, numO;
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tYou board must have at least one x or o and no more than %d x's and %d o's\n", side-1, side-1);
-	printf("\tNote that it should be in the following format:\n\n");
-	/* Print example board. */
-	printf("EXAMPLE of a %d by %d board:\n", side, side);
-	row = 0;
-	col = 0;
-
-	while (row < side) {
-		printf("\n\t");
-		if (row != (side-1)) {
-			printf("o");
-			col=1;
-			while (col < side) {
-				printf (" -");
-				col++;
-			}
-			col=0;
-		}
-		else {
-			printf("-");
-			while (col < side) {
-				printf(" x");
-				col++;
-			}
-		}
-		col = 1;
-		row++;
-	}
-
-	do {
-		numX = numO = 0;
-		printf("\nNow enter a new board:\n");
-
-		/* Get inputted initial position. */
-		getchar();
-
-		row = side - 1;
-		col = 0;
-		while (row >= 0) {
-			while (col < side) {
-				c = getchar();
-				if(c == 'x' || c == 'X') {
-					numX++;
-					theBlankOX[((side*row)+col)] = x;
-					col++;
-				}
-				else if(c == 'o' || c == 'O' || c == '0') {
-					numO++;
-					theBlankOX[((side*row)+col)] = o;
-					col++;
-				}
-				else if(c == '-') {
-					theBlankOX[((side*row)+col)] = Blank;
-					col++;
-				}
-				else {
-				}
-			}
-			row--;
-			col = 0;
-		}
-
-		getchar();
-		printf("\nNow, whose turn is it? [O/X] : ");
-		scanf("%c",&c);
-		if(c == 'x' || c == 'X')
-			whosTurn = x;
-		else
-			whosTurn = o;
-
-		if (numX>side-1 || numO>side-1 || (numX==0 && numO==0)) {
-			printf("\nInvalid board configuration\n");
-		}
-	} while (numX>side-1 || numO>side-1 || (numX==0 && numO==0));
-
-	return(BlankOXToPosition(theBlankOX,whosTurn));
 }
 
 /************************************************************************

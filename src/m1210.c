@@ -129,7 +129,7 @@ void PositionToString(POSITION position, char *positionStringBuffer);
 
 void InitializeGame() {
 	gPositionToStringFunPtr = &PositionToString;
-	kCombinatorial = TRUE;
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************
@@ -355,26 +355,6 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 	(void)theOptions;
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** INPUTS:      POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	POSITION initialPosition;
-	printf("Please input the starting value [1 - 10] : ");
-	scanf(POSITION_FORMAT,&initialPosition);
-	return initialPosition;
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -386,7 +366,8 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void MoveToString(MOVE move, char *moveStringBuffer) {
-	snprintf(moveStringBuffer, 3, "%d", move);
+	moveStringBuffer[0] = move + '0';
+	moveStringBuffer[1] = '\0';
 }
 
 /************************************************************************
@@ -508,7 +489,7 @@ POSITION StringToPosition(char *positionString) {
 
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char entityString[gNumberOfPositions + 1];
-	for (int i = 0; i < gNumberOfPositions; i++) {
+	for (unsigned i = 0; i < gNumberOfPositions; i++) {
 		entityString[i] = '-';
 	}
 	entityString[position] = 'x';

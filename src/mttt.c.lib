@@ -275,9 +275,6 @@ void InitializeGame()
   gUndoMove = UndoMove;
 }
 
-void FreeGame()
-{}
-
 /************************************************************************
 **
 ** NAME:        DebugMenu
