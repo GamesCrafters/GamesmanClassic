@@ -1153,10 +1153,8 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 	int SPiece = unhashMoveSPiece(move);
 	if (partMoveData & 0x800000) {
 		sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
-	} else if (partMoveData & 0x400000) {
-		snprintf(moveStringBuffer, 10, "pass1");
-	} else if (partMoveData & 0x200000) {
-		snprintf(moveStringBuffer, 10, "pass2");
+	} else if (partMoveData & 0x600000) {
+		snprintf(moveStringBuffer, 10, "pass");
 	} else if (partMoveData & 0x100000) {
 		char p = (SPiece == 1) ? 'w' : 'g';
 		sprintf(moveStringBuffer, "%c %d", p, unhashMoveSValue(move));
