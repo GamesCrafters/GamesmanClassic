@@ -156,6 +156,7 @@ int valCor[9][6] = {{},  /* Valid corners (with blank board) for each orientatio
 		    {5, 6, 9, 10, 13, 14},
 		    {1, 2, 5, 6, 9, 10}};
 
+// The third entry in the list is the corner index
 int FOURSQUARES[49][4] = {{0, 0, 0, 0},  /*Gives all 4 squares each L-piece covers*/
 			  {9, 5, 1, 2}, // 1
 			  {10, 6, 2, 3},
@@ -328,6 +329,7 @@ int checkCor(int Lo, int Lc);
 int checkOrient(int Lo, int L1);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 POSITION GetInitialPosition(void);
+void PositionToString(POSITION state, char *positionStringBuffer);
 
 /************************************************************************
 **
@@ -339,6 +341,7 @@ POSITION GetInitialPosition(void);
 
 void InitializeGame()
 {
+	gPositionToStringFunPtr = &PositionToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
@@ -1968,7 +1971,7 @@ POSITION StringToPosition(char *positionString) {
 	return hash(L1, L2, S1, S2, turn);
 }
 
-void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) {
+void PositionToString(POSITION state, char *positionStringBuffer) {
 	int isIntermediate, toLPiece;
 	POSITION position = decodeInterPos(state, &isIntermediate, &toLPiece);
 	char board[17];
@@ -1997,6 +2000,39 @@ void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) 
 	} else {
 		for (i = 0; i < 4; i++) board[FOURSQUARES[L1][i] - 1] = 'B';
 		for (i = 0; i < 4; i++) board[FOURSQUARES[L2][i] - 1] = 'R';
+	}
+	board[16] = '\0';
+	AutoGUIMakePositionString(turn, board, positionStringBuffer);
+}
+
+void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) {
+	int isIntermediate, toLPiece;
+	POSITION position = decodeInterPos(state, &isIntermediate, &toLPiece);
+	char board[17];
+	memset(board, '-', 17);
+	int L1 = unhashL1(position);
+	int L2 = unhashL2(position);
+	int S1 = unhashS1(position);
+	int S2 = unhashS2(position);
+	int turn = unhashTurn(position);
+
+	L2 = Make48(L1, L2);
+	S1 = Make8to16(L1, L2, S1);
+	S2 = Make7to16(L1, L2, S1, S2);
+
+	board[S1 - 1] = 'W';
+	board[S2 - 1] = 'G';
+	if (isIntermediate) {
+		if (turn == 1) {
+			board[FOURSQUARES[toLPiece][2] - 1] = 'H' + (toLPiece - 1) / 6;
+			board[FOURSQUARES[L2][2] - 1] = 'h' + (L2 - 1) / 6;
+		} else {
+			board[FOURSQUARES[L1][2] - 1] = 'H' + (L1 - 1) / 6;
+			board[FOURSQUARES[toLPiece][2] - 1] = 'h' + (toLPiece - 1) / 6;
+		}
+	} else {
+		board[FOURSQUARES[L1][2] - 1] = 'H' + (L1 - 1) / 6;
+		board[FOURSQUARES[L2][2] - 1] = 'h' + (L2 - 1) / 6;
 	}
 	board[16] = '\0';
 	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
