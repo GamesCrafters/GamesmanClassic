@@ -10,7 +10,7 @@
 **
 ************************************************************************/
 
-#include "gamesman.h"
+#include "gamesman.h" 
 
 CONST_STRING kAuthorName = "Firstname Lastname";
 CONST_STRING kGameName = "Your Game Name";  // Use this spacing and case
@@ -22,7 +22,7 @@ CONST_STRING kDBName = "yourgamename";      // Use this spacing and case
  * @details The hash value of every reachable position must be less
  * than `gNumberOfPositions`.
  */
-POSITION gNumberOfPositions = 0;
+POSITION gNumberOfPositions = generic_hash_init(16, ['w', 4, 4, 'b', 4, 4, '-', 8, -1], null, 0);
 
 /**
  * @brief The hash value of the initial position of the default
@@ -34,7 +34,7 @@ POSITION gNumberOfPositions = 0;
  * in both setOption() and GameSpecificMenu(). You may also
  * choose to modify `gInitialPosition` in InitializeGame().
  */
-POSITION gInitialPosition = 0;
+POSITION gInitialPosition = generic_hash_hash("bwbw--------wbwbw", 1);
 
 /**
  * @brief Indicates whether this game is PARTIZAN, i.e. whether, given
@@ -53,7 +53,7 @@ BOOLEAN kTieIsPossible = FALSE;
  * P in the game such that, there is a sequence of N >= 1 moves one can
  * make starting from P that allows them to revisit P.
  */
-BOOLEAN kLoopy = FALSE;
+BOOLEAN kLoopy = TRUE;
 
 /**
  * @brief Whether symmetries are supported, i.e., whether there is
@@ -62,7 +62,7 @@ BOOLEAN kLoopy = FALSE;
  * (initialized in InitializeGame() in this file), is set to NULL,
  * then this should be set to FALSE.
  */
-BOOLEAN kSupportsSymmetries = FALSE;
+BOOLEAN kSupportsSymmetries = TRUE;
 
 /**
  * @brief Useful for some solvers. Do not change this.
@@ -129,6 +129,7 @@ void InitializeGame(void) {
     // then leave gPositionToStringFunPtr as NULL, i.e.,
     // delete this next line and also feel free
     // to delete the PositionToString function.
+    int gCurrPlayer = 1; // Current player
     gPositionToStringFunPtr = &PositionToString;
 }
 
