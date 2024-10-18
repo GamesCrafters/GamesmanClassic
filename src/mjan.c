@@ -10,7 +10,7 @@
 **
 ************************************************************************/
 
-#include "gamesman.h"
+#include "gamesman.h" 
 
 CONST_STRING kAuthorName = "Firstname Lastname";
 CONST_STRING kGameName = "Your Game Name";  // Use this spacing and case
@@ -22,7 +22,7 @@ CONST_STRING kDBName = "yourgamename";      // Use this spacing and case
  * @details The hash value of every reachable position must be less
  * than `gNumberOfPositions`.
  */
-POSITION gNumberOfPositions = 0;
+POSITION gNumberOfPositions = generic_hash_init(16, ['w', 4, 4, 'b', 4, 4, '-', 8, -1], null, 0);
 
 /**
  * @brief The hash value of the initial position of the default
@@ -34,7 +34,7 @@ POSITION gNumberOfPositions = 0;
  * in both setOption() and GameSpecificMenu(). You may also
  * choose to modify `gInitialPosition` in InitializeGame().
  */
-POSITION gInitialPosition = 0;
+POSITION gInitialPosition = generic_hash_hash("bwbw--------wbwb", 1);
 
 /**
  * @brief Indicates whether this game is PARTIZAN, i.e. whether, given
@@ -53,7 +53,7 @@ BOOLEAN kTieIsPossible = FALSE;
  * P in the game such that, there is a sequence of N >= 1 moves one can
  * make starting from P that allows them to revisit P.
  */
-BOOLEAN kLoopy = FALSE;
+BOOLEAN kLoopy = TRUE;
 
 /**
  * @brief Whether symmetries are supported, i.e., whether there is
@@ -62,7 +62,7 @@ BOOLEAN kLoopy = FALSE;
  * (initialized in InitializeGame() in this file), is set to NULL,
  * then this should be set to FALSE.
  */
-BOOLEAN kSupportsSymmetries = FALSE;
+BOOLEAN kSupportsSymmetries = TRUE;
 
 /**
  * @brief Useful for some solvers. Do not change this.
@@ -129,6 +129,7 @@ void InitializeGame(void) {
     // then leave gPositionToStringFunPtr as NULL, i.e.,
     // delete this next line and also feel free
     // to delete the PositionToString function.
+    int gCurrPlayer = 1; // Current player
     gPositionToStringFunPtr = &PositionToString;
 }
 
@@ -158,6 +159,33 @@ MOVELIST *GenerateMoves(POSITION position) {
 
         See the function CreateMovelistNode in src/core/misc.c
     */
+    char* board = (char*) SafeMalloc(16 * sizeof(char));
+    char* board = generic_hash_unhash(position, board);
+
+    int player = generic_hash_turn(position);
+    char piece = (player == 1) ? 'w' : 'b';
+    
+    int directions[4] = {-4, 4, -1, 1};
+
+    for (int i = 0; i < 16; i++) {
+        if (board[i] == piece) {
+
+            for (int d = 0; d < 4; d++) {
+                int new_pos = i + directions[d]
+
+                if (new_pos >= 0 && new_pos < 16 && board[new_pos] == '-') {
+                    if (directions[d] == -1 && (i % 4 == 0)) continue;
+                    if (directions[d] == 1 && (i % 4 == 3)) continue;
+
+                    int encoded_move = ((i & 0x0F) << 4) | (new_pos & 0x0F);
+
+                    moves = CreateMovelistNode(encoded_move, moves);
+                }
+            }
+        }
+    }
+    SafeFree(board)
+    
     return moves;
 }
 
@@ -172,7 +200,21 @@ MOVELIST *GenerateMoves(POSITION position) {
  * the POSITION typedef in src/core/types.h.
  */
 POSITION DoMove(POSITION position, MOVE move) {
-    return 0;
+    char* board = (char*) SafeMalloc(16 * sizeof(char));
+    char* board = generic_hash_unhash(position, board);
+    int curr_player = generic_hash_turn(position);
+
+    int start_pos = ((move >> 4) & 0x0F) + 1;
+    int end_pos = (move & 0x0F) + 1;
+
+    char piece = board[start_pos];
+    board[end_pos] = piece;
+    boad[start_pos] = '-';
+
+    POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2)
+    SafeFree(board)
+
+    return child_position;
 }
 
 /**
