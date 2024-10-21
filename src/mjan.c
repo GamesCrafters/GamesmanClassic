@@ -388,7 +388,30 @@ void setOption(int option) {
  * game-specific parameters, such as the side-length of a tic-tac-toe
  * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu(void) {}
+void GameSpecificMenu(void) {
+    char GetMyChar();
+
+	printf("\n");
+	printf("A Simple Game(Jan 4x4) Specific Menu\n\n");
+	printf("b) Back to previous menu\n\n");
+
+	printf("Current option:   %s\n", allDiag ? "All diagonal moves" : noDiag ? "No diagonal moves" : "Standard diagonal moves");
+	printf("Select an option: ");
+
+	switch(GetMyChar()) {
+	case 'Q': case 'q':
+		ExitStageRight();
+		break;
+
+	case 'b': case 'B':
+		return;
+	default:
+		printf("\nSorry, I don't know that option. Try another.\n");
+		HitAnyKeyToContinue();
+		GameSpecificMenu();
+		break;
+	}
+}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
