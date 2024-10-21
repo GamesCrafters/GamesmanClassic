@@ -34,7 +34,7 @@ POSITION gNumberOfPositions = generic_hash_init(16, ['w', 4, 4, 'b', 4, 4, '-', 
  * in both setOption() and GameSpecificMenu(). You may also
  * choose to modify `gInitialPosition` in InitializeGame().
  */
-POSITION gInitialPosition = generic_hash_hash("bwbw--------wbwbw", 1);
+POSITION gInitialPosition = generic_hash_hash("bwbw--------wbwb", 1);
 
 /**
  * @brief Indicates whether this game is PARTIZAN, i.e. whether, given
@@ -159,6 +159,31 @@ MOVELIST *GenerateMoves(POSITION position) {
 
         See the function CreateMovelistNode in src/core/misc.c
     */
+    char* board = (char*) SafeMalloc(16 * sizeof(char));
+    char* board = generic_hash_unhash(position, board);
+
+    int player = generic_hash_turn(position);
+    char piece = (player == 1) ? 'w' : 'b';
+    
+    int directions[4] = {-4, 4, -1, 1};
+
+    for (int i = 0; i < 16; i++) {
+        if (board[i] == piece) {
+
+            for (int d = 0; d < 4; d++) {
+                int new_pos = i + directions[d]
+
+                if (new_pos >= 0 && new_pos < 16 && board[new_pos] == '-') {
+                    if (directions[d] == -1 && (i % 4 == 0)) continue;
+                    if (directions[d] == 1 && (i % 4 == 3)) continue;
+
+                    int encoded_move = ((i & 0x0F) << 4) | (new_pos & 0x0F);
+
+                    moves = CreateMovelistNode(encoded_move, moves);
+                }
+            }
+        }
+    }
     return moves;
 }
 
