@@ -129,7 +129,6 @@ void InitializeGame(void) {
     // then leave gPositionToStringFunPtr as NULL, i.e.,
     // delete this next line and also feel free
     // to delete the PositionToString function.
-    int gCurrPlayer = 1; // Current player
     gPositionToStringFunPtr = &PositionToString;
 }
 
@@ -188,6 +187,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 VALUE Primitive(POSITION position) {
     char* p_str = (char*)SafeMalloc(possize);
     p_str = generic_hash_unhash(position, p_str);
+    int player = generic_hash_turn(position);
     int deciding_idx = -1;
     for (int idx = 0; idx < 8; idx ++) {
         if (p_str[idx] == '-') {
@@ -207,7 +207,7 @@ VALUE Primitive(POSITION position) {
                 break;
             }
         }
-        if (idx % 4 < 2 && (p_str[idx] == p_str[idx + 1] == p_str[idx + 2] || p_str[idx] == p_str[idx + 5] == p_str[idx + 10])) {
+        if (idx % 4 < 2) { // explore right 
             if(p_str[idx] == p_str[idx + 1] && p_str[idx + 1] == p_str[idx + 2]) { // right
                 deciding_idx = idx;
                 break;
@@ -219,8 +219,9 @@ VALUE Primitive(POSITION position) {
         }
     }
     if (deciding_idx != -1) {
-        return p_str[deciding_idx] == 'w' && gCurrPlayer == 1 || p_str[deciding_idx] == 'b' && gCurrPlayer == 2 ? win : lose;
+        return (p_str[deciding_idx] == 'w' && player == 1) || (p_str[deciding_idx] == 'b' && player == 2) ? win : lose;
     }
+    SafeFree(p_str);
     return undecided;
 }
 
