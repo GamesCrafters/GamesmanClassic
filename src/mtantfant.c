@@ -1,13 +1,14 @@
 
 /************************************************************************
 **
-** NAME:        m<your game name>.c
+** NAME:        mtantfant.c
 **
-** DESCRIPTION: <Your Game Name> (Use this spacing and case)
+** DESCRIPTION: Tant Fant
+** https://ludii.games/details.php?keyword=Tant%20Fant
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Josh Zhang, Daniel Liu, Johan Ko
 **
-** DATE:        YYYY-MM-DD
+** DATE:        2024-10-20
 **
 ************************************************************************/
 
@@ -28,7 +29,7 @@ BOOLEAN ThreeInARow(char *, int, int, int, char);
 
 char pieces[] = " XO";
 
-CONST_STRING kAuthorName = "Firstname Lastname";
+CONST_STRING kAuthorName = "JZ,DL,JK";
 CONST_STRING kGameName = "Tant Fant"; // Use this spacing and case
 CONST_STRING kDBName = "tantfant";    // Use this spacing and case
 
@@ -189,6 +190,8 @@ MOVELIST *GenerateMoves(POSITION position)
 
     for (int cpos = 0; cpos < BOARDSIZE; cpos++)
     {
+        if (cpos == 4)
+            continue;
         // Check for the locations of all pieces on the board
         if (pieces[player] == board[cpos])
         {
@@ -199,13 +202,24 @@ MOVELIST *GenerateMoves(POSITION position)
             {
                 int nr = cr + dr[j];
                 int nc = cc + dc[j];
-                if (nr < 0 || nc < 0 || nr > BOARDROWS || nc > BOARDCOLS)
+                if (nr < 0 || nc < 0 || nr >= BOARDROWS || nc >= BOARDCOLS)
                     continue;
                 int npos = nr * BOARDCOLS + nc;
                 if (board[npos] != ' ')
                     continue;
                 moves = CreateMovelistNode(ENCODE_MOVE(cpos, npos), moves);
             }
+            if (board[4] == ' ')
+                moves = CreateMovelistNode(ENCODE_MOVE(cpos, 4), moves);
+        }
+    }
+
+    if (board[4] == pieces[player])
+    {
+        for (int npos = 0; npos < BOARDSIZE; npos++)
+        {
+            if (board[npos] == ' ')
+                moves = CreateMovelistNode(ENCODE_MOVE(4, npos), moves);
         }
     }
 
@@ -266,8 +280,7 @@ VALUE Primitive(POSITION position)
     generic_hash_unhash(position, board);
     int player = generic_hash_turn(position);
 
-    // Previous player is X, cannot win if original bottom three in a row.
-    char piece = pieces[player];
+    char piece = pieces[NEXT_PLAYER(player)];
     if (ThreeInARow(board, 3, 4, 5, piece) ||
         // Verticals
         ThreeInARow(board, 0, 3, 6, piece) ||
@@ -279,9 +292,9 @@ VALUE Primitive(POSITION position)
     {
         return lose;
     }
-    if (player == 1 && ThreeInARow(board, 0, 1, 2, piece))
+    if (player == 2 && ThreeInARow(board, 0, 1, 2, piece))
         return lose;
-    if (player == 2 && ThreeInARow(board, 6, 7, 8, piece))
+    if (player == 1 && ThreeInARow(board, 6, 7, 8, piece))
         return lose;
     return undecided;
 }
@@ -327,16 +340,24 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     generic_hash_unhash(position, board);
     int player = generic_hash_turn(position);
 
-    // Print out the board
     printf("\n");
+    printf("%c-", board[0]);
+    printf("%c-", board[1]);
+    printf("%c", board[2]);
+    
+    printf("     1-2-3");
+    printf("\n|\\|/|     |\\|/|\n");
+    printf("%c-", board[3]);
+    printf("%c-", board[4]);
+    printf("%c", board[5]);
+    printf("     4-5-6");
+    printf("\n|/|\\|     |/|\\|\n");
+    printf("%c-", board[6]);
+    printf("%c-", board[7]);
+    printf("%c", board[8]);
+    printf("     7-8-9");
 
-    for (int i = 0; i < BOARDSIZE; i++)
-    {
-        printf("%c", board[i]);
-        if (!((i + 1) % 3))
-            printf("\n");
-    }
-    printf("It is %s's turn (%c).\n", playerName, pieces[player]);
+    printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
     printf("\n");
 }
 
