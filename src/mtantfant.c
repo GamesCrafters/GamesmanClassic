@@ -116,12 +116,18 @@ BOOLEAN kDebugMenu = FALSE;
  * after you're done solving the game you should initialize them
  * with something helpful, for the TextUI.
  */
-CONST_STRING kHelpGraphicInterface = "";
-CONST_STRING kHelpTextInterface = "";
-CONST_STRING kHelpOnYourTurn = "";
-CONST_STRING kHelpStandardObjective = "";
-CONST_STRING kHelpReverseObjective = "";
-CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpGraphicInterface = "GUI has not been implemented yet.";
+CONST_STRING kHelpTextInterface =
+    "On your turn, use the legend to determine which of your pieces you want to move and an empty space that you want to move to.\
+    Each of these is specified by a value between 1 and 9.\
+    After determining your move, type in a 2 digit number corresponding to the start and end positions, then hit RETURN.\
+    If you make a mistake at any point, press u to revert back to your previous position.";
+CONST_STRING kHelpOnYourTurn = "Move one of your pieces to an adjacent empty space.";
+CONST_STRING kHelpStandardObjective = "Get three of your pieces in a row, either horizontally, vertically, or diagonally.\
+The starting three in a row does not count.";
+CONST_STRING kHelpReverseObjective = "Reverse objective has not been implemented yet.";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "A Tie will never occur, but Draws may occur.";
+// TODO after fixing board printing.
 CONST_STRING kHelpExample = "";
 
 /**
@@ -210,7 +216,7 @@ MOVELIST *GenerateMoves(POSITION position)
                 moves = CreateMovelistNode(ENCODE_MOVE(cpos, npos), moves);
             }
             // Don't double count edge moves
-            if (board[4] == ' ' && cpos % 2 == 0 && cpos != 4) 
+            if (board[4] == ' ' && cpos % 2 == 0 && cpos != 4)
                 moves = CreateMovelistNode(ENCODE_MOVE(cpos, 4), moves);
         }
     }
@@ -345,7 +351,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     printf("%c-", board[0]);
     printf("%c-", board[1]);
     printf("%c", board[2]);
-    
+
     printf("     1-2-3");
     printf("\n|\\|/|     |\\|/|\n");
     printf("%c-", board[3]);
@@ -438,7 +444,7 @@ MOVE ConvertTextInputToMove(STRING input)
  */
 void MoveToString(MOVE move, char *moveStringBuffer)
 {
-    sprintf(moveStringBuffer, "%d, %d", DECODE_MOVE_START(move) + 1, DECODE_MOVE_END(move) + 1);
+    sprintf(moveStringBuffer, "%d%d", DECODE_MOVE_START(move) + 1, DECODE_MOVE_END(move) + 1);
 }
 
 /**
