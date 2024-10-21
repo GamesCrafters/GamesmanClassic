@@ -209,7 +209,8 @@ MOVELIST *GenerateMoves(POSITION position)
                     continue;
                 moves = CreateMovelistNode(ENCODE_MOVE(cpos, npos), moves);
             }
-            if (board[4] == ' ')
+            // Don't double count edge moves
+            if (board[4] == ' ' && cpos % 2 == 0 && cpos != 4) 
                 moves = CreateMovelistNode(ENCODE_MOVE(cpos, 4), moves);
         }
     }
