@@ -158,6 +158,34 @@ MOVELIST *GenerateMoves(POSITION position) {
 
         See the function CreateMovelistNode in src/core/misc.c
     */
+    char* board = (char*) SafeMalloc(16 * sizeof(char));
+    char* board = generic_hash_unhash(position, board);
+
+    int player = generic_hash_turn(position);
+    char piece = (player == 1) ? 'w' : 'b';
+    
+    // Down: -4, Up: 4, Left: -1, Right: 1
+    int directions[4] = {-4, 4, -1, 1};
+
+    for (int i = 0; i < 16; i++) {
+        if (board[i] == piece) {
+
+            for (int d = 0; d < 4; d++) {
+                int new_pos = i + directions[d]
+
+                if (new_pos >= 0 && new_pos < 16 && board[new_pos] == '-') {
+                    if (directions[d] == -1 && (i % 4 == 0)) continue;
+                    if (directions[d] == 1 && (i % 4 == 3)) continue;
+
+                    int encoded_move = (i << 4) | (new_pos & 0x0F);
+
+                    moves = CreateMovelistNode(encoded_move, moves);
+                }
+            }
+        }
+    }
+    SafeFree(board)
+
     return moves;
 }
 
@@ -172,7 +200,21 @@ MOVELIST *GenerateMoves(POSITION position) {
  * the POSITION typedef in src/core/types.h.
  */
 POSITION DoMove(POSITION position, MOVE move) {
-    return 0;
+    char* board = (char*) SafeMalloc(16 * sizeof(char));
+    char* board = generic_hash_unhash(position, board);
+    int curr_player = generic_hash_turn(position);
+
+    int start_pos = ((move >> 4) & 0x0F);
+    int end_pos = (move & 0x0F);
+
+    char piece = board[start_pos];
+    board[end_pos] = piece;
+    board[start_pos] = '-';
+
+    POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2)
+    SafeFree(board)
+
+    return child_position;
 }
 
 /**
@@ -383,7 +425,30 @@ void setOption(int option) {
  * game-specific parameters, such as the side-length of a tic-tac-toe
  * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu(void) {}
+void GameSpecificMenu(void) {
+    char GetMyChar();
+
+	printf("\n");
+	printf("A Simple Game(Jan 4x4) Specific Menu\n\n");
+	printf("b) Back to previous menu\n\n");
+
+	printf("Current option:   %s\n", allDiag ? "All diagonal moves" : noDiag ? "No diagonal moves" : "Standard diagonal moves");
+	printf("Select an option: ");
+
+	switch(GetMyChar()) {
+	case 'Q': case 'q':
+		ExitStageRight();
+		break;
+
+	case 'b': case 'B':
+		return;
+	default:
+		printf("\nSorry, I don't know that option. Try another.\n");
+		HitAnyKeyToContinue();
+		GameSpecificMenu();
+		break;
+	}
+}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
