@@ -22,8 +22,11 @@ CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
  * @details The hash value of every reachable position must be less
  * than `gNumberOfPositions`.
  */
-POSITION gNumberOfPositions = 0;
-
+POSITION gNumberOfPositions = 712;
+/*7 for 1 piece, 7*6 = 42 for 2 pieces, 7*6*5/2! = 105 for 3 pieces, 
+7*6*5*4/2!*2! = 210 for 4 pieces, 7*6*5*4*3/3!*2! = 210 for 5 pieces, 
+7*6*5*4*3*2/3!*3! - 2 = 138 for 6 pieces due to it not being possible
+to get w,w,w b,b,b or b,b,b w,w,w*
 /**
  * @brief The hash value of the initial position of the default
  * variant of the game.
