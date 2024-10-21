@@ -227,7 +227,20 @@ POSITION GetCanonicalPosition(POSITION position) {
  * to print the prediction of the game's outcome.
  */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-
+    char* board = (char*)SafeMalloc(possize);
+	generic_hash_unhash(position, board);
+    int player = generic_hash_turn(position);
+    char* prediction = GetPrediction(position, playerName, usersTurn);
+    if (usersTurn) {
+        printf("%s's turn: True\n\n", playerName);
+    } else {
+        printf("%s's turn: False\n\n", playerName);
+    }
+    for (int idx = 0; idx < 16; idx += 4) {
+        printf("%c%c%c%c\n", board[idx], board[idx + 1], board[idx + 2], board[idx + 3]);
+    }
+    printf("\nPrediction: %s\n", prediction);
+    SafeFree(board);
 }
 
 /**
