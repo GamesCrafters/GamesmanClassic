@@ -49,7 +49,47 @@ void SetTclCGameSpecificOptions(int theOptions[]) {}
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
+#define MAX_ITEMS 11 // Maximum number of key-value pairs
+#define MAX_KEY_SIZE 50
+#define MAX_VALUE_SIZE 50
 
+// Define a struct to hold key-value pairs
+typedef struct {
+    char key[MAX_KEY_SIZE];
+    char value[MAX_VALUE_SIZE];
+} DictionaryItem;
+
+// Define a dictionary struct
+typedef struct {
+    DictionaryItem items[MAX_ITEMS];
+    int size; // To keep track of the number of key-value pairs
+} Dictionary;
+
+// Function to initialize the dictionary
+void initDictionary(Dictionary *dict) {
+    dict->size = 0;
+}
+
+// Function to add a key-value pair to the dictionary
+void addItem(Dictionary *dict, const char *key, const char *value) {
+    if (dict->size < MAX_ITEMS) {
+        strcpy(dict->items[dict->size].key, key);
+        strcpy(dict->items[dict->size].value, value);
+        dict->size++;
+    } else {
+        printf("Dictionary is full!\n");
+    }
+}
+
+// Function to get the value associated with a key
+const char* getItem(Dictionary *dict, const char *key) {
+    for (int i = 0; i < dict->size; i++) {
+        if (strcmp(dict->items[i].key, key) == 0) {
+            return dict->items[i].value;
+        }
+    }
+    return NULL; // Key not found
+}
 
 
 
@@ -64,14 +104,31 @@ void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
 
-  /* YOUR CODE HERE */
+  Dictionary moves_lookup;
+  initDictionary(&moves_lookup);
+
+  addItem(&moves_lookup, "0", "1");
+  addItem(&moves_lookup, "1", "0,2,3");
+  addItem(&moves_lookup, "2", "1");
+  addItem(&moves_lookup, "3", "1,4,5,6");
+  addItem(&moves_lookup, "4", "3,5,7");
+  addItem(&moves_lookup, "5", "3,4,6,7");
+  addItem(&moves_lookup, "6", "3,5,7");
+  addItem(&moves_lookup, "7", "4,5,6,9");
+  addItem(&moves_lookup, "8", "9");
+  addItem(&moves_lookup, "9", "7,8,10");
+  addItem(&moves_lookup, "10", "9");
+
+  char board[12] = "-----------";
+  char player1 = 'X';
+  char player2 = 'O';
   
 }
 
 /* Return the hash value of the initial position. */
 POSITION GetInitialPosition() {
   /* YOUR CODE HERE */
-  return 0;
+  return gInitialPosition;
 }
 
 /* Return a linked list of moves. */
@@ -163,13 +220,6 @@ void PrintMove(MOVE move) {
 /*********** END TEXTUI FUNCTIONS ***********/
 
 
-
-
-
-
-
-
-
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
 /* How many variants are you supporting? */
@@ -191,11 +241,6 @@ void setOption(int option) {
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
-
-
-
-
-
 
 
 /* Don't worry about these Interact functions below yet.
