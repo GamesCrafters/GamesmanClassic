@@ -129,7 +129,6 @@ void InitializeGame(void) {
     // then leave gPositionToStringFunPtr as NULL, i.e.,
     // delete this next line and also feel free
     // to delete the PositionToString function.
-    int gCurrPlayer = 1; // Current player
     gPositionToStringFunPtr = &PositionToString;
 }
 
@@ -165,6 +164,7 @@ MOVELIST *GenerateMoves(POSITION position) {
     int player = generic_hash_turn(position);
     char piece = (player == 1) ? 'w' : 'b';
     
+    // Down: -4, Up: 4, Left: -1, Right: 1
     int directions[4] = {-4, 4, -1, 1};
 
     for (int i = 0; i < 16; i++) {
@@ -177,7 +177,7 @@ MOVELIST *GenerateMoves(POSITION position) {
                     if (directions[d] == -1 && (i % 4 == 0)) continue;
                     if (directions[d] == 1 && (i % 4 == 3)) continue;
 
-                    int encoded_move = ((i & 0x0F) << 4) | (new_pos & 0x0F);
+                    int encoded_move = (i << 4) | (new_pos & 0x0F);
 
                     moves = CreateMovelistNode(encoded_move, moves);
                 }
@@ -185,7 +185,7 @@ MOVELIST *GenerateMoves(POSITION position) {
         }
     }
     SafeFree(board)
-    
+
     return moves;
 }
 
@@ -204,12 +204,12 @@ POSITION DoMove(POSITION position, MOVE move) {
     char* board = generic_hash_unhash(position, board);
     int curr_player = generic_hash_turn(position);
 
-    int start_pos = ((move >> 4) & 0x0F) + 1;
-    int end_pos = (move & 0x0F) + 1;
+    int start_pos = ((move >> 4) & 0x0F);
+    int end_pos = (move & 0x0F);
 
     char piece = board[start_pos];
     board[end_pos] = piece;
-    boad[start_pos] = '-';
+    board[start_pos] = '-';
 
     POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2)
     SafeFree(board)
