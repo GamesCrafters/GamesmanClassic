@@ -87,7 +87,7 @@ void PositionToString(POSITION, char*);
  * @brief If multiple variants are supported, set this
  * to true -- GameSpecificMenu() must be implemented.
  */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 
 /**
  * @brief Set this to true if the DebugMenu() is implemented.
@@ -305,6 +305,21 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * @return TRUE iff the input is a valid text input.
  */
 BOOLEAN ValidTextInput(STRING input) {
+    int start_pos, end_pos;
+    char extra;
+
+    if (sscanf(input, "%d %d %c", &start_pos, &end_pos, &extra) != 2) {
+        return FALSE;  
+    }
+
+    if (start_pos < 0 || start_pos > 15 || end_pos < 0 || end_pos > 15) {
+        return FALSE;
+    }
+
+    if (start_pos == end_pos) {
+        return FALSE;
+    }
+
     return TRUE;
 }
 
@@ -317,7 +332,16 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return 0;
+    if (ValidTextInput(input) == FALSE) {
+        return 0;
+    }
+    int start_pos, end_pos;
+    
+    sscanf(input, "%d %d", &start_pos, &end_pos) != 2)
+    
+    MOVE encoded_move = ((start_pos & 0x0F) << 4) | (end_pos & 0x0F);
+    
+    return encoded_move;
 }
 
 /**
@@ -335,7 +359,12 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    return NULL;
+    int start_pos = (move >> 4) & 0x0F; 
+    int end_pos = move & 0x0F;          
+    
+    snprintf(moveStringBuffer, MAX_MOVE_STRING_LENGTH, "%d %d", start_pos, end_pos);
+
+    moveStringBuffer[MAX_MOVE_STRING_LENGTH - 1] = '\0';
 }
 
 /**
@@ -389,28 +418,6 @@ void setOption(int option) {
  * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
 void GameSpecificMenu(void) {
-    char GetMyChar();
-
-	printf("\n");
-	printf("A Simple Game(Jan 4x4) Specific Menu\n\n");
-	printf("b) Back to previous menu\n\n");
-
-	printf("Current option:   %s\n", allDiag ? "All diagonal moves" : noDiag ? "No diagonal moves" : "Standard diagonal moves");
-	printf("Select an option: ");
-
-	switch(GetMyChar()) {
-	case 'Q': case 'q':
-		ExitStageRight();
-		break;
-
-	case 'b': case 'B':
-		return;
-	default:
-		printf("\nSorry, I don't know that option. Try another.\n");
-		HitAnyKeyToContinue();
-		GameSpecificMenu();
-		break;
-	}
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
