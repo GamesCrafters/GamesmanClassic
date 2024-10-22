@@ -22,11 +22,12 @@ CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
  * @details The hash value of every reachable position must be less
  * than `gNumberOfPositions`.
  */
-POSITION gNumberOfPositions = 712;
-/*7 for 1 piece, 7*6 = 42 for 2 pieces, 7*6*5/2! = 105 for 3 pieces, 
-7*6*5*4/2!*2! = 210 for 4 pieces, 7*6*5*4*3/3!*2! = 210 for 5 pieces, 
-7*6*5*4*3*2/3!*3! - 2 = 138 for 6 pieces due to it not being possible
-to get w,w,w b,b,b or b,b,b w,w,w*
+POSITION gNumberOfPositions = 713;
+/*1 for 0 pieces, 7 for 1 piece, 7*6 = 42 for 2 pieces, 
+7*6*5/2! = 105 for 3 pieces, 7*6*5*4/2!*2! = 210 for 4 pieces, 
+7*6*5*4*3/3!*2! = 210 for 5 pieces, 7*6*5*4*3*2/3!*3! - 2 = 138 
+for 6 pieces due to it not being possible to get w,w,w b,b,b 
+or b,b,b w,w,w*
 /**
  * @brief The hash value of the initial position of the default
  * variant of the game.
@@ -38,6 +39,7 @@ to get w,w,w b,b,b or b,b,b w,w,w*
  * choose to modify `gInitialPosition` in InitializeGame().
  */
 POSITION gInitialPosition = 0;
+//not checked
 
 /**
  * @brief Indicates whether this game is PARTIZAN, i.e. whether, given
@@ -45,18 +47,21 @@ POSITION gInitialPosition = 0;
  * available to them on their turn. If the game is impartial, this is FALSE.
  */
 BOOLEAN kPartizan = FALSE;
+//not checked
 
 /**
  * @brief Whether a tie or draw is possible in this game.
  */
 BOOLEAN kTieIsPossible = FALSE;
+//checked
 
 /**
  * @brief Whether the game is loopy. It is TRUE if there exists a position
  * P in the game such that, there is a sequence of N >= 1 moves one can
  * make starting from P that allows them to revisit P.
  */
-BOOLEAN kLoopy = FALSE;
+BOOLEAN kLoopy = TRUE;
+//checked
 
 /**
  * @brief Whether symmetries are supported, i.e., whether there is
@@ -66,6 +71,7 @@ BOOLEAN kLoopy = FALSE;
  * then this should be set to FALSE.
  */
 BOOLEAN kSupportsSymmetries = FALSE;
+//work on this
 
 /**
  * @brief Useful for some solvers. Do not change this.
@@ -84,7 +90,28 @@ BOOLEAN kDebugDetermineValue = FALSE;
  * @brief Declaration of optional functions.
  */
 POSITION GetCanonicalPosition(POSITION);
-void PositionToString(POSITION, char*);
+void PositionToString(POSITION, char*) {
+    char positionSting[11];
+    positionString[0] = ' ';
+    positionString[2] = ' ';
+    positionString[3] = '\n';
+    positionString[7] = '\n';
+    int piecePositions[] = {1,4,5,6,8,9,10};
+    POSITION position;
+    for(int i = 0; i < 7; i++) {
+        if(position % 3 == 0) {
+            positionString[piecePosition[i]] = ' ';
+        }
+        else if(position % 3 == 1) {
+            positionString[piecePosition[i]] = 'W';
+        }
+        else {
+            positionString[piecePosition[i]] = 'B';
+        }
+        position /= 3;
+    }
+}
+//fix this to get right arguments
 
 /**
  * @brief If multiple variants are supported, set this
@@ -110,6 +137,8 @@ CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 CONST_STRING kHelpExample = "";
 
+boolean wTurn; //w uses the white piece and goes first
+
 /**
  * @brief Tcl-related stuff. Do not change if you do not plan to make a Tcl interface.
  */
@@ -126,7 +155,8 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-
+    wTurn = true;
+    POSITION position = 0;
     // If you want formal position strings to
     // be the same as the AutoGUI position strings,
     // then leave gPositionToStringFunPtr as NULL, i.e.,
