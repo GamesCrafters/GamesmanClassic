@@ -91,7 +91,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
  */
 POSITION GetCanonicalPosition(POSITION);
 void PositionToString(POSITION, char*) {
-    char positionSting[11];
+    char positionString[11];
     positionString[0] = ' ';
     positionString[2] = ' ';
     positionString[3] = '\n';
