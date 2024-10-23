@@ -175,43 +175,34 @@ void InitializeGame(void) {
  * FreeMoveList().
  */
 MOVELIST *GenerateMoves(POSITION position) {
-    MOVELIST *moves = NULL;
-    /* 
-        NOTE: To add to the linked list, do
-        
-        moves = CreateMovelistNode(<the move you're adding>, moves);
+  MOVELIST *moves = NULL;
+  char* board = (char*) SafeMalloc(16 * sizeof(char));
+  board = generic_hash_unhash(position, board);
 
-        See the function CreateMovelistNode in src/core/misc.c
-    */
-    char* board = (char*) SafeMalloc(16 * sizeof(char));
-    board = generic_hash_unhash(position, board);
-
-    int player = generic_hash_turn(position);
-    char piece = (player == 1) ? 'w' : 'b';
-    
-    // Down: -4, Up: 4, Left: -1, Right: 1
-    int directions[4] = {-4, 4, -1, 1};
-
-    for (int i = 0; i < 16; i++) {
-        if (board[i] == piece) {
-
-            for (int d = 0; d < 4; d++) {
-                int new_pos = i + directions[d];
-
-                if (new_pos >= 0 && new_pos < 16 && board[new_pos] == '-') {
-                    if (directions[d] == -1 && (i % 4 == 0)) continue;
-                    if (directions[d] == 1 && (i % 4 == 3)) continue;
-
-                    int encoded_move = (i << 4) | (new_pos & 0x0F);
-
-                    moves = CreateMovelistNode(encoded_move, moves);
-                }
-            }
-        }
+  char piece = (generic_hash_turn(position) == 1) ? 'w' : 'b';
+  for (int idx = 0; idx < 16; idx++) {
+    if (board[idx] != piece) {
+      continue;
     }
-    SafeFree(board);
-
-    return moves;
+    if (idx < 12 && board[idx + 4] == '-') {
+      int new_move = (idx << 4) | ((idx + 4) & 0x0F);
+      moves = CreateMovelistNode(new_move, moves);
+    }
+    if (idx > 3 && board[idx - 4] == '-') {
+      int new_move = (idx << 4) | ((idx - 4) & 0x0F);
+      moves = CreateMovelistNode(new_move, moves);
+    }
+    if (idx < 15 && idx % 4 != 3 && board[idx + 1] == '-') {
+      int new_move = (idx << 4) | ((idx + 1) & 0x0F);
+      moves = CreateMovelistNode(new_move, moves);
+    }
+    if (idx > 0 && idx % 4 != 0 && board[idx - 1] == '-') {
+      int new_move = (idx << 4) | ((idx - 1) & 0x0F);
+      moves = CreateMovelistNode(new_move, moves);
+    }
+  }
+  SafeFree(board);
+  return moves;
 }
 
 /**
@@ -228,17 +219,11 @@ POSITION DoMove(POSITION position, MOVE move) {
     char* board = (char*) SafeMalloc(16 * sizeof(char));
     board = generic_hash_unhash(position, board);
     int curr_player = generic_hash_turn(position);
-
-    int start_pos = ((move >> 4) & 0x0F);
-    int end_pos = (move & 0x0F);
-
-    char piece = board[start_pos];
-    board[end_pos] = piece;
-    board[start_pos] = '-';
-
-    POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2);
+    board[move & 0x0F] = board[(move >> 4) & 0x0F];
+    board[(move >> 4) & 0x0F] = '-';
+    curr_player = (curr_player + 1) % 3;
+    POSITION child_position = generic_hash_hash(board, curr_player > 0 ? curr_player : 1);
     SafeFree(board);
-
     return child_position;
 }
 
@@ -279,17 +264,18 @@ VALUE Primitive(POSITION position) {
                 deciding_idx = idx;
                 break;
             }
-            if(p_str[idx] == p_str[idx + 5] && p_str[idx + 10] == p_str[idx + 6]) { // right diagonal
+            if(p_str[idx] == p_str[idx + 5] && p_str[idx + 5] == p_str[idx + 10]) { // right diagonal
                 deciding_idx = idx;
                 break;
             }
         }
     }
+    enum value_enum result = undecided; 
     if (deciding_idx != -1) {
-        return (p_str[deciding_idx] == 'w' && player == 1) || (p_str[deciding_idx] == 'b' && player == 2) ? win : lose;
+        result = (p_str[deciding_idx] == 'w' && player == 1) || (p_str[deciding_idx] == 'b' && player == 2) ? win : lose;
     }
     SafeFree(p_str);
-    return undecided;
+    return result;
 }
 
 /**
@@ -334,15 +320,11 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   char* board = (char*)SafeMalloc(16 * sizeof(char));
   generic_hash_unhash(position, board);
   char* prediction = GetPrediction(position, playerName, usersTurn);
-  if (usersTurn) {
-    printf("%s's turn: True\n\n", playerName);
-  } else {
-    printf("%s's turn: False\n\n", playerName);
-  }
+  printf("%s's turn\n", playerName);
   for (int idx = 0; idx < 16; idx += 4) {
     printf("%c%c%c%c\n", board[idx], board[idx + 1], board[idx + 2], board[idx + 3]);
   }
-  printf("\nPrediction: %s\n", prediction);
+  printf("Prediction: %s\n\n", prediction);
   SafeFree(board);
 }
 
