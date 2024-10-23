@@ -187,11 +187,11 @@ MOVELIST *GenerateMoves(POSITION position) {
         char *movedPosition = strtok(movesStr, ",");
         for (int i = 0; i < moveCount;i++){
             int targetPos = atoi(movedPosition);
-            if (board[npos] != ' ')
+            if (board[movedPosition] != ' ')
                 continue;
             moves = CreateMovelistNode(ENCODE_MOVE(cpos, movedPosition), moves);
         }
-
+        movedPosition = strtok(NULL, ",");
     }
 
   }
