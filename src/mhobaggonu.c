@@ -182,22 +182,33 @@ MOVELIST *GenerateMoves(POSITION position) {
         for (int i = 0; *possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
             if (movesStr[i] == ',') {
                 moveCount++;
-            }
+        }
 
         char *movedPosition = strtok(movesStr, ",");
         for (int i = 0; i < moveCount;i++){
             int targetPos = atoi(movedPosition);
-            if (board[movedPosition] != ' ')
+
+            if (board[cpos] == 3 && pieces[player] == 'X')
+            {
+              if(targetPos == 0 || targetPos == 1 || targetPos == 2){
                 continue;
-            moves = CreateMovelistNode(ENCODE_MOVE(cpos, movedPosition), moves);
+              }
+            } else if (board[cpos] == 7 && pieces[player] == 'O')
+            {
+              if(targetPos == 8 || targetPos == 9 || targetPos == 10){
+                continue;
+              }
+            }
+          
+            if (board[targetPos] != ' ')
+                continue;
+            moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
         }
         movedPosition = strtok(NULL, ",");
     }
 
   }
-
-
-
+  
   return moves;
 }
 
