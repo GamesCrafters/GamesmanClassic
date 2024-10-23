@@ -307,24 +307,49 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   /* YOUR CODE HERE */
+  printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
-  return Continue;
+  USERINPUT ret;
+
+	do {
+		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+
+		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
 }
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
   /* YOUR CODE HERE */
-  return TRUE;
+    STRING inputCopy = copyString(input);
+
+  // if '10' is not the starting/ending position, then the string must be of length 2
+  if (strlen(input) == 2) {
+    return ((input[0] <= '9' && input[0] >= '0') && (input[1] <= '9' && input[1] >= '0'));
+  } else {
+    //if the secd
+    if (input[2] == '0') {
+      return input[1] == '1' && (input[0] <= '9' && input[0] >= '0');
+    } else {
+      return input[0] == '1' && input[1] == '0' && (input[2] <= '9' && input[2] >= '0');
+    }
+  }
+  return FALSE;
 }
 
 /* Assume the text input signifies a valid move. Return
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   /* YOUR CODE HERE */
-  return 0;
+  return (MOVE) input;
 }
 
 /* Return the string representation of the move. 
@@ -332,12 +357,13 @@ Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
-  return NULL;
+  return (STRING) move;
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
+  printf("%s", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
