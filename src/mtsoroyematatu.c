@@ -42,7 +42,7 @@ or b,b,b w,w,w*
  * choose to modify `gInitialPosition` in InitializeGame().
  */
 POSITION gInitialPosition = 0;
-//not checked
+//checked
 
 /**
  * @brief Indicates whether this game is PARTIZAN, i.e. whether, given
@@ -50,7 +50,7 @@ POSITION gInitialPosition = 0;
  * available to them on their turn. If the game is impartial, this is FALSE.
  */
 BOOLEAN kPartizan = TRUE;
-//not checked
+//checked
 
 /**
  * @brief Whether a tie or draw is possible in this game.
@@ -92,8 +92,9 @@ BOOLEAN kDebugDetermineValue = FALSE;
 /**
  * @brief Declaration of optional functions.
  */
-POSITION GetCanonicalPosition(POSITION);
-void PositionToString(POSITION, char*) {
+POSITION GetCanonicalPosition(POSITION position);
+
+void PositionToString(POSITION, char*); /**{
     char positionString[11];
     positionString[0] = ' '; 
     positionString[2] = ' ';
@@ -113,7 +114,7 @@ void PositionToString(POSITION, char*) {
         }
         position /= 3;
     }
-}
+}**/
 //fix this to get right arguments
 
 /**
@@ -150,6 +151,8 @@ typedef enum possibleBoardPieces {
 
 char *gBlankOXString[] = { " ", "o", "x" };
 
+BlankOX gBoard[BOARDSIZE]; //board of the game
+
 int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
 
 // for printing purposes?
@@ -181,7 +184,8 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
     wTurn = true;
-    POSITION position = 0;
+    X_placed = 0;
+    PositionToBlankOX(gInitialiPosition, gBoard);
     // If you want formal position strings to
     // be the same as the AutoGUI position strings,
     // then leave gPositionToStringFunPtr as NULL, i.e.,
