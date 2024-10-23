@@ -4,6 +4,7 @@
 ** AUTHOR:      Nakul Srikanth, Ryan Lee, Alec Van Kerckhove
 ** DATE:        2004-10-18
 ** UPDATE HIST: Version 1.0
+** testing
 **************************************************************************/
 
 #include <stdio.h>
@@ -30,6 +31,7 @@ void* gGameSpecificTclInit = NULL;
 /* You do not have to change these for now. */
 BOOLEAN kGameSpecificMenu = FALSE;
 BOOLEAN kDebugMenu = FALSE;
+
 
 /* These variables are not needed for solving but if you have time 
 after you're done solving the game you should initialize them 
