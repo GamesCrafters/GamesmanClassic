@@ -531,7 +531,9 @@ void GameSpecificMenu(void) {
  * Position String. You can in fact delete this function and leave
  * gStringToPositionFunPtr as NULL in InitializeGame().
  */
-void PositionToString(POSITION position, char *positionStringBuffer) {}
+void PositionToString(POSITION position, char *positionStringBuffer) {
+  positionStringBuffer = generic_hash_unhash(position, positionStringBuffer);
+}
 
 /**
  * @brief Convert the input position string to
