@@ -108,6 +108,7 @@ const char* getItem(Dictionary *dict, const char *key) {
 
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
+Dictionary moves_lookup;
 
 /* TODO: Add a hashing function and unhashing function, if needed. */
 
@@ -117,7 +118,6 @@ void InitializeGame() {
   gCanonicalPosition = GetCanonicalPosition;
   gMoveToStringFunPtr = &MoveToString;
 
-  Dictionary moves_lookup;
   initDictionary(&moves_lookup);
 
   addItem(&moves_lookup, "0", "1");
@@ -131,6 +131,7 @@ void InitializeGame() {
   addItem(&moves_lookup, "8", "9");
   addItem(&moves_lookup, "9", "7,8,10");
   addItem(&moves_lookup, "10", "9");
+  
 
   char board[] = "XXX     OOO";
   char player1 = 'X';
@@ -140,7 +141,6 @@ void InitializeGame() {
   int hash_data[] = {' ', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
   gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
   gInitialPosition = generic_hash_hash(board, 1);
-  gPositionToStringFunPtr = &PositionToString;
 
 }
 
@@ -152,7 +152,6 @@ POSITION GetInitialPosition() {
 
 /* Return a linked list of moves. */
 MOVELIST *GenerateMoves(POSITION position) {
-  MOVELIST *moves = NULL;
   /* YOUR CODE HERE 
      
      To add to the linked list, do 
@@ -179,12 +178,12 @@ MOVELIST *GenerateMoves(POSITION position) {
         const char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
         
         int moveCount = 1;
-        for (int i = 0; *possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
-            if (movesStr[i] == ',') {
+        for (int i = 0; possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
+            if (possibleMoves[i] == ',') {
                 moveCount++;
         }
 
-        char *movedPosition = strtok(movesStr, ",");
+        char *movedPosition = strtok(possibleMoves, ",");
         for (int i = 0; i < moveCount;i++){
             int targetPos = atoi(movedPosition);
 
@@ -201,15 +200,15 @@ MOVELIST *GenerateMoves(POSITION position) {
             }
           
             if (board[targetPos] != ' ')
-                continue;
+              continue;
             moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
         }
         movedPosition = strtok(NULL, ",");
     }
-
   }
 
   return moves;
+}
 }
 
 /* Return the position that results from making the 
