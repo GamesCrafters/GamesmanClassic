@@ -211,8 +211,69 @@ void InitializeGame(void) {
  * See src/core/misc.c for more information on CreateMovelistNode() and
  * FreeMoveList().
  */
+//moves are a base 10 number AB where A is the position from and B is the position to
+int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
+    BlankOX player = wTurn ? o : x;
+    int blankIndex;
     MOVELIST *moves = NULL;
+    for (int i = 0; i < BOARDSIZE; i++)
+        if(gBoard[i] == Blank) (blankIndex = i, break);
+    
+    if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
+        for (int i = 1; i <=3; i++) {
+            if (gBoard[centerAdjacent[i]] == player) {
+                moves = CreatMovelistNode(i*10, moves);
+            }
+        }
+    }
+    else if(abs(blankIndex - 2) == 1) { //1 or 3
+        if (gBoard[0] == player) {
+                moves = CreatMovelistNode(blankIndex, moves);
+        }
+        if (gBoard[2] == player) {
+            moves = CreatMovelistNode(20 + blankIndex , moves);
+        }
+        if (gBoard[blankIndex + 3] == player) {
+            moves = CreatMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
+        }
+        if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
+            moves = CreateMovelistNode((blankIndex + 2 % 4) * 10 + blankIndex , moves);
+        }
+    }
+    else if (blankIndex == 2) { //center position
+        for (int i = 0; i < 4; i++) {
+            if (gBoard[centerAdjacent[i]] == player) {
+                moves = CreatMovelistNode(centerAdjacent[i]*10 + 2, moves);
+            }
+        }
+    }
+    else if(abs(blankIndex - 5) == 1) { //4 or 6
+        if (gBoard[blankIndex - 3] == player) {
+            moves = CreateMovelistNode((blankIndex - 3) * 10 + blankIndex, moves);
+        }
+        if (gBoard[5] == player) {
+            moves = CreateMovelistNode(50 + blankIndex, moves);
+        }
+        if (moves == NULL) {
+            if (gBoard[0] == player) {
+                moves = CreateMovelistNode(blankIndex, moves);
+            }
+            if (gBoard[(blankIndex + 2) % 4 + 4] == player) {
+                moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
+            }
+        }
+    }
+    else { //5
+        for (int i = 2; i <= 6; i += 2) {
+            if (gBoard[i] == player) {
+                moves = CreateMovelistNode(10 * i + blankIndex, moves);
+            }
+        }
+        if (moves == NULL) {
+            moves = CreateMovelistNode(5, moves);
+        }
+    }
     /* 
         NOTE: To add to the linked list, do
         
