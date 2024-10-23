@@ -1,0 +1,35 @@
+/* Visualization of game tree of Ho Bag Gonu, variant 0*/
+digraph g {
+	label = "Ho Bag Gonu, variant 0"
+	labelloc = "top"
+	ranksep = 1
+	node [fixedsize = "true", width = .75, height = .75]
+	subgraph cluster_0 {
+		label = "Level 0"
+		color = "blue"
+
+		subgraph cluster_toc {
+			rank = "max"
+			label = "Legend"
+			color = "blue"
+			subgraph cluster_shape {
+				rank = "same"
+				label = "Position Shapes"
+				default [shape = "circle", label = "Non-draw"]
+				draw [shape = "diamond", label = "Draw"]
+				fringe [shape = "hexagon", label = "Fringe"]
+			}
+			subgraph cluster_color {
+				rank = "same"
+				label = "Position Colors"
+				win [label = "Win", shape = "circle", style = "filled", color = "#00FF00"]
+				tie [label = "Tie", shape = "circle", style = "filled", color = "#FFFF00"]
+				lose [label = "Lose", shape = "circle", style = "filled", color = "#8B0000"]
+				draw2 [label = "Draw", shape = "circle", style = "filled", color = "#FFCC00"]
+			}
+		}
+		{ rank = "same"; }
+		{ rank = "min"; }
+		{ rank = "max"; }
+	}
+}

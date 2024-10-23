@@ -69,7 +69,7 @@ char pieces[] = " XO";
 // Define a struct to hold key-value pairs
 typedef struct {
     char key[MAX_KEY_SIZE];
-    char value[MAX_VALUE_SIZE];
+    char value[MAX_KEY_SIZE];
 } DictionaryItem;
 
 // Define a dictionary struct
@@ -86,13 +86,16 @@ void initDictionary(Dictionary *dict) {
 // Function to add a key-value pair to the dictionary
 void addItem(Dictionary *dict, const char *key, const char *value) {
     if (dict->size < MAX_ITEMS) {
-        strcpy(dict->items[dict->size].key, key);
-        strcpy(dict->items[dict->size].value, value);
+        strncpy(dict->items[dict->size].key, key, MAX_KEY_SIZE - 1); // Prevent overflow
+        strncpy(dict->items[dict->size].value, value, MAX_VALUE_SIZE - 1); // Prevent overflow
+        dict->items[dict->size].key[MAX_KEY_SIZE - 1] = '\0';  // Ensure null-termination
+        dict->items[dict->size].value[MAX_VALUE_SIZE - 1] = '\0';  // Ensure null-termination
         dict->size++;
     } else {
         printf("Dictionary is full!\n");
     }
 }
+
 
 // Function to get the value associated with a key
 const char* getItem(Dictionary *dict, const char *key) {
@@ -103,9 +106,6 @@ const char* getItem(Dictionary *dict, const char *key) {
     }
     return NULL; // Key not found
 }
-
-
-
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
 Dictionary moves_lookup;
@@ -176,14 +176,16 @@ MOVELIST *GenerateMoves(POSITION position) {
         char key[2];
         sprintf(key, "%d", cpos);
         const char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
+        char tempMoves[100];  // Or some appropriate size
+        strcpy(tempMoves, possibleMoves);  // Copy the string to a modifiable array 
         
         int moveCount = 1;
         for (int i = 0; possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
             if (possibleMoves[i] == ',') {
-                moveCount++;
+              moveCount++;
         }
 
-        char *movedPosition = strtok(possibleMoves, ",");
+        char *movedPosition = strtok(tempMoves, ",");
         for (int i = 0; i < moveCount;i++){
             int targetPos = atoi(movedPosition);
 
@@ -272,26 +274,33 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* YOUR CODE HERE */
 
   char board[BOARDSIZE];
-    generic_hash_unhash(position, board);
-    int player = generic_hash_turn(position);
+  generic_hash_unhash(position, board);
+  int player = generic_hash_turn(position);
 
-    printf("\n          0-1-2         :     ");
-    printf("%c-", board[0]);
-    printf("%c-", board[1]);
-    printf("%c", board[2]);
-    printf("\n          |\\|/|                |\\|/|");
-    printf("\nLEGEND:   4-5-6     BOARD:     ");
-    printf("%c-", board[3]);
-    printf("%c-", board[4]);
-    printf("%c", board[5]);
+  printf("\n          0-1-2          :     ");
+  printf("%c-", board[0]);
+  printf("%c-", board[1]);
+  printf("%c", board[2]);
+  printf("\n            |                    |");
+  printf("\nLEGEND:     3       BOARD:       ");
+  printf("%c-", board[3]);
 
-    printf("     %s", GetPrediction(position, playerName, usersTurn));
-    printf("\n          |/|\\|                |/|\\|");
-    printf("\n          7-8-9          :     ");
-    printf("%c-", board[6]);
-    printf("%c-", board[7]);
-    printf("%c", board[8]);
-    printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
+  printf("     %s", GetPrediction(position, playerName, usersTurn));
+  printf("\n           /|\\                 /|\\ ");
+  printf("\n          4-5-6          :     ");
+  printf("%c-", board[4]);
+  printf("%c-", board[5]);
+  printf("%c", board[6]);
+  printf("\n          \\|/                 \\|/ ");
+  printf("\nLEGEND:     7       BOARD:      ");
+  printf("%c-", board[7]);
+  printf("\n          8-9-10         :     ");
+  printf("%c-", board[8]);
+  printf("%c-", board[9]);
+  printf("%c", board[10]);
+
+
+  printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
