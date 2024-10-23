@@ -25,7 +25,7 @@ CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
 
 // Which one should it be?
 POSITION gNumberOfPositions = 2187; // 3^7
-POSITION gNumberOfPositions = 713;
+//POSITION gNumberOfPositions = 713;
 /*1 for 0 pieces, 7 for 1 piece, 7*6 = 42 for 2 pieces, 
 7*6*5/2! = 105 for 3 pieces, 7*6*5*4/2!*2! = 210 for 4 pieces, 
 7*6*5*4*3/3!*2! = 210 for 5 pieces, 7*6*5*4*3*2/3!*3! - 2 = 138 
@@ -141,13 +141,17 @@ CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 CONST_STRING kHelpExample = "";
 
-boolean wTurn; //w uses the white piece and goes first
+BOOLEAN wTurn; //w uses the white piece and goes first
 
 #define BOARDSIZE   7
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
+
+void PositionToBlankOX(POSITION, BlankOX*);
+POSITION BlankOXToPosition(BlankOX*);
+ThreeInARow(BlankOX*, int, int, int);
 
 char *gBlankOXString[] = { " ", "o", "x" };
 
@@ -156,14 +160,14 @@ BlankOX gBoard[BOARDSIZE]; //board of the game
 int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
 
 // for printing purposes?
-char *game_board_blueprint[46] = {' ', ' ', ' ', ' ', '0', ' ', ' ', ' ',' ', 
+char game_board_blueprint[46] = {' ', ' ', ' ', ' ', '0', ' ', ' ', ' ',' ', 
                                 ' ', ' ', ' ', '/', '|', '\\', ' ', ' ', ' ', 
                                 ' ', ' ', '1', '-', '2', '-', '3', ' ', ' ',
                                 ' ', '/', ' ', ' ', '|', ' ', ' ', '\\', ' ', 
                                 '4', '-', '-', '-', '5', '-', '-', '-', '6', 
-                                '\0'}
+                                '\0'};
 
-int X_placed = 0 // changes game from placing to moving when second player places third piece
+int X_placed = 0; // changes game from placing to moving when second player places third piece
 
 
 
@@ -183,9 +187,9 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-    wTurn = true;
+    wTurn = TRUE;
     X_placed = 0;
-    PositionToBlankOX(gInitialiPosition, gBoard);
+    PositionToBlankOX(gInitialPosition, gBoard);
     // If you want formal position strings to
     // be the same as the AutoGUI position strings,
     // then leave gPositionToStringFunPtr as NULL, i.e.,
@@ -219,24 +223,27 @@ MOVELIST *GenerateMoves(POSITION position) {
     int blankIndex;
     MOVELIST *moves = NULL;
     for (int i = 0; i < BOARDSIZE; i++)
-        if(gBoard[i] == Blank) (blankIndex = i, break);
+        if(gBoard[i] == Blank) {
+            blankIndex = i;
+            break;
+        }
     
     if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
         for (int i = 1; i <=3; i++) {
             if (gBoard[centerAdjacent[i]] == player) {
-                moves = CreatMovelistNode(i*10, moves);
+                moves = CreateMovelistNode(i*10, moves);
             }
         }
     }
     else if(abs(blankIndex - 2) == 1) { //1 or 3
         if (gBoard[0] == player) {
-                moves = CreatMovelistNode(blankIndex, moves);
+                moves = CreateMovelistNode(blankIndex, moves);
         }
         if (gBoard[2] == player) {
-            moves = CreatMovelistNode(20 + blankIndex , moves);
+            moves = CreateMovelistNode(20 + blankIndex , moves);
         }
         if (gBoard[blankIndex + 3] == player) {
-            moves = CreatMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
+            moves = CreateMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
         }
         if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
             moves = CreateMovelistNode((blankIndex + 2 % 4) * 10 + blankIndex , moves);
@@ -245,7 +252,7 @@ MOVELIST *GenerateMoves(POSITION position) {
     else if (blankIndex == 2) { //center position
         for (int i = 0; i < 4; i++) {
             if (gBoard[centerAdjacent[i]] == player) {
-                moves = CreatMovelistNode(centerAdjacent[i]*10 + 2, moves);
+                moves = CreateMovelistNode(centerAdjacent[i]*10 + 2, moves);
             }
         }
     }
@@ -317,16 +324,16 @@ VALUE Primitive(POSITION position) {
     BlankOX theBlankOX[BOARDSIZE];
 	BlankOX whosTurn;
 
-	PositionToBlankOX(position,theBlankOX, &whosTurn);
+	PositionToBlankOX(position,theBlankOX);
 
 	if (ThreeInARow(theBlankOX, 0, 1, 4) ||
         ThreeInARow(theBlankOX, 0, 2, 5) ||
 	    ThreeInARow(theBlankOX, 0, 3, 6) ||
 	    ThreeInARow(theBlankOX, 1, 2, 3) ||
-	    ThreeInARow(theBlankOX, 4, 5, 6) ||)
+	    ThreeInARow(theBlankOX, 4, 5, 6))
 		return gStandardGame ? lose : win;
-	else if (AllFilledIn(theBlankOX))
-		return tie;
+	//else if (AllFilledIn(theBlankOX))
+	//	return tie;
 
     return undecided;
 }
@@ -346,18 +353,19 @@ VALUE Primitive(POSITION position) {
  * @param position : The position to inspect.
  */
 POSITION GetCanonicalPosition(POSITION position) {
-    POSITION newPosition, theCanonicalPosition;
+    /*POSITION newPosition, theCanonicalPosition;
 	int i;
 
 	theCanonicalPosition = position;
 
 	for(i = 0; i < NUMSYMMETRIES; i++) {
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
+		newPosition = DoSymmetry(position, i); /* get new *//*
+		if(newPosition < theCanonicalPosition) /* THIS is the one *//*
+			theCanonicalPosition = newPosition; /* set it to the ans *//*
 	}
 
-	return(theCanonicalPosition);
+	return(theCanonicalPosition);*/
+    return position;
 }
 
 /*********** END SOLVING FUNCTIONS ***********/
@@ -384,7 +392,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	PositionToBlankOX(position,theBlankOx);
 
 	printf("\n         0         :         %s         \n",
-	       gBlankOXString[(int)theBlankOx[0]],);
+	       gBlankOXString[(int)theBlankOx[0]]);
     printf("        /|\\       :        /|\\        ");
 	printf("LEGEND:       1-2-3       TOTAL:       %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
@@ -461,7 +469,7 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    return (moveStringBuffer, "%d", move);
+    (moveStringBuffer, "%d", move); //removed return since it is a void function
 }
 
 /**
