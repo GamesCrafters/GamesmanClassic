@@ -208,7 +208,7 @@ MOVELIST *GenerateMoves(POSITION position) {
     }
 
   }
-  
+
   return moves;
 }
 
@@ -271,6 +271,28 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   /* THIS ONE IS MOST IMPORTANT FOR YOUR DEBUGGING */
   /* YOUR CODE HERE */
+
+  char board[BOARDSIZE];
+    generic_hash_unhash(position, board);
+    int player = generic_hash_turn(position);
+
+    printf("\n          0-1-2         :     ");
+    printf("%c-", board[0]);
+    printf("%c-", board[1]);
+    printf("%c", board[2]);
+    printf("\n          |\\|/|                |\\|/|");
+    printf("\nLEGEND:   4-5-6     BOARD:     ");
+    printf("%c-", board[3]);
+    printf("%c-", board[4]);
+    printf("%c", board[5]);
+
+    printf("     %s", GetPrediction(position, playerName, usersTurn));
+    printf("\n          |/|\\|                |/|\\|");
+    printf("\n          7-8-9          :     ");
+    printf("%c-", board[6]);
+    printf("%c-", board[7]);
+    printf("%c", board[8]);
+    printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
 }
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
