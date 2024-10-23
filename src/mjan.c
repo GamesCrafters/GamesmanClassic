@@ -600,4 +600,7 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position; 
+  AutoGUIMakeMoveButtonStringA('h', move, 'x', autoguiMoveStringBuffer);
+}
