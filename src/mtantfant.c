@@ -29,7 +29,7 @@ BOOLEAN ThreeInARow(char *, int, int, int, char);
 
 char pieces[] = " XO";
 
-CONST_STRING kAuthorName = "JZ,DL,JK";
+CONST_STRING kAuthorName = "Josh Zhang, Daniel Liu, Johan Ko";
 CONST_STRING kGameName = "Tant Fant"; // Use this spacing and case
 CONST_STRING kDBName = "tantfant";    // Use this spacing and case
 
@@ -118,16 +118,17 @@ BOOLEAN kDebugMenu = FALSE;
  */
 CONST_STRING kHelpGraphicInterface = "GUI has not been implemented yet.";
 CONST_STRING kHelpTextInterface =
-    "On your turn, use the legend to determine which of your pieces you want to move and an empty space that you want to move to.\
-    Each of these is specified by a value between 1 and 9.\
-    After determining your move, type in a 2 digit number corresponding to the start and end positions, then hit RETURN.\
-    If you make a mistake at any point, press u to revert back to your previous position.";
-CONST_STRING kHelpOnYourTurn = "Move one of your pieces to an adjacent empty space.";
-CONST_STRING kHelpStandardObjective = "Get three of your pieces in a row, either horizontally, vertically, or diagonally.\
-The starting three in a row does not count.";
+    "On your turn, use the LEGEND to find a piece of yours to move and an empty space you want to move to.\
+    Each of these is specified by a digit between 1 and 9.\
+    After deciding your move, enter a TWO digit number denoting your start and end spaces, then hit ENTER.\
+    If you make a mistake, type 'U' to revert to a previous game board.";
+
+CONST_STRING kHelpOnYourTurn = "Move one of your pieces to an allowed empty space, denoted by board lines.";
+CONST_STRING kHelpStandardObjective = "Get your 3 pieces in a row horizontally, vertically, or diagonally.\
+The 3-in-a-row position from which a game starts cannot count for wins.";
 CONST_STRING kHelpReverseObjective = "Reverse objective has not been implemented yet.";
-CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "A Tie will never occur, but Draws may occur.";
-// TODO after fixing board printing.
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "THIS GAME DOES NOT HAVE TIES.";
+
 CONST_STRING kHelpExample = "";
 
 /**
@@ -347,25 +348,23 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     generic_hash_unhash(position, board);
     int player = generic_hash_turn(position);
 
-    printf("\n");
+    printf("\n          1-2-3          :     ");
     printf("%c-", board[0]);
     printf("%c-", board[1]);
     printf("%c", board[2]);
-
-    printf("     1-2-3");
-    printf("\n|\\|/|     |\\|/|\n");
+    printf("\n          |\\|/|                |\\|/|");
+    printf("\nLEGEND:   4-5-6     BOARD:     ");
     printf("%c-", board[3]);
     printf("%c-", board[4]);
     printf("%c", board[5]);
-    printf("     4-5-6");
-    printf("\n|/|\\|     |/|\\|\n");
+
+    printf("     %s", GetPrediction(position, playerName, usersTurn));
+    printf("\n          |/|\\|                |/|\\|");
+    printf("\n          7-8-9          :     ");
     printf("%c-", board[6]);
     printf("%c-", board[7]);
     printf("%c", board[8]);
-    printf("     7-8-9");
-
     printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
-    printf("\n");
 }
 
 /**
