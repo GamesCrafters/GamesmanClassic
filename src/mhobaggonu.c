@@ -10,15 +10,18 @@
 #include <stdio.h>
 #include "gamesman.h"
 
+
+
+
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Firstname Lastname";
-STRING kGameName = "Your Game Name"; //  use this spacing and case
-STRING kDBName = "yourgamename"; // use this spacing and case
+STRING kGameName = "Ho Bag Gonu"; //  use this spacing and case
+STRING kDBName = "hobaggonu"; // use this spacing and case
 POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = FALSE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = FALSE; // TODO: Is this game loopy?
+BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
+BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
 BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
 
 /* Likely you do not have to change these. */
@@ -54,6 +57,14 @@ void GameSpecificMenu() {}
 #define MAX_ITEMS 11 // Maximum number of key-value pairs
 #define MAX_KEY_SIZE 50
 #define MAX_VALUE_SIZE 50
+#define ENCODE_MOVE(start, end) ((start) * 10 + end)
+#define DECODE_MOVE_START(move) (move / 10)
+#define DECODE_MOVE_END(move) (move % 10)
+// Based on mponghauki, player is either 1 or 2.
+#define NEXT_PLAYER(player) (1 + (player % 2))
+#define BOARDSIZE 11
+char pieces[] = " XO";
+
 
 // Define a struct to hold key-value pairs
 typedef struct {
@@ -121,10 +132,16 @@ void InitializeGame() {
   addItem(&moves_lookup, "9", "7,8,10");
   addItem(&moves_lookup, "10", "9");
 
-  char board[12] = "-----------";
+  char board[] = "XXX     OOO";
   char player1 = 'X';
   char player2 = 'O';
   
+
+  int hash_data[] = {' ', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
+  gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
+  gInitialPosition = generic_hash_hash(board, 1);
+  gPositionToStringFunPtr = &PositionToString;
+
 }
 
 /* Return the hash value of the initial position. */
@@ -142,6 +159,18 @@ MOVELIST *GenerateMoves(POSITION position) {
      moves = CreateMovelistNode(<the move you're adding>, moves);
      See the function CreateMovelistNode in src/core/misc.c
   */
+
+  char board[BOARDSIZE];
+  generic_hash_unhash(position, board);
+  int player = generic_hash_turn(position);
+  MOVELIST *moves = NULL;
+
+  // loop through char for each position... 
+
+  // for each possibe move for that position(dictionary), create moves lisgt noe(encode move())
+  //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
+
+
   return moves;
 }
 
@@ -149,7 +178,25 @@ MOVELIST *GenerateMoves(POSITION position) {
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
-  return 0;
+  char board[BOARDSIZE];
+  generic_hash_unhash(position, board);
+
+  // Get start and end position
+  int spos = DECODE_MOVE_START(move);
+  int npos = DECODE_MOVE_END(move);
+  int player = generic_hash_turn(position);
+
+  assert(board[spos] == pieces[player]);
+  assert(board[npos] == ' ');
+
+  // Perform the move
+  board[spos] = ' ';
+  board[npos] = pieces[player];
+
+  // Create the new position
+  POSITION out = generic_hash_hash(board, NEXT_PLAYER(player));
+  return out;
+ 
 }
 
 /*****************************************************************
@@ -160,6 +207,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 ******************************************************************/
 VALUE Primitive(POSITION position) {
   /* YOUR CODE HERE */
+  //if generate moves on position is null, then return lose
+
   return undecided;
 }
 
