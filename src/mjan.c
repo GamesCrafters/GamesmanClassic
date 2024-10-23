@@ -145,7 +145,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-    int pieceList[] = {'w', 4, 4, 'b', 4, 4, '-', 8, -1};
+    int pieceList[] = {'w', 4, 4, 'b', 4, 4, '-', 8, 8, -1};
     gNumberOfPositions = generic_hash_init(16, pieceList, NULL, 0);
     gInitialPosition = generic_hash_hash("bwbw--------wbwb", 1);
 
