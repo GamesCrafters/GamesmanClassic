@@ -214,6 +214,7 @@ void InitializeGame(void) {
 //moves are a base 10 number AB where A is the position from and B is the position to
 int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
+    PositionToBlankOX(position, gBoard);
     BlankOX player = wTurn ? o : x;
     int blankIndex;
     MOVELIST *moves = NULL;
@@ -295,7 +296,12 @@ MOVELIST *GenerateMoves(POSITION position) {
  * the POSITION typedef in src/core/types.h.
  */
 POSITION DoMove(POSITION position, MOVE move) {
-    return 0;
+    PositionToBlankOX(position, gBoard);
+    int from = move / 10;
+    int to = move % 10;
+    gBoard[to] = gBoard[from];
+    gBoard[from] = Blank;
+    return BlankOXToPosition(gBoard);
 }
 
 /**
