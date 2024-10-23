@@ -16,6 +16,28 @@ CONST_STRING kAuthorName = "Andy Kim Aj DeMarinis Benjamin Zimmerman";
 CONST_STRING kGameName = "Jan4x4";
 CONST_STRING kDBName = "jan4x4";
 
+
+/**
+ * @brief Supported variants of mjan.
+ *
+ * @details Supported variants of mjan:
+ *            - standard
+ *            - misere
+ */
+enum variant {
+  STANDARD,
+  MISERE
+};
+
+/**
+ * @brief Variant of current mjan game.
+ *
+ * @details Variant of current mjan game, one of:
+ *            - standard
+ *            - misere
+ */
+enum variant gVariant = STANDARD;
+
 /**
  * @brief An upper bound on the number of reachable positions.
  *
@@ -123,7 +145,8 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-    gNumberOfPositions = generic_hash_init(16, ['w', 4, 4, 'b', 4, 4, '-', 8, -1], null, 0);
+    int pieceList[] = {'w', 4, 4, 'b', 4, 4, '-', 8, -1};
+    gNumberOfPositions = generic_hash_init(16, pieceList, NULL, 0);
     gInitialPosition = generic_hash_hash("bwbw--------wbwb", 1);
 
     // If you want formal position strings to
@@ -161,7 +184,7 @@ MOVELIST *GenerateMoves(POSITION position) {
         See the function CreateMovelistNode in src/core/misc.c
     */
     char* board = (char*) SafeMalloc(16 * sizeof(char));
-    char* board = generic_hash_unhash(position, board);
+    board = generic_hash_unhash(position, board);
 
     int player = generic_hash_turn(position);
     char piece = (player == 1) ? 'w' : 'b';
@@ -173,7 +196,7 @@ MOVELIST *GenerateMoves(POSITION position) {
         if (board[i] == piece) {
 
             for (int d = 0; d < 4; d++) {
-                int new_pos = i + directions[d]
+                int new_pos = i + directions[d];
 
                 if (new_pos >= 0 && new_pos < 16 && board[new_pos] == '-') {
                     if (directions[d] == -1 && (i % 4 == 0)) continue;
@@ -186,7 +209,7 @@ MOVELIST *GenerateMoves(POSITION position) {
             }
         }
     }
-    SafeFree(board)
+    SafeFree(board);
 
     return moves;
 }
@@ -203,7 +226,7 @@ MOVELIST *GenerateMoves(POSITION position) {
  */
 POSITION DoMove(POSITION position, MOVE move) {
     char* board = (char*) SafeMalloc(16 * sizeof(char));
-    char* board = generic_hash_unhash(position, board);
+    board = generic_hash_unhash(position, board);
     int curr_player = generic_hash_turn(position);
 
     int start_pos = ((move >> 4) & 0x0F);
@@ -213,8 +236,8 @@ POSITION DoMove(POSITION position, MOVE move) {
     board[end_pos] = piece;
     board[start_pos] = '-';
 
-    POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2)
-    SafeFree(board)
+    POSITION child_position = generic_hash_hash(board, (curr_player + 1) % 2);
+    SafeFree(board);
 
     return child_position;
 }
@@ -229,7 +252,7 @@ POSITION DoMove(POSITION position, MOVE move) {
  * src/core/types.h for the value enum definition.
  */
 VALUE Primitive(POSITION position) {
-    char* p_str = (char*)SafeMalloc(possize);
+    char* p_str = (char*)SafeMalloc(16 * sizeof(char));
     p_str = generic_hash_unhash(position, p_str);
     int player = generic_hash_turn(position);
     int deciding_idx = -1;
@@ -308,20 +331,19 @@ POSITION GetCanonicalPosition(POSITION position) {
  * to print the prediction of the game's outcome.
  */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-    char* board = (char*)SafeMalloc(possize);
-	generic_hash_unhash(position, board);
-    int player = generic_hash_turn(position);
-    char* prediction = GetPrediction(position, playerName, usersTurn);
-    if (usersTurn) {
-        printf("%s's turn: True\n\n", playerName);
-    } else {
-        printf("%s's turn: False\n\n", playerName);
-    }
-    for (int idx = 0; idx < 16; idx += 4) {
-        printf("%c%c%c%c\n", board[idx], board[idx + 1], board[idx + 2], board[idx + 3]);
-    }
-    printf("\nPrediction: %s\n", prediction);
-    SafeFree(board);
+  char* board = (char*)SafeMalloc(16 * sizeof(char));
+  generic_hash_unhash(position, board);
+  char* prediction = GetPrediction(position, playerName, usersTurn);
+  if (usersTurn) {
+    printf("%s's turn: True\n\n", playerName);
+  } else {
+    printf("%s's turn: False\n\n", playerName);
+  }
+  for (int idx = 0; idx < 16; idx += 4) {
+    printf("%c%c%c%c\n", board[idx], board[idx + 1], board[idx + 2], board[idx + 3]);
+  }
+  printf("\nPrediction: %s\n", prediction);
+  SafeFree(board);
 }
 
 /**
@@ -389,7 +411,7 @@ MOVE ConvertTextInputToMove(STRING input) {
     }
     int start_pos, end_pos;
     
-    sscanf(input, "%d %d", &start_pos, &end_pos) != 2)
+    sscanf(input, "%d %d", &start_pos, &end_pos);
     
     MOVE encoded_move = ((start_pos & 0x0F) << 4) | (end_pos & 0x0F);
     
@@ -426,7 +448,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
  * @param computersName : The computer's name.
  */
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    char *moveStringBuffer[32];
+    char moveStringBuffer[32];
     MoveToString(computersMove, moveStringBuffer);
     printf("%s's move: %s\n", computersName, moveStringBuffer);
 }
@@ -462,6 +484,13 @@ int getOption(void) {
  * @param option An ID specifying the variant that we want to change to.
  */
 void setOption(int option) {
+  switch (option) {
+    case 1:
+      gVariant = MISERE;
+      break;
+    default:
+      gVariant = STANDARD;
+  }
 }
 
 /**
