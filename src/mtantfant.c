@@ -63,7 +63,7 @@ BOOLEAN kPartizan = FALSE;
 /**
  * @brief Whether a tie or draw is possible in this game.
  */
-BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kTieIsPossible = FALSE;
 
 /**
  * @brief Whether the game is loopy. It is TRUE if there exists a position
@@ -127,9 +127,71 @@ CONST_STRING kHelpOnYourTurn = "Move one of your pieces to an allowed empty spac
 CONST_STRING kHelpStandardObjective = "Get your 3 pieces in a row horizontally, vertically, or diagonally.\
 The 3-in-a-row position from which a game starts cannot count for wins.";
 CONST_STRING kHelpReverseObjective = "Reverse objective has not been implemented yet.";
-CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "THIS GAME DOES NOT HAVE TIES.";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-CONST_STRING kHelpExample = "";
+CONST_STRING kHelpExample = "          1-2-3          :     O-O-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:      - -      (Player should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X-X-X\n\
+It is Player's turn (X).\n\
+  Player's move: 85\n\
+          1-2-3          :     O-O-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:      -X-      (Data should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- -X\n\
+It is Data's turn (O).\n\
+Data's move: 14\n\
+          1-2-3          :      -O-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O-X-      (Player should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- -X\n\
+It is Player's turn (X).\n\
+  Player's move: 96\n\
+          1-2-3          :      -O-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O-X-X     (Data should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- - \n\
+It is Data's turn (O).\n\
+Data's move: 21\n\
+          1-2-3          :     O- -O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O-X-X     (Player should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- - \n\
+It is Player's turn (X).\n\
+  Player's move: 52\n\
+          1-2-3          :     O-X-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O- -X     (Data should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- - \n\
+It is Data's turn (O).\n\
+Data's move: 15\n\
+          1-2-3          :      -X-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O-O-X     (Player should Tie in 15)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     X- - \n\
+It is Player's turn (X).\n\
+  Player's move: 78\n\
+          1-2-3          :      -X-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:     O-O-X     (Data will Win in 1)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :      -X- \n\
+It is Data's turn (O).\n\
+Data's move: 47\n\
+          1-2-3          :      -X-O\n\
+          |\\|/|                |\\|/|\n\
+LEGEND:   4-5-6     BOARD:      -O-X     (Player will Lose in 0)  \n\
+          |/|\\|                |/|\\|\n\
+          7-8-9          :     O-X- \n\
+It is Player's turn (X).\n\
+Data (player two) Wins!";
 
 /**
  * @brief Tcl-related stuff. Do not change if you do not plan to make a Tcl interface.
