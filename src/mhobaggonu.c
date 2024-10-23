@@ -170,6 +170,33 @@ MOVELIST *GenerateMoves(POSITION position) {
   // for each possibe move for that position(dictionary), create moves lisgt noe(encode move())
   //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
 
+  for(int cpos = 0; cpos < BOARDSIZE;cpos++){
+
+    if(pieces[player] == board[cpos]){ // should this be the position decoded... 
+        //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
+        char key[2];
+        sprintf(key, "%d", cpos);
+        const char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
+        
+        int moveCount = 1;
+        for (int i = 0; *possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
+            if (movesStr[i] == ',') {
+                moveCount++;
+            }
+
+        char *movedPosition = strtok(movesStr, ",");
+        for (int i = 0; i < moveCount;i++){
+            int targetPos = atoi(movedPosition);
+            if (board[npos] != ' ')
+                continue;
+            moves = CreateMovelistNode(ENCODE_MOVE(cpos, movedPosition), moves);
+        }
+
+    }
+
+  }
+
+
 
   return moves;
 }
@@ -208,6 +235,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 VALUE Primitive(POSITION position) {
   /* YOUR CODE HERE */
   //if generate moves on position is null, then return lose
+  if(GenerateMoves(position) == NULL)
+    return lose;
 
   return undecided;
 }
