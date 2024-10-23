@@ -582,7 +582,13 @@ POSITION StringToPosition(char *positionString) {
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+  char* board = (char*)SafeMalloc(17 * sizeof(char*));
+  board = generic_hash_unhash(position, board);
+  board[16] = '\0';
+  int turn = generic_hash_turn(position);
+  AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
