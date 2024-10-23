@@ -22,6 +22,9 @@ CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
  * @details The hash value of every reachable position must be less
  * than `gNumberOfPositions`.
  */
+
+// Which one should it be?
+POSITION gNumberOfPositions = 2187; // 3^7
 POSITION gNumberOfPositions = 713;
 /*1 for 0 pieces, 7 for 1 piece, 7*6 = 42 for 2 pieces, 
 7*6*5/2! = 105 for 3 pieces, 7*6*5*4/2!*2! = 210 for 4 pieces, 
@@ -46,7 +49,7 @@ POSITION gInitialPosition = 0;
  * a board, each player has a different set of moves 
  * available to them on their turn. If the game is impartial, this is FALSE.
  */
-BOOLEAN kPartizan = FALSE;
+BOOLEAN kPartizan = TRUE;
 //not checked
 
 /**
@@ -70,7 +73,7 @@ BOOLEAN kLoopy = TRUE;
  * (initialized in InitializeGame() in this file), is set to NULL,
  * then this should be set to FALSE.
  */
-BOOLEAN kSupportsSymmetries = FALSE;
+BOOLEAN kSupportsSymmetries = TRUE;
 //work on this
 
 /**
@@ -92,7 +95,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION GetCanonicalPosition(POSITION);
 void PositionToString(POSITION, char*) {
     char positionString[11];
-    positionString[0] = ' ';
+    positionString[0] = ' '; 
     positionString[2] = ' ';
     positionString[3] = '\n';
     positionString[7] = '\n';
@@ -131,13 +134,35 @@ BOOLEAN kDebugMenu = FALSE;
  */
 CONST_STRING kHelpGraphicInterface = "";
 CONST_STRING kHelpTextInterface = "";
-CONST_STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 01 (move piece from position 0 to 1) or 4 (to drop a piece at position 4)";
 CONST_STRING kHelpStandardObjective = "";
 CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 CONST_STRING kHelpExample = "";
 
 boolean wTurn; //w uses the white piece and goes first
+
+#define BOARDSIZE   7
+
+typedef enum possibleBoardPieces {
+	Blank, o, x
+} BlankOX;
+
+char *gBlankOXString[] = { " ", "o", "x" };
+
+int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
+
+// for printing purposes?
+char *game_board_blueprint[46] = {' ', ' ', ' ', ' ', '0', ' ', ' ', ' ',' ', 
+                                ' ', ' ', ' ', '/', '|', '\\', ' ', ' ', ' ', 
+                                ' ', ' ', '1', '-', '2', '-', '3', ' ', ' ',
+                                ' ', '/', ' ', ' ', '|', ' ', ' ', '\\', ' ', 
+                                '4', '-', '-', '-', '5', '-', '-', '-', '6', 
+                                '\0'}
+
+int X_placed = 0 // changes game from placing to moving when second player places third piece
+
+
 
 /**
  * @brief Tcl-related stuff. Do not change if you do not plan to make a Tcl interface.
@@ -218,6 +243,20 @@ POSITION DoMove(POSITION position, MOVE move) {
  * src/core/types.h for the value enum definition.
  */
 VALUE Primitive(POSITION position) {
+    BlankOX theBlankOX[BOARDSIZE];
+	BlankOX whosTurn;
+
+	PositionToBlankOX(position,theBlankOX, &whosTurn);
+
+	if (ThreeInARow(theBlankOX, 0, 1, 4) ||
+        ThreeInARow(theBlankOX, 0, 2, 5) ||
+	    ThreeInARow(theBlankOX, 0, 3, 6) ||
+	    ThreeInARow(theBlankOX, 1, 2, 3) ||
+	    ThreeInARow(theBlankOX, 4, 5, 6) ||)
+		return gStandardGame ? lose : win;
+	else if (AllFilledIn(theBlankOX))
+		return tie;
+
     return undecided;
 }
 
@@ -236,12 +275,21 @@ VALUE Primitive(POSITION position) {
  * @param position : The position to inspect.
  */
 POSITION GetCanonicalPosition(POSITION position) {
-    return position;
+    POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
 }
 
 /*********** END SOLVING FUNCTIONS ***********/
-
-
 
 
 
@@ -260,7 +308,23 @@ POSITION GetCanonicalPosition(POSITION position) {
  * to print the prediction of the game's outcome.
  */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+	BlankOX theBlankOx[BOARDSIZE];
 
+	PositionToBlankOX(position,theBlankOx);
+
+	printf("\n         0         :         %s         \n",
+	       gBlankOXString[(int)theBlankOx[0]],);
+    printf("        /|\\       :        /|\\        ");
+	printf("LEGEND:       1-2-3       TOTAL:       %s-%s-%s       \n",
+	       gBlankOXString[(int)theBlankOx[1]],
+	       gBlankOXString[(int)theBlankOx[2]],
+	       gBlankOXString[(int)theBlankOx[3]] );
+    printf("      /  |  \\     :      /  |  \\      ");
+	printf("     4---5---6     :     %s---%s---%s     \n\n",
+	       gBlankOXString[(int)theBlankOx[4]],
+	       gBlankOXString[(int)theBlankOx[5]],
+	       gBlankOXString[(int)theBlankOx[6]],
+	       GetPrediction(position,playerName,usersTurn));
 }
 
 /**
@@ -296,7 +360,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * @return TRUE iff the input is a valid text input.
  */
 BOOLEAN ValidTextInput(STRING input) {
-    return TRUE;
+    return input[0] >= '0' && input[0] <= '6';
 }
 
 /**
@@ -308,7 +372,7 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return 0;
+    return ((MOVE) input[0]);
 }
 
 /**
@@ -326,7 +390,7 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    return NULL;
+    return (moveStringBuffer, "%d", move);
 }
 
 /**
@@ -348,6 +412,9 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 void DebugMenu(void) {}
 
 /*********** END TEXTUI FUNCTIONS ***********/
+
+
+
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
@@ -481,3 +548,81 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * (See src/core/autoguistrings.h)
  */
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+
+
+
+/************************************************************************
+**
+** NAME:        PositionToBlankOX
+**
+** DESCRIPTION: convert an internal position to that of a BlankOX.
+**
+** INPUTS:      POSITION thePos     : The position input.
+**              BlankOX *theBlankOx : The converted BlankOX output array.
+**
+** CALLS:       BadElse()
+**
+************************************************************************/
+
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
+	int i;
+	for(i = 8; i >= 0; i--) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
+			theBlankOX[i] = x;
+			thePos -= x * g3Array[i];
+		}
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
+			theBlankOX[i] = o;
+			thePos -= o * g3Array[i];
+		}
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
+			theBlankOX[i] = Blank;
+			thePos -= Blank * g3Array[i];
+		}
+		else
+			BadElse("PositionToBlankOX");
+	}
+}
+
+/************************************************************************
+**
+** NAME:        BlankOXToPosition
+**
+** DESCRIPTION: convert a BlankOX to that of an internal position.
+**
+** INPUTS:      BlankOX *theBlankOx : The converted BlankOX output array.
+**
+** OUTPUTS:     POSITION: The equivalent position given the BlankOX.
+**
+************************************************************************/
+
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
+	int i;
+	POSITION position = 0;
+
+	for(i = 0; i < BOARDSIZE; i++)
+		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
+
+	return(position);
+}
+
+
+/************************************************************************
+**
+** NAME:        ThreeInARow
+**
+** DESCRIPTION: Return TRUE iff there are three-in-a-row.
+**
+** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
+**              int a,b,c                     : The 3 positions to check.
+**
+** OUTPUTS:     (BOOLEAN) TRUE iff there are three-in-a-row.
+**
+************************************************************************/
+
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
+	return(theBlankOX[a] == theBlankOX[b] &&
+	        theBlankOX[b] == theBlankOX[c] &&
+	        theBlankOX[c] != Blank);
+}
+
