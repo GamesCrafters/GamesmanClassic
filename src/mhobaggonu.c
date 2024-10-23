@@ -282,18 +282,20 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("%c-", board[1]);
   printf("%c", board[2]);
   printf("\n            |                    |");
-  printf("\nLEGEND:     3       BOARD:       ");
-  printf("%c-", board[3]);
+  printf("\nLEGEND:     3       BOARD:      ");
+  printf("%c", board[3]);
 
   printf("     %s", GetPrediction(position, playerName, usersTurn));
-  printf("\n           /|\\                 /|\\ ");
+  printf("\n           /|\\                  /|\\ ");
   printf("\n          4-5-6          :     ");
-  printf("%c-", board[4]);
-  printf("%c-", board[5]);
+  printf("%c ", board[4]);
+  printf("%c ", board[5]);
   printf("%c", board[6]);
-  printf("\n          \\|/                 \\|/ ");
+  printf("\n           \\|/                  \\|/ ");
   printf("\nLEGEND:     7       BOARD:      ");
-  printf("%c-", board[7]);
+  printf("%c", board[7]);
+  printf("\n            |                    |");
+
   printf("\n          8-9-10         :     ");
   printf("%c-", board[8]);
   printf("%c-", board[9]);
