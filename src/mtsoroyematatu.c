@@ -160,11 +160,11 @@ BlankOX gBoard[BOARDSIZE]; //board of the game
 int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
 
 // for printing purposes?
-char game_board_blueprint[46] = {' ', ' ', ' ', ' ', '0', ' ', ' ', ' ',' ', 
+char game_board_blueprint[46] = {' ', ' ', ' ', ' ', '1', ' ', ' ', ' ',' ', 
                                 ' ', ' ', ' ', '/', '|', '\\', ' ', ' ', ' ', 
-                                ' ', ' ', '1', '-', '2', '-', '3', ' ', ' ',
+                                ' ', ' ', '2', '-', '3', '-', '4', ' ', ' ',
                                 ' ', '/', ' ', ' ', '|', ' ', ' ', '\\', ' ', 
-                                '4', '-', '-', '-', '5', '-', '-', '-', '6', 
+                                '5', '-', '-', '-', '6', '-', '-', '-', '7', 
                                 '\0'};
 
 int X_placed = 0; // changes game from placing to moving when second player places third piece
