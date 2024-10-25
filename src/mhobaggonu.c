@@ -208,9 +208,8 @@ MOVELIST *GenerateMoves(POSITION position) {
         movedPosition = strtok(NULL, ",");
     }
   }
-
-  return moves;
 }
+  return moves;
 }
 
 /* Return the position that results from making the 
@@ -310,27 +309,23 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
   printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
+// referenced from mharegame.c
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* YOUR CODE HERE */
   USERINPUT ret;
-
 	do {
-		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
-
-		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-		if(ret != Continue)
-			return(ret);
-
-	}
-	while (TRUE);
-	return(Continue); /* this is never reached, but lint is now happy */
+		printf("%8s's move [(u)ndo]/[src,dest] :  ", playerName);
+		ret = HandleDefaultTextInput(position, move, playerName);
+		if (ret != Continue) {
+			return ret;
+        }
+	} while (TRUE);
+	return Continue;
 }
 
 /* Return whether the input text signifies a valid move. */
 BOOLEAN ValidTextInput(STRING input) {
   /* YOUR CODE HERE */
-    STRING inputCopy = copyString(input);
-
   // if '10' is not the starting/ending position, then the string must be of length 2
   if (strlen(input) == 2) {
     return ((input[0] <= '9' && input[0] >= '0') && (input[1] <= '9' && input[1] >= '0'));
@@ -349,7 +344,22 @@ BOOLEAN ValidTextInput(STRING input) {
 the move hash corresponding to the move. */
 MOVE ConvertTextInputToMove(STRING input) {
   /* YOUR CODE HERE */
-  return (MOVE) input;
+  int dest, src;
+
+  if (strlen(input) == 2) {
+    src = input[0] - '0';
+    dest = input[1] - '0';
+  } else {
+    if (input[1] == '0') { // src is 10
+      src = 10;
+      dest = input[2] - '0';
+    } else { //dest is 10
+      src = input[0] - '0';
+      dest = 10;
+    }
+  }
+
+  return ENCODE_MOVE(src, dest);
 }
 
 /* Return the string representation of the move. 
@@ -357,13 +367,13 @@ Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
-  return (STRING) move;
+  sprintf(m, "%d", move); //not sure where to return this to, using mharegame as reference but idk what 'm' is
 }
 
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
-  printf("%s", move);
+  printf("%d", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
