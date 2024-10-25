@@ -375,7 +375,7 @@ VALUE VSDetermineLoopyValue1(POSITION position)
 	gAnalysis.F0EdgeCount = F0EdgeCount;
 	gAnalysis.F0NodeCount = F0NodeCount;
 	gAnalysis.F0DrawEdgeCount = F0DrawEdgeCount;
-	return(GetSlot(position, SL_VALUESLOT));
+	return GetValueOfPosition(position);
 }
 
 

@@ -542,7 +542,14 @@ bpdb_get_value(
         )
 {
 	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
-	if (val == tie && bpdb_get_remoteness(pos) == (int) bpdb_write_slice->maxvalue[BPDB_REMSLOT/2] ) {
+	SLICE bpdb_slice = bpdb_write_slice;
+	UINT8 index = BPDB_REMSLOT / 2;
+	BOOLEAN max_reserved = bpdb_slice->reservemax[index];
+	UINT64 max_value = bpdb_slice->maxvalue[index];
+	REMOTENESS remoteness = bpdb_get_remoteness(pos);
+	BOOLEAN has_draw_remoteness = (max_reserved && remoteness == max_value + 1) ||
+	                                 (!max_reserved && remoteness == max_value);
+	if (val == tie && has_draw_remoteness ) {
 		val = drawdraw;
 	}
 	return val;
