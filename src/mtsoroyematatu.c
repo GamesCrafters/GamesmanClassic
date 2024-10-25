@@ -391,15 +391,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n         0         :         %s         \n",
+	printf("\n         1         :         %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
     printf("        /|\\       :        /|\\        ");
-	printf("LEGEND:       1-2-3       TOTAL:       %s-%s-%s       \n",
+	printf("LEGEND:       2-3-4       TOTAL:       %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
     printf("      /  |  \\     :      /  |  \\      ");
-	printf("     4---5---6     :     %s---%s---%s     \n\n",
+	printf("     5---6---7     :     %s---%s---%s     \n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
@@ -439,7 +439,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * @return TRUE iff the input is a valid text input.
  */
 BOOLEAN ValidTextInput(STRING input) {
-    return input[0] >= '0' && input[0] <= '6';
+    return input[0] >= '1' && input[0] <= '7';
 }
 
 /**
@@ -451,7 +451,7 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return ((MOVE) input[0]);
+    return ((MOVE) input[0] - '1');
 }
 
 /**
@@ -469,7 +469,7 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    (moveStringBuffer, "%d", move); //removed return since it is a void function
+    (moveStringBuffer, "%d", move + 1); //removed return since it is a void function
 }
 
 /**
@@ -645,7 +645,7 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int i;
-	for(i = 8; i >= 0; i--) {
+	for(i = BOARDSIZE - 1; i >= 0; i--) {
 		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
 			thePos -= x * g3Array[i];
