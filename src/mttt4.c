@@ -32,10 +32,13 @@ CONST_STRING kGameName           = "Four Square Tic-Tac-Toe";
 CONST_STRING kDBName = "ttt4";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
-BOOLEAN kGameSpecificMenu   = FALSE;
+BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = TRUE;
 BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
+
+BOOLEAN Diamond = FALSE;
+
 void*    gGameSpecificTclInit = NULL;
 
 CONST_STRING kHelpGraphicInterface =
@@ -46,7 +49,7 @@ it reverts back to your your most recent position."                             
 
 CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
-1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
+1 and 16, with 1 at the upper left and 16 at the lower right) to correspond\n\
 to the empty board position you desire and hit return. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
@@ -55,49 +58,58 @@ CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
 CONST_STRING kHelpStandardObjective =
-        "To get three of your markers (either X or O) in a row, either\n\
-horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
+        "To get four of your markers (either X or O) in a row, either\n\
+horizontally, vertically, or diagonally. Occupying each corner or\n\
+any 2x2 square also wins. Enable Diamond option to add occupying 4 squares in a dimaond-shape as a win condition."                                                                          ;
 
 CONST_STRING kHelpReverseObjective =
-        "To force your opponent into getting three of his markers (either X or\n\
-O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
-LOSES."                                                                                                                                                             ;
+        "To force your opponent into getting four of his markers (either X or\n\
+O) in a row, either horizontally, vertically, or diagonally. Forcing your opponent to\n\
+occupy each corner or any 2x2 square also loses. Enable Diamond option to add occupying 4 squares in a dimaond-shape as a lose condition."                                                                                                                                                           ;
 
 CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
-                            "the board fills up without either player getting three-in-a-row.";
+                            "the board fills up without either player getting four-in-a-row, one in each corner, or a two-by-two square.";
 
 CONST_STRING kHelpExample =
-        "         ( 1 2 3 )           : - - -\n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
+        "         ( 1  2  3  4  )           : - - - -\n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - - - \n\
+         ( 9  10 11 12 )           : - - - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
 Computer's move              :  3    \n\n\
-         ( 1 2 3 )           : - - X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
+         ( 1  2  3  4  )           : - - O - \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - - - \n\
+         ( 9  10 11 12 )           : - - - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
      Dan's move [(u)ndo/1-9] : { 2 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
-         ( 7 8 9 )           : - - - \n\n\
-Computer's move              :  6    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - - \n\n\
-     Dan's move [(u)ndo/1-9] : { 9 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - - X \n\
-         ( 7 8 9 )           : - - O \n\n\
-Computer's move              :  5    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : - - O \n\n\
-     Dan's move [(u)ndo/1-9] : { 7 } \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : - X X \n\
-         ( 7 8 9 )           : O - O \n\n\
+         ( 1  2  3  4  )           : - X O - \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - - - \n\
+         ( 9  10 11 12 )           : - - - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
+Computer's move              :  7    \n\n\
+         ( 1  2  3  4  )           : - X O - \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - O - \n\
+         ( 9  10 11 12 )           : - - - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 10 } \n\n\
+         ( 1  2  3  4  )           : - X O - \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - O - \n\
+         ( 9  10 11 12 )           : - X - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
 Computer's move              :  4    \n\n\
-         ( 1 2 3 )           : - O X \n\
-LEGEND:  ( 4 5 6 )  TOTAL:   : X X X \n\
-         ( 7 8 9 )           : O - O \n\n\
+         ( 1  2  3  4  )           : - X O O \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : - - O - \n\
+         ( 9  10 11 12 )           : - X - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
+     Dan's move [(u)ndo/1-9] : { 5 } \n\n\
+         ( 1  2  3  4  )           : - X O O \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : X - O - \n\
+         ( 9  10 11 12 )           : - X - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
+Computer's move              :  8    \n\n\
+         ( 1  2  3  4  )           : - X O O \n\
+LEGEND:  ( 5  6  7  8  )  TOTAL:   : X - O O \n\
+         ( 9  10 11 12 )           : - X - - \n\
+         ( 13 14 15 16 )           : - - - - \n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             ;
 
 /*************************************************************************
@@ -277,7 +289,38 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu() {}
+void GameSpecificMenu() {
+	BOOLEAN tryagain = TRUE;
+	char c;
+    char* diamondLabel;
+	while (tryagain) {
+        // Display whether diamond win condition is enabled or not
+        diamondLabel = (Diamond) ? "ENABLED" : "DISABLED";
+        
+        // Menu options
+        printf("\nHere is where you set game options.\n\n");
+        printf("\td)\ttoggle (D)iamond win condition. It is currently %s\n", diamondLabel);
+        printf("\tb)\t(B)ack to the main menu.\n\n");
+        printf("Enter your selection: ");
+        
+        // Get user input
+        c = GetMyChar();
+        
+        // Process input
+        if ((c == 'D') || (c == 'd')) {
+            // Toggle diamond win condition
+            Diamond = (Diamond) ? FALSE : TRUE;
+        } else if ((c == 'B') || (c == 'b')) {
+            // Exit the options menu
+            tryagain = FALSE;
+        } else {
+            // Invalid input
+            printf("Invalid option, please try again.\n");
+        }
+    }
+    
+    InitializeGame();
+}
 
 // Anoto pen support - implemented in core/pen/pttt.c
 extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclInterp, int debug);
@@ -381,6 +424,14 @@ VALUE Primitive(POSITION position) {
 	if (!gUseGPS)
 		PositionToBlankOX(position, gPosition.board); // Temporary storage.
 
+	if (Diamond) {
+		if (FourOfTheSame(gPosition.board, 1, 4, 6, 9) || 
+			FourOfTheSame(gPosition.board, 2, 5, 7, 10) || 
+			FourOfTheSame(gPosition.board, 5, 8, 10, 13) || 
+			FourOfTheSame(gPosition.board, 6, 9, 11, 14))
+			return gStandardGame ? lose : win;
+	}
+
 	if (FourOfTheSame(gPosition.board, 0, 1, 2, 3) ||
 	    FourOfTheSame(gPosition.board, 4, 5, 6, 7) ||
 	    FourOfTheSame(gPosition.board, 8, 9, 10, 11) ||
@@ -434,22 +485,22 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n         ( 1 2 3 4 )           : %s %s %s %s\n",
+	printf("\n        ( 1  2  3  4  )       : %s %s %s %s\n",
 	       gBlankOXString[(int)theBlankOx[0]],
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-	printf("LEGEND:  ( 5 6 7 8 )  TOTAL:   : %s %s %s %s\n",
+	printf("LEGEND: ( 5  6  7  8  ) TOTAL : %s %s %s %s\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
 	       gBlankOXString[(int)theBlankOx[7]] );
-	printf("         ( 9 10 11 12 )        : %s %s %s %s\n",
+	printf("        ( 9  10 11 12 )       : %s %s %s %s\n",
 	       gBlankOXString[(int)theBlankOx[8]],
 	       gBlankOXString[(int)theBlankOx[9]],
 	       gBlankOXString[(int)theBlankOx[10]],
 	       gBlankOXString[(int)theBlankOx[11]] );
-	printf("         ( 13 14 15 16 )       : %s %s %s %s %s\n\n",
+	printf("        ( 13 14 15 16 )       : %s %s %s %s %s\n\n",
 	       gBlankOXString[(int)theBlankOx[12]],
 	       gBlankOXString[(int)theBlankOx[13]],
 	       gBlankOXString[(int)theBlankOx[14]],
@@ -790,7 +841,7 @@ BlankOX WhoseTurn(BlankOX *theBlankOX) {
 }
 
 int NumberOfOptions() {
-	return 2;
+	return 3;
 }
   
 
@@ -800,12 +851,16 @@ int getOption()
 	option += gStandardGame;
 	option *= 2;
 	option += gSymmetries;
+	option *= 2;
+	option += (int)Diamond;
 	return option+1;
 }
 
 void setOption(int option)
 {
 	option -= 1;
+	Diamond = (BOOLEAN) (option % 2);
+	option /= 2;
 	gSymmetries = option % 2;
 	option /= 2;
 	gStandardGame = option;
@@ -813,7 +868,7 @@ void setOption(int option)
 
 POSITION ActualNumberOfPositions(int variant) {
 	(void)variant;
-	return 5478;
+	return 3287691;
 }
 
 POSITION StringToPosition(char *positionString) {
@@ -864,3 +919,4 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	char token = (WhoseTurn(oxboard) == x) ? 'x' : 'o';
 	AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
 }
+
