@@ -162,17 +162,33 @@ POSITION GetCanonicalPosition(POSITION position) {
 /*********** BEGIN TEXTUI FUNCTIONS ***********/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-  char* board = (char*)SafeMalloc(16 * sizeof(char));
-  generic_hash_unhash(position, board);
-  char* prediction = GetPrediction(position, playerName, usersTurn);
-  printf("%s's turn\n", playerName);
-  for (int idx = 0; idx < 16; idx += 4) {
-    printf("%c%c%c%c\n", board[idx], board[idx + 1], board[idx + 2], board[idx + 3]);
-  }
-  if (prediction) {
-    printf("Prediction: %s\n\n", prediction);
-  }
-  SafeFree(board);
+    char* board = (char*)SafeMalloc(16 * sizeof(char));
+    generic_hash_unhash(position, board);
+    // int player = generic_hash_turn(position);
+    char* prediction = GetPrediction(position, playerName, usersTurn);
+    printf("\n         (  0  1  2  3 )           : %c %c %c %c\n",
+	       board[0],
+	       board[1],
+	       board[2],
+	       board[3]);
+	printf("         (  4  5  6  7 )           : %c %c %c %c\n",
+	       board[4],
+	       board[5],
+	       board[6],
+	       board[7]);
+	printf("LEGEND:  ( 8  9 10  11 )   TOTAL:  : %c %c %c %c\n",
+	       board[8],
+	       board[9],
+	       board[10],
+	       board[11]);
+	printf("         ( 12 13 14 15 )           : %c %c %c %c %s\n\n",
+	       board[12],
+	       board[13],
+	       board[14],
+           board[15],
+	       prediction);
+
+    SafeFree(board);
 }
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
@@ -191,7 +207,7 @@ BOOLEAN ValidTextInput(STRING input) {
     int start_pos, end_pos;
     char extra;
 
-    if (sscanf(input, "%d->%d %c", &start_pos, &end_pos, &extra) != 2) {
+    if (sscanf(input, "%d %d %c", &start_pos, &end_pos, &extra) != 2) {
         return FALSE;  
     }
 
@@ -212,7 +228,7 @@ MOVE ConvertTextInputToMove(STRING input) {
     }
     int start_pos, end_pos;
     
-    sscanf(input, "%d->%d", &start_pos, &end_pos);
+    sscanf(input, "%d %d", &start_pos, &end_pos);
     
     MOVE encoded_move = ((start_pos & 0x0F) << 4) | (end_pos & 0x0F);
     
@@ -223,7 +239,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
     int start_pos = (move >> 4) & 0x0F; 
     int end_pos = move & 0x0F;          
     
-    snprintf(moveStringBuffer, MAX_MOVE_STRING_LENGTH, "%d->%d", start_pos, end_pos);
+    snprintf(moveStringBuffer, MAX_MOVE_STRING_LENGTH, "%d %d", start_pos, end_pos);
 
     moveStringBuffer[MAX_MOVE_STRING_LENGTH - 1] = '\0';
 }
