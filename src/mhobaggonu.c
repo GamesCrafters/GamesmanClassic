@@ -13,12 +13,11 @@
 
 
 
-
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Firstname Lastname";
 STRING kGameName = "Ho Bag Gonu"; //  use this spacing and case
 STRING kDBName = "hobaggonu"; // use this spacing and case
-POSITION gNumberOfPositions = 0; // TODO: Put your number of positions upper bound here.
+POSITION gNumberOfPositions = 10000; // TODO: Put your number of positions upper bound here.
 POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
 BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
 BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
@@ -160,9 +159,6 @@ MOVELIST *GenerateMoves(POSITION position) {
      moves = CreateMovelistNode(<the move you're adding>, moves);
      See the function CreateMovelistNode in src/core/misc.c
   */
-
-
-
   char board[BOARDSIZE];
   generic_hash_unhash(position, board);
   int player = generic_hash_turn(position);
@@ -180,10 +176,10 @@ MOVELIST *GenerateMoves(POSITION position) {
       //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
       char key[2];
       sprintf(key, "%d", cpos);
+      
       char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
       char tempMoves[100];  // Or some appropriate size
       strcpy(tempMoves, possibleMoves);  // Copy the string to a modifiable array 
-      printf("tempMoves : %s\n", tempMoves);
 
 
       int moveCount = 1; //move count working, temp moves working ex: "0,2,3"
@@ -192,37 +188,38 @@ MOVELIST *GenerateMoves(POSITION position) {
             moveCount++;
           }
       }
-      
-      char *token = strtok(tempMoves, ",");
 
+      char *token = strtok(tempMoves, ",");
 
       for (int i = 0; i < moveCount;i++){
           int targetPos = atoi(token);
-          printf("TARGET POSITION: %d\n", targetPos);
-          printf("TARGET movedPositions: %s\n", token);
-          printf("TARGET TEMPMoves: %d\n", tempMoves);
 
-
-          if (board[cpos] == 3 && pieces[player] == 'X')
-          {
+          if (board[cpos] >= 3 && pieces[player] == 'X'){
             if(targetPos == 0 || targetPos == 1 || targetPos == 2){
               token = strtok(NULL, ", ");
               continue;
             }
-          } else if (board[cpos] == 7 && pieces[player] == 'O')
-          {
+          } else if (board[cpos] <= 7 && pieces[player] == 'O') {
             if(targetPos == 8 || targetPos == 9 || targetPos == 10){
               token = strtok(NULL, ", ");
               continue;
             }
           }
-          if (board[targetPos] != ' ')
+          if (board[targetPos] != ' ') {
+            token = strtok(NULL, ", ");
             continue;
+          }
+
+          printf("Generate Move from %d\n", cpos);
+          printf("Move to          : %d\n", targetPos);
+          printf("________\n");
+            
           moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
           token = strtok(NULL, ", ");
       }
     }
   }
+
   return moves;
 }
 
@@ -231,6 +228,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
+  
   char board[BOARDSIZE];
   generic_hash_unhash(position, board);
 
@@ -241,6 +239,12 @@ POSITION DoMove(POSITION position, MOVE move) {
 
   assert(board[spos] == pieces[player]);
   assert(board[npos] == ' ');
+
+
+  printf("DO MOVES Player: %d", player);
+  printf("Do MOVES move from: %d",spos);
+  printf("Do MOVES move to: %d",npos);
+
 
   // Perform the move
   board[spos] = ' ';
