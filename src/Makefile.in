@@ -394,6 +394,10 @@ TORE_EXE		= $(BINDIR)/mtore$(EXESUFFIX)	# The great game of Tac Tix
 TORE_OBJ		= mtore$(OBJSUFFIX)
 TORE_SO			= $(LIBDIR)/libmtore$(LIBSUFFIX)
 
+TSORO_EXE			= $(BINDIR)/mtsoro$(EXESUFFIX) #The tantalizing game of tsoroyematatu
+TSORO_OBJ			= mtsoro$(OBJSUFFIX)
+TSORO_SO			= $(LIBDIR)/libmtsoro$(LIBSUFFIX)
+
 TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
 TTC_SO			= $(LIBDIR)/libmttc$(LIBSUFFIX)
