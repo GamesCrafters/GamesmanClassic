@@ -7,6 +7,7 @@
 ** testing
 **************************************************************************/
 
+
 #include <stdio.h>
 #include "gamesman.h"
 
@@ -132,6 +133,7 @@ void InitializeGame() {
   addItem(&moves_lookup, "9", "7,8,10");
   addItem(&moves_lookup, "10", "9");
   
+  
 
   char board[] = "XXX     OOO";
   char player1 = 'X';
@@ -159,10 +161,13 @@ MOVELIST *GenerateMoves(POSITION position) {
      See the function CreateMovelistNode in src/core/misc.c
   */
 
+
+
   char board[BOARDSIZE];
   generic_hash_unhash(position, board);
   int player = generic_hash_turn(position);
   MOVELIST *moves = NULL;
+
 
   // loop through char for each position... 
 
@@ -172,45 +177,55 @@ MOVELIST *GenerateMoves(POSITION position) {
   for(int cpos = 0; cpos < BOARDSIZE;cpos++){
 
     if(pieces[player] == board[cpos]){ // should this be the position decoded... 
-        //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
-        char key[2];
-        sprintf(key, "%d", cpos);
-        const char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
-        char tempMoves[100];  // Or some appropriate size
-        strcpy(tempMoves, possibleMoves);  // Copy the string to a modifiable array 
-        
-        int moveCount = 1;
-        for (int i = 0; possibleMoves[i] != '\0'; i++) { //find number of moves for iteration
-            if (possibleMoves[i] == ',') {
-              moveCount++;
-        }
+      //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
+      char key[2];
+      sprintf(key, "%d", cpos);
+      char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
+      char tempMoves[100];  // Or some appropriate size
+      strcpy(tempMoves, possibleMoves);  // Copy the string to a modifiable array 
+      printf("tempMoves : %s\n", tempMoves);
 
-        char *movedPosition = strtok(tempMoves, ",");
-        for (int i = 0; i < moveCount;i++){
-            int targetPos = atoi(movedPosition);
 
-            if (board[cpos] == 3 && pieces[player] == 'X')
-            {
-              if(targetPos == 0 || targetPos == 1 || targetPos == 2){
-                continue;
-              }
-            } else if (board[cpos] == 7 && pieces[player] == 'O')
-            {
-              if(targetPos == 8 || targetPos == 9 || targetPos == 10){
-                continue;
-              }
-            }
-          
-            if (board[targetPos] != ' ')
+      int moveCount = 1; //move count working, temp moves working ex: "0,2,3"
+      for (int i = 0; tempMoves[i] != '\0'; i++) { //find number of moves for iteration
+          if (tempMoves[i] == ',') {
+            moveCount++;
+          }
+      }
+      
+      char *token = strtok(tempMoves, ",");
+
+
+      for (int i = 0; i < moveCount;i++){
+          int targetPos = atoi(token);
+          printf("TARGET POSITION: %d\n", targetPos);
+          printf("TARGET movedPositions: %s\n", token);
+          printf("TARGET TEMPMoves: %d\n", tempMoves);
+
+
+          if (board[cpos] == 3 && pieces[player] == 'X')
+          {
+            if(targetPos == 0 || targetPos == 1 || targetPos == 2){
+              token = strtok(NULL, ", ");
               continue;
-            moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
-        }
-        movedPosition = strtok(NULL, ",");
+            }
+          } else if (board[cpos] == 7 && pieces[player] == 'O')
+          {
+            if(targetPos == 8 || targetPos == 9 || targetPos == 10){
+              token = strtok(NULL, ", ");
+              continue;
+            }
+          }
+          if (board[targetPos] != ' ')
+            continue;
+          moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
+          token = strtok(NULL, ", ");
+      }
     }
   }
-}
   return moves;
 }
+
 
 /* Return the position that results from making the 
 input move on the input position. */
@@ -248,8 +263,8 @@ VALUE Primitive(POSITION position) {
   //if generate moves on position is null, then return lose
   if(GenerateMoves(position) == NULL)
     return lose;
-
   return undecided;
+  
 }
 
 /* Symmetry Handling: Return the canonical position. */
@@ -367,7 +382,7 @@ Ideally this matches with what the user is supposed to
 type when they specify moves. */
 STRING MoveToString(MOVE move) {
   /* YOUR CODE HERE */
-  sprintf(m, "%d", move); //not sure where to return this to, using mharegame as reference but idk what 'm' is
+  //printf(m, "%d", move); //not sure where to return this to, using mharegame as reference but idk what 'm' is
 }
 
 /* Basically just print the move. */
