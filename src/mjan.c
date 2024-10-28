@@ -109,7 +109,6 @@ POSITION DoMove(POSITION position, MOVE move) {
 VALUE Primitive(POSITION position) {
     char* p_str = (char*)SafeMalloc(16 * sizeof(char));
     p_str = generic_hash_unhash(position, p_str);
-    int player = generic_hash_turn(position);
     int deciding_idx = -1;
     for (int idx = 0; idx < 8; idx ++) {
         if (p_str[idx] == ECHAR) {
@@ -140,11 +139,16 @@ VALUE Primitive(POSITION position) {
             }
         }
     }
-
+    // check bottom 2 rows manually
+    if (p_str[9] != ECHAR && (p_str[9] == p_str[10]) && (p_str[8] == p_str[9] || p_str[10] == p_str[11])) {
+      deciding_idx = 9;
+    }
+    if (p_str[13] != ECHAR && (p_str[13] == p_str[14]) && (p_str[12] == p_str[13] || p_str[14] == p_str[15])) {
+      deciding_idx = 13;
+    }
     if (deciding_idx != -1) {
-      BOOLEAN is_win = (p_str[deciding_idx] == WCHAR && player == 1) || (p_str[deciding_idx] == BCHAR && player == 2);
       SafeFree(p_str);
-      return is_win ? win : lose; 
+      return lose; 
     }
     SafeFree(p_str);
     return undecided;
