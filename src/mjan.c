@@ -176,7 +176,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	       board[5],
 	       board[6],
 	       board[7]);
-	printf("LEGEND:  ( 8  9 10  11 )   TOTAL:  : %c %c %c %c\n",
+	printf("LEGEND:  (  8  9 10 11 )   TOTAL:  : %c %c %c %c\n",
 	       board[8],
 	       board[9],
 	       board[10],
