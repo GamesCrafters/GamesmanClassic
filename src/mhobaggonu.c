@@ -194,12 +194,12 @@ MOVELIST *GenerateMoves(POSITION position) {
       for (int i = 0; i < moveCount;i++){
           int targetPos = atoi(token);
 
-          if (board[cpos] >= 3 && pieces[player] == 'X'){
+          if (cpos >= 3 && pieces[player] == 'X'){
             if(targetPos == 0 || targetPos == 1 || targetPos == 2){
               token = strtok(NULL, ", ");
               continue;
             }
-          } else if (board[cpos] <= 7 && pieces[player] == 'O') {
+          } else if (cpos <= 7 && pieces[player] == 'O') {
             if(targetPos == 8 || targetPos == 9 || targetPos == 10){
               token = strtok(NULL, ", ");
               continue;
