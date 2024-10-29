@@ -229,8 +229,8 @@ input move on the input position. */
 POSITION DoMove(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
   
-  char board[BOARDSIZE];
-  generic_hash_unhash(position, board);
+  char* board = (char*) SafeMalloc(16 * sizeof(char));
+  board = generic_hash_unhash(position, board);
 
   // Get start and end position
   int spos = DECODE_MOVE_START(move);
@@ -241,9 +241,9 @@ POSITION DoMove(POSITION position, MOVE move) {
   assert(board[npos] == ' ');
 
 
-  printf("DO MOVES Player: %d", player);
-  printf("Do MOVES move from: %d",spos);
-  printf("Do MOVES move to: %d",npos);
+  printf("DO MOVES Player: %d\n", player);
+  printf("Do MOVES move from: %d\n",spos);
+  printf("Do MOVES move to: %d\n",npos);
 
 
   // Perform the move
@@ -252,6 +252,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 
   // Create the new position
   POSITION out = generic_hash_hash(board, NEXT_PLAYER(player));
+  SafeFree(board);
   return out;
  
 }
