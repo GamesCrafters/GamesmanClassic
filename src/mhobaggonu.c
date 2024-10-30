@@ -15,14 +15,14 @@
 
 /* IMPORTANT GLOBAL VARIABLES */
 STRING kAuthorName = "Nakul Srikanth, Ryan Lee, Alec Van Kerckhove";
-STRING kGameName = "Ho Bag Gonu"; //  use this spacing and case
-STRING kDBName = "hobaggonu"; // use this spacing and case
-POSITION gNumberOfPositions = 10000; // TODO: Put your number of positions upper bound here.
-POSITION gInitialPosition = 0; // TODO: Put the hash value of the initial position.
-BOOLEAN kPartizan = FALSE; // TODO: Is the game PARTIZAN i.e. given a board does each player have a different set of moves available to them?
-BOOLEAN kTieIsPossible = TRUE; // TODO: Is a tie or draw possible?
-BOOLEAN kLoopy = TRUE; // TODO: Is this game loopy?
-BOOLEAN kSupportsSymmetries = FALSE; // TODO: Whether symmetries are supported (i.e. whether the GetCanonicalPosition is implemented)
+STRING kGameName = "Ho Bag Gonu";
+STRING kDBName = "hobaggonu";
+POSITION gNumberOfPositions = 0;
+POSITION gInitialPosition = 0;
+BOOLEAN kPartizan = FALSE;
+BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kLoopy = TRUE;
+BOOLEAN kSupportsSymmetries = FALSE;
 
 /* Likely you do not have to change these. */
 POSITION GetCanonicalPosition(POSITION);
@@ -171,7 +171,6 @@ MOVELIST *GenerateMoves(POSITION position) {
   //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
 
   for(int cpos = 0; cpos < BOARDSIZE;cpos++){
-
     if(pieces[player] == board[cpos]){ // should this be the position decoded... 
       //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
       char key[3];
@@ -210,9 +209,9 @@ MOVELIST *GenerateMoves(POSITION position) {
             continue;
           }
 
-          printf("Generate Move from %d\n", cpos);
-          printf("Move to          : %d\n", targetPos);
-          printf("________\n");
+          // printf("Generate Move from %d\n", cpos);
+          // printf("Move to          : %d\n", targetPos);
+          // printf("________\n");
             
           moves = CreateMovelistNode(ENCODE_MOVE(cpos, targetPos), moves);
           token = strtok(NULL, ", ");
@@ -246,9 +245,9 @@ POSITION DoMove(POSITION position, MOVE move) {
   assert(board[npos] == ' ');
 
 
-  printf("DO MOVES Player: %d\n", player);
-  printf("Do MOVES move from: %d\n",spos);
-  printf("Do MOVES move to: %d\n",npos);
+  // printf("DO MOVES Player: %d\n", player);
+  // printf("Do MOVES move from: %d\n",spos);
+  // printf("Do MOVES move to: %d\n",npos);
 
 
   // Perform the move
@@ -398,7 +397,7 @@ STRING MoveToString(MOVE move) {
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
-  printf("%d", move);
+  printf  ("%02d", move);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
