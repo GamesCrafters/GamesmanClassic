@@ -14,7 +14,7 @@
 
 
 /* IMPORTANT GLOBAL VARIABLES */
-STRING kAuthorName = "Firstname Lastname";
+STRING kAuthorName = "Nakul Srikanth, Ryan Lee, Alec Van Kerckhove";
 STRING kGameName = "Ho Bag Gonu"; //  use this spacing and case
 STRING kDBName = "hobaggonu"; // use this spacing and case
 POSITION gNumberOfPositions = 10000; // TODO: Put your number of positions upper bound here.
@@ -174,7 +174,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 
     if(pieces[player] == board[cpos]){ // should this be the position decoded... 
       //x player at 3 cannot go into 0,1,2 --> O player in 7 cannot go into  8,9,10
-      char key[2];
+      char key[3];
       sprintf(key, "%d", cpos);
       
       char *possibleMoves = getItem(&moves_lookup, key); //pull from dictionary
