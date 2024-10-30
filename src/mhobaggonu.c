@@ -237,6 +237,11 @@ POSITION DoMove(POSITION position, MOVE move) {
   int npos = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
+  if (move == 100) {
+    spos = 9;
+    npos = 10;
+  }
+
   assert(board[spos] == pieces[player]);
   assert(board[npos] == ' ');
 
@@ -301,7 +306,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("%c-", board[1]);
   printf("%c", board[2]);
   printf("\n            |                    |");
-  printf("\nLEGEND:     3       BOARD:      ");
+  printf("\nLEGEND:     3       BOARD:       ");
   printf("%c", board[3]);
 
   printf("     %s", GetPrediction(position, playerName, usersTurn));
@@ -311,7 +316,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("%c ", board[5]);
   printf("%c", board[6]);
   printf("\n           \\|/                  \\|/ ");
-  printf("\nLEGEND:     7       BOARD:      ");
+  printf("\nLEGEND:     7       BOARD:       ");
   printf("%c", board[7]);
   printf("\n            |                    |");
 
