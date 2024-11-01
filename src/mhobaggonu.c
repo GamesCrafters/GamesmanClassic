@@ -198,8 +198,16 @@ MOVELIST *GenerateMoves(POSITION position) {
               token = strtok(NULL, ", ");
               continue;
             }
+            if (cpos >= 8 && targetPos < 8) {
+              token = strtok(NULL, ", ");
+              continue;
+            }
           } else if (cpos <= 7 && pieces[player] == 'O') {
             if(targetPos == 8 || targetPos == 9 || targetPos == 10){
+              token = strtok(NULL, ", ");
+              continue;
+            }
+            if (cpos <= 2 && targetPos > 2) {
               token = strtok(NULL, ", ");
               continue;
             }
