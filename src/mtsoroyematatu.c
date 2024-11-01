@@ -317,13 +317,11 @@ POSITION DoMove(POSITION position, MOVE move) {
     int o_count = 0;
     int x_count = 0;
     for (int i = 0; i < BOARDSIZE; i++) {
-        if(gBoard[i] == Blank) {
+        if (gBoard[i] == Blank) {
             blank_count++;
-        }
-        if (gBoard[i] == o) {
+        } else if (gBoard[i] == o) {
             o_count++;
-        }
-        if (gBoard[i] == x) {
+        } else if (gBoard[i] == x) {
             x_count++;
         }
     }
@@ -333,14 +331,15 @@ POSITION DoMove(POSITION position, MOVE move) {
         int to = move % 10;
         gBoard[to] = gBoard[from];
         gBoard[from] = Blank;
-        return BlankOXToPosition(gBoard);
+        // return BlankOXToPosition(gBoard);
     } else {
         if (o_count == x_count) {
-            gBoard[move] = x;
+            gBoard[move % 10] = x;
         } else {
-            gBoard[move] = o;
+            gBoard[move % 10] = o;
         }
     }
+    return BlankOXToPosition(gBoard);
 }
 
 /**
