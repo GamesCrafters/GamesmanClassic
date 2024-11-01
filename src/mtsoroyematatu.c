@@ -303,12 +303,34 @@ MOVELIST *GenerateMoves(POSITION position) {
  * the POSITION typedef in src/core/types.h.
  */
 POSITION DoMove(POSITION position, MOVE move) {
-    PositionToBlankOX(position, gBoard);
-    int from = move / 10;
-    int to = move % 10;
-    gBoard[to] = gBoard[from];
-    gBoard[from] = Blank;
-    return BlankOXToPosition(gBoard);
+    int blank_count = 0;
+    int o_count = 0;
+    int x_count = 0;
+    for (int i = 0; i < BOARDSIZE; i++) {
+        if(gBoard[i] == Blank) {
+            blank_count++;
+        }
+        if (gBoard[i] == o) {
+            o_count++;
+        }
+        if (gBoard[i] == x) {
+            x_count++;
+        }
+    }
+    if (blank_count == 1) {
+        PositionToBlankOX(position, gBoard);
+        int from = move / 10;
+        int to = move % 10;
+        gBoard[to] = gBoard[from];
+        gBoard[from] = Blank;
+        return BlankOXToPosition(gBoard);
+    } else {
+        if (o_count == x_count) {
+            gBoard[move] = x;
+        } else {
+            gBoard[move] = o;
+        }
+    }
 }
 
 /**
@@ -391,15 +413,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n           1         :         %s         \n",
+	printf("\n           1           :         %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
-    printf("          /|\\       :        /|\\        \n");
-	printf("LEGEND:   2-3-4       TOTAL:       %s-%s-%s       \n",
+    printf("          /|\\          :        /|\\        \n");
+	printf("LEGEND:  2-3-4   TOTAL:   %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-    printf("        /  |  \\     :      /  |  \\      \n");
-	printf("       5---6---7     :     %s---%s---%s     \n\n",
+    printf("        /  |  \\        :      /  |  \\      \n");
+	printf("       5---6---7       :     %s---%s---%s     \n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
