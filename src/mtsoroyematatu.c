@@ -426,7 +426,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	printf("\n           1           :         %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
     printf("          /|\\          :        /|\\        \n");
-	printf("LEGEND:  2-3-4   TOTAL:   %s-%s-%s       \n",
+	printf("LEGEND:  2-3-4    TOTAL:       %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
