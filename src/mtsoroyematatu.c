@@ -256,7 +256,7 @@ MOVELIST *GenerateMoves(POSITION position) {
             moves = CreateMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
         }
         if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
-            moves = CreateMovelistNode((blankIndex + 2 % 4) * 10 + blankIndex , moves);
+            moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
         }
     }
     else if (blankIndex == 2) { //center position
@@ -316,6 +316,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     int blank_count = 0;
     int o_count = 0;
     int x_count = 0;
+    PositionToBlankOX(position, gBoard);
     for (int i = 0; i < BOARDSIZE; i++) {
         if (gBoard[i] == Blank) {
             blank_count++;
@@ -326,7 +327,6 @@ POSITION DoMove(POSITION position, MOVE move) {
         }
     }
     if (blank_count == 1) {
-        PositionToBlankOX(position, gBoard);
         int from = move / 10;
         int to = move % 10;
         gBoard[to] = gBoard[from];
@@ -482,7 +482,7 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return ((MOVE) input[0] - '1');
+    return ((MOVE) input[0] - '1')
 }
 
 /**
@@ -500,7 +500,7 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    (moveStringBuffer, "%d", move + 1); //removed return since it is a void function
+    sprintf(moveStringBuffer, "%d", move + 1); //removed return since it is a void function
 }
 
 /**
