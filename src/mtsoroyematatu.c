@@ -151,7 +151,7 @@ typedef enum possibleBoardPieces {
 
 void PositionToBlankOX(POSITION, BlankOX*);
 POSITION BlankOXToPosition(BlankOX*);
-ThreeInARow(BlankOX*, int, int, int);
+BOOLEAN ThreeInARow(BlankOX*, int, int, int);
 
 char *gBlankOXString[] = { " ", "o", "x" };
 
@@ -391,15 +391,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n         1         :         %s         \n",
+	printf("\n           1         :         %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
-    printf("        /|\\       :        /|\\        ");
-	printf("LEGEND:       2-3-4       TOTAL:       %s-%s-%s       \n",
+    printf("          /|\\       :        /|\\        \n");
+	printf("LEGEND:   2-3-4       TOTAL:       %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-    printf("      /  |  \\     :      /  |  \\      ");
-	printf("     5---6---7     :     %s---%s---%s     \n\n",
+    printf("        /  |  \\     :      /  |  \\      \n");
+	printf("       5---6---7     :     %s---%s---%s     \n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
