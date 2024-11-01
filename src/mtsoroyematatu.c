@@ -222,11 +222,21 @@ MOVELIST *GenerateMoves(POSITION position) {
     BlankOX player = wTurn ? o : x;
     int blankIndex;
     MOVELIST *moves = NULL;
+    int blankCount = 0;
     for (int i = 0; i < BOARDSIZE; i++)
         if(gBoard[i] == Blank) {
             blankIndex = i;
-            break;
+            blankCount++;
         }
+    if (blankCount > 1) {
+        printf("placing phase");
+        for (int i = 0; i < BOARDSIZE; i++) {
+            if (gBoard[i] == Blank) {
+                moves = CreateMovelistNode(i, moves);
+            }
+        }
+        return moves;
+    }
     
     if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
         for (int i = 1; i <=3; i++) {
