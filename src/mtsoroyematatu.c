@@ -219,7 +219,7 @@ void InitializeGame(void) {
 int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
     PositionToBlankOX(position, gBoard);
-    BlankOX player = wTurn ? o : x;
+    BlankOX player = wTurn ? x : o;
     int blankIndex;
     MOVELIST *moves = NULL;
     int blankCount = 0;
@@ -315,6 +315,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     int blank_count = 0;
     int o_count = 0;
     int x_count = 0;
+    PositionToBlankOX(position, gBoard);
     for (int i = 0; i < BOARDSIZE; i++) {
         if (gBoard[i] == Blank) {
             blank_count++;
@@ -324,9 +325,7 @@ POSITION DoMove(POSITION position, MOVE move) {
             x_count++;
         }
     }
-    printf("%d", blank_count);
     if (blank_count == 1) {
-        PositionToBlankOX(position, gBoard);
         int from = move / 10;
         int to = move % 10;
         gBoard[to] = gBoard[from];
@@ -339,6 +338,7 @@ POSITION DoMove(POSITION position, MOVE move) {
             gBoard[move % 10] = o;
         }
     }
+    wTurn = !wTurn;
     return BlankOXToPosition(gBoard);
 }
 
@@ -482,7 +482,11 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return ((MOVE) input[0] - '1');
+    if (strlen(input) == 1) {
+        return ((MOVE) input[0] - '1');
+    } else {
+        return (MOVE) ((input[0] - '1') * 10 + input[1] - '1');
+    }
 }
 
 /**
@@ -500,7 +504,11 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    (moveStringBuffer, "%d", move + 1); //removed return since it is a void function
+    if (move < 10) {
+        sprintf(moveStringBuffer, "%d", move + 1);
+    } else {
+        sprintf(moveStringBuffer, "%d%d", move / 10 + 1, move % 10 + 1);
+    }
 }
 
 /**
