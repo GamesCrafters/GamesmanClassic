@@ -229,7 +229,6 @@ MOVELIST *GenerateMoves(POSITION position) {
             blankCount++;
         }
     if (blankCount > 1) {
-        printf("placing phase");
         for (int i = 0; i < BOARDSIZE; i++) {
             if (gBoard[i] == Blank) {
                 moves = CreateMovelistNode(i, moves);
@@ -327,6 +326,7 @@ POSITION DoMove(POSITION position, MOVE move) {
             x_count++;
         }
     }
+    printf("%d", blank_count);
     if (blank_count == 1) {
         PositionToBlankOX(position, gBoard);
         int from = move / 10;
@@ -676,23 +676,10 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 ************************************************************************/
 
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
-	int i;
-	for(i = BOARDSIZE - 1; i >= 0; i--) {
-		if(thePos >= (POSITION)(x * g3Array[i])) {
-			theBlankOX[i] = x;
-			thePos -= x * g3Array[i];
-		}
-		else if(thePos >= (POSITION)(o * g3Array[i])) {
-			theBlankOX[i] = o;
-			thePos -= o * g3Array[i];
-		}
-		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
-			theBlankOX[i] = Blank;
-			thePos -= Blank * g3Array[i];
-		}
-		else
-			BadElse("PositionToBlankOX");
-	}
+    for (int i = BOARDSIZE - 1; i >= 0; i--) {
+        theBlankOX[i] = thePos % 3;
+        thePos /= 3;
+    }
 }
 
 /************************************************************************
@@ -708,13 +695,13 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 ************************************************************************/
 
 POSITION BlankOXToPosition(BlankOX *theBlankOX) {
-	int i;
 	POSITION position = 0;
 
-	for(i = 0; i < BOARDSIZE; i++)
-		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
-
-	return(position);
+	for (int i = 0; i < BOARDSIZE; i++) {
+        position *= 3;
+        position += theBlankOX[i];
+    }
+    return position;
 }
 
 
