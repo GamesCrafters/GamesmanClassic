@@ -219,7 +219,7 @@ void InitializeGame(void) {
 int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
     PositionToBlankOX(position, gBoard);
-    BlankOX player = wTurn ? o : x;
+    BlankOX player = wTurn ? x : o;
     int blankIndex;
     MOVELIST *moves = NULL;
     int blankCount = 0;
@@ -229,7 +229,6 @@ MOVELIST *GenerateMoves(POSITION position) {
             blankCount++;
         }
     if (blankCount > 1) {
-        printf("placing phase");
         for (int i = 0; i < BOARDSIZE; i++) {
             if (gBoard[i] == Blank) {
                 moves = CreateMovelistNode(i, moves);
@@ -339,6 +338,7 @@ POSITION DoMove(POSITION position, MOVE move) {
             gBoard[move % 10] = o;
         }
     }
+    wTurn = !wTurn;
     return BlankOXToPosition(gBoard);
 }
 
@@ -482,7 +482,11 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    return ((MOVE) input[0] - '1')
+    if (strlen(input) == 1) {
+        return ((MOVE) input[0] - '1');
+    } else {
+        return (MOVE) ((input[0] - '1') * 10 + input[1] - '1');
+    }
 }
 
 /**
@@ -500,7 +504,11 @@ MOVE ConvertTextInputToMove(STRING input) {
  * null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    sprintf(moveStringBuffer, "%d", move + 1); //removed return since it is a void function
+    if (move < 10) {
+        sprintf(moveStringBuffer, "%d", move + 1);
+    } else {
+        sprintf(moveStringBuffer, "%d%d", move / 10 + 1, move % 10 + 1);
+    }
 }
 
 /**
@@ -675,23 +683,10 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 ************************************************************************/
 
 void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
-	int i;
-	for(i = BOARDSIZE - 1; i >= 0; i--) {
-		if(thePos >= (POSITION)(x * g3Array[i])) {
-			theBlankOX[i] = x;
-			thePos -= x * g3Array[i];
-		}
-		else if(thePos >= (POSITION)(o * g3Array[i])) {
-			theBlankOX[i] = o;
-			thePos -= o * g3Array[i];
-		}
-		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
-			theBlankOX[i] = Blank;
-			thePos -= Blank * g3Array[i];
-		}
-		else
-			BadElse("PositionToBlankOX");
-	}
+    for (int i = BOARDSIZE - 1; i >= 0; i--) {
+        theBlankOX[i] = thePos % 3;
+        thePos /= 3;
+    }
 }
 
 /************************************************************************
@@ -707,13 +702,13 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 ************************************************************************/
 
 POSITION BlankOXToPosition(BlankOX *theBlankOX) {
-	int i;
 	POSITION position = 0;
 
-	for(i = 0; i < BOARDSIZE; i++)
-		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
-
-	return(position);
+	for (int i = 0; i < BOARDSIZE; i++) {
+        position *= 3;
+        position += theBlankOX[i];
+    }
+    return position;
 }
 
 
