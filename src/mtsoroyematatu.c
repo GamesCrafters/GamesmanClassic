@@ -141,7 +141,7 @@ CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 CONST_STRING kHelpExample = "";
 
-BOOLEAN wTurn; //w uses the white piece and goes first
+BOOLEAN xTurn = TRUE; // x piece and goes first
 
 #define BOARDSIZE   7
 
@@ -187,7 +187,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-    wTurn = TRUE;
+    xTurn = TRUE;
     X_placed = 0;
     PositionToBlankOX(gInitialPosition, gBoard);
     // If you want formal position strings to
@@ -219,7 +219,17 @@ void InitializeGame(void) {
 int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
     PositionToBlankOX(position, gBoard);
-    BlankOX player = wTurn ? x : o;
+    // if (xTurn) {
+    //     BlankOX player = x;
+    //     BlankOX opp_player = o;
+    // }
+    // else {
+    //     BlankOX player = o;
+    //     BlankOX opp_player = x;
+    // }
+    // xTurn = !xTurn;
+    BlankOX player = xTurn ? x : o;
+    BlankOX opp_player = xTurn ? o : x;
     int blankIndex;
     MOVELIST *moves = NULL;
     int blankCount = 0;
@@ -238,9 +248,22 @@ MOVELIST *GenerateMoves(POSITION position) {
     }
     
     if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
-        for (int i = 1; i <=3; i++) {
-            if (gBoard[centerAdjacent[i]] == player) {
-                moves = CreateMovelistNode(i*10, moves);
+        // for (int i = 1; i <= 2; i++) {
+        //     if (gBoard[centerAdjacent[i]] == player) {
+        //         moves = CreateMovelistNode(i * 10, moves);
+        //     }
+        //     if (gBoard[centerAdjacent[3] == player && gBoard[2] == opp_player]) {
+        //         move = CreateMovelistNode(50, moves)
+        //     }
+        // }
+        for (int i = 1; i <= 3; i++) {
+            if (gBoard[i] == player) {
+                moves = CreateMovelistNode(i * 10, moves);
+            }
+        }
+        for (int i = 4; i <= 6; i++) {
+            if (gBoard[i] == player && gBoard[i - 3] == opp_player) {
+                moves = CreateMovelistNode(i * 10, moves);
             }
         }
     }
@@ -254,14 +277,31 @@ MOVELIST *GenerateMoves(POSITION position) {
         if (gBoard[blankIndex + 3] == player) {
             moves = CreateMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
         }
-        if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
+        if (gBoard[(blankIndex + 2) % 4] == player && gBoard[2] == opp_player) { //only one possibility for move if no adjacent tiles are the player's pieces
             moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
         }
     }
+    // else if(blankIndex == 1) {
+    //     if (gBoard[0] == player) {
+    //             moves = CreateMovelistNode(blankIndex, moves);
+    //     }
+    //     if (gBoard[2] == player) {
+    //         moves = CreateMovelistNode(20 + blankIndex , moves);
+    //     }
+    //     if (gBoard[4] == player) {
+    //         moves = CreateMovelistNode(40 + blankIndex , moves);
+    //     }
+    //     if (gBoard[3] == player && gBoard[2] == opp_player) {
+    //         moves = CreateMovelistNode(30 + blankIndex , moves);
+    //     }
+    //     if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
+    //         moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
+    //     }
+    // }
     else if (blankIndex == 2) { //center position
         for (int i = 0; i < 4; i++) {
             if (gBoard[centerAdjacent[i]] == player) {
-                moves = CreateMovelistNode(centerAdjacent[i]*10 + 2, moves);
+                moves = CreateMovelistNode(centerAdjacent[i] * 10 + blankIndex, moves);
             }
         }
     }
@@ -272,14 +312,20 @@ MOVELIST *GenerateMoves(POSITION position) {
         if (gBoard[5] == player) {
             moves = CreateMovelistNode(50 + blankIndex, moves);
         }
-        if (moves == NULL) {
-            if (gBoard[0] == player) {
-                moves = CreateMovelistNode(blankIndex, moves);
-            }
-            if (gBoard[(blankIndex + 2) % 4 + 4] == player) {
-                moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
-            }
+        if (gBoard[0] == player && gBoard[blankIndex - 3] == opp_player) {
+            moves = CreateMovelistNode(blankIndex, moves);
         }
+        if (gBoard[(blankIndex + 2) % 4 + 4] == player && gBoard[5] == opp_player) {
+            moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
+        }
+        // if (moves == NULL) {
+        //     if (gBoard[0] == player) {
+        //         moves = CreateMovelistNode(blankIndex, moves);
+        //     }
+        //     if (gBoard[(blankIndex + 2) % 4 + 4] == player) {
+        //         moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
+        //     }
+        // }
     }
     else { //5
         for (int i = 2; i <= 6; i += 2) {
@@ -287,7 +333,7 @@ MOVELIST *GenerateMoves(POSITION position) {
                 moves = CreateMovelistNode(10 * i + blankIndex, moves);
             }
         }
-        if (moves == NULL) {
+        if (gBoard[0] == player && gBoard[2] == opp_player) {
             moves = CreateMovelistNode(5, moves);
         }
     }
@@ -338,7 +384,7 @@ POSITION DoMove(POSITION position, MOVE move) {
             gBoard[move % 10] = o;
         }
     }
-    wTurn = !wTurn;
+    // xTurn = !xTurn;
     return BlankOXToPosition(gBoard);
 }
 
@@ -686,7 +732,7 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
     for (int i = BOARDSIZE - 1; i >= 0; i--) {
         theBlankOX[i] = thePos % 3;
         thePos /= 3;
-    }
+    }    
 }
 
 /************************************************************************
@@ -703,6 +749,7 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 
 POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	POSITION position = 0;
+    xTurn = !xTurn;
 
 	for (int i = 0; i < BOARDSIZE; i++) {
         position *= 3;
