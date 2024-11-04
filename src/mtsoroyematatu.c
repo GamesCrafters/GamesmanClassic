@@ -361,6 +361,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     int blank_count = 0;
     int o_count = 0;
     int x_count = 0;
+    xTurn = !xTurn;
     PositionToBlankOX(position, gBoard);
     for (int i = 0; i < BOARDSIZE; i++) {
         if (gBoard[i] == Blank) {
@@ -399,7 +400,6 @@ POSITION DoMove(POSITION position, MOVE move) {
  */
 VALUE Primitive(POSITION position) {
     BlankOX theBlankOX[BOARDSIZE];
-	BlankOX whosTurn;
 
 	PositionToBlankOX(position,theBlankOX);
 
@@ -468,15 +468,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n           1           :         %s         \n",
+	printf("\n           1           :        %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
-    printf("          /|\\          :        /|\\        \n");
-	printf("LEGEND:  2-3-4    TOTAL:       %s-%s-%s       \n",
+    printf("          /|\\          :       /|\\        \n");
+	printf("LEGEND:  2-3-4    BOARD:      %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-    printf("        /  |  \\        :      /  |  \\      \n");
-	printf("       5---6---7       :     %s---%s---%s     \n\n",
+    printf("        /  |  \\        :     /  |  \\      \n");
+	printf("       5---6---7       :    %s---%s---%s   %s\n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
@@ -749,7 +749,6 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 
 POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	POSITION position = 0;
-    xTurn = !xTurn;
 
 	for (int i = 0; i < BOARDSIZE; i++) {
         position *= 3;
