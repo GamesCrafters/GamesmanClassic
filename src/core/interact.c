@@ -5,10 +5,6 @@
 #include "quartodb.h"
 #include <stdarg.h>
 
-POSITION StringToPosition(char *positionString);
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer);
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer);
-
 
 /* Reads a position from stdin, returns NULL on error. Otherwise, returns a
  * pointer to the rest of the string.

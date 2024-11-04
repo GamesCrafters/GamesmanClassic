@@ -60,6 +60,9 @@ void                    setOption                       (int option);
 void                    SetTclCGameSpecificOptions      (int theOptions[]);
 void                    GameSpecificMenu                (void);
 void                    DebugMenu                       (void);
+POSITION StringToPosition(char *positionString);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer);
 
 #endif /* GMCORE_GAMESMAN_H */
 
