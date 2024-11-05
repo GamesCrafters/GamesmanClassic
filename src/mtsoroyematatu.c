@@ -24,7 +24,7 @@ CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
  */
 
 // Which one should it be?
-POSITION gNumberOfPositions = 5000; // > 3^7
+POSITION gNumberOfPositions = 6561; // > 3^7
 //POSITION gNumberOfPositions = 2187; // 3^7
 //POSITION gNumberOfPositions = 713;
 /*1 for 0 pieces, 7 for 1 piece, 7*6 = 42 for 2 pieces, 
@@ -42,7 +42,7 @@ or b,b,b w,w,w*
  * in both setOption() and GameSpecificMenu(). You may also
  * choose to modify `gInitialPosition` in InitializeGame().
  */
-POSITION gInitialPosition = 0;
+POSITION gInitialPosition = 2;
 //checked
 
 /**
@@ -142,15 +142,13 @@ CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 CONST_STRING kHelpExample = "";
 
-BOOLEAN xTurn = TRUE; // x piece and goes first
-
 #define BOARDSIZE   7
 
 typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-void PositionToBlankOX(POSITION, BlankOX*);
+BlankOX PositionToBlankOX(POSITION, BlankOX*);
 POSITION BlankOXToPosition(BlankOX*, BlankOX);
 BOOLEAN ThreeInARow(BlankOX*, int, int, int);
 
@@ -188,8 +186,6 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
-    xTurn = TRUE;
-    X_placed = 0;
     PositionToBlankOX(gInitialPosition, gBoard);
     // If you want formal position strings to
     // be the same as the AutoGUI position strings,
@@ -219,7 +215,8 @@ void InitializeGame(void) {
 //moves are a base 10 number AB where A is the position from and B is the position to
 int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
-    PositionToBlankOX(position, gBoard);
+    BlankOX current_player = PositionToBlankOX(position, gBoard);
+    BlankOX other_player = current_player == o ? x : o;
     // if (xTurn) {
     //     BlankOX player = x;
     //     BlankOX opp_player = o;
@@ -229,14 +226,6 @@ MOVELIST *GenerateMoves(POSITION position) {
     //     BlankOX opp_player = x;
     // }
     // xTurn = !xTurn;
-    BlankOX player = xTurn ? x : o;
-    BlankOX opp_player = xTurn ? o : x;
-    BlankOX current_player = x;
-    BlankOX other_player = o;
-    if (position / 2187 == 1) {
-        current_player = o;
-        other_player = x;
-    }
     int blankIndex;
     MOVELIST *moves = NULL;
     int blankCount = 0;
@@ -253,7 +242,7 @@ MOVELIST *GenerateMoves(POSITION position) {
         }
         return moves;
     }
-    
+
     if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
         // for (int i = 1; i <= 2; i++) {
         //     if (gBoard[centerAdjacent[i]] == player) {
@@ -367,21 +356,10 @@ MOVELIST *GenerateMoves(POSITION position) {
  */
 POSITION DoMove(POSITION position, MOVE move) {
     int blank_count = 0;
-    int o_count = 0;
-    int x_count = 0;
-    xTurn = !xTurn;
-    BlankOX player = o;
-    if (position / 2187 == 0) {
-        player = x;
-    }
-    PositionToBlankOX(position, gBoard);
+    BlankOX player = PositionToBlankOX(position, gBoard);
     for (int i = 0; i < BOARDSIZE; i++) {
         if (gBoard[i] == Blank) {
             blank_count++;
-        } else if (gBoard[i] == o) {
-            o_count++;
-        } else if (gBoard[i] == x) {
-            x_count++;
         }
     }
     if (blank_count == 1) {
@@ -391,17 +369,10 @@ POSITION DoMove(POSITION position, MOVE move) {
         gBoard[from] = Blank;
         // return BlankOXToPosition(gBoard);
     } else {
-        if (o_count == x_count) {
-            gBoard[move % 10] = x;
-        } else {
-            gBoard[move % 10] = o;
-        }
+        gBoard[move % 10] = player;
     }
-    // xTurn = !xTurn;
-    if (player == x) {
-        return BlankOXToPosition(gBoard, o);
-    }
-    return BlankOXToPosition(gBoard, x);
+    BlankOX next_player = player == x ? o : x;
+    return BlankOXToPosition(gBoard, next_player);
 }
 
 /**
@@ -531,7 +502,13 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * @return TRUE iff the input is a valid text input.
  */
 BOOLEAN ValidTextInput(STRING input) {
-    return input[0] >= '1' && input[0] <= '7';
+    if (strlen(input) == 1) {
+        return input[0] >= '1' && input[0] <= '7';
+    } else if (strlen(input) == 2) {
+        return input[0] >= '1' && input[0] <= '7' && input[1] >= '1' && input[1] <= '7';
+    } else {
+        return FALSE;
+    }
 }
 
 /**
@@ -749,7 +726,9 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 **
 ************************************************************************/
 
-void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
+BlankOX PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
+    BlankOX turn = thePos % 3;
+    thePos /= 3;
     for (int i = BOARDSIZE - 1; i >= 0; i--) {
         //theBlankOX[i] = thePos % 3;
         if (thePos % 3 == 0) {
@@ -762,7 +741,8 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
             theBlankOX[i] = x;
         }
         thePos /= 3;
-    }    
+    }
+    return turn;  
 }
 
 /************************************************************************
@@ -781,19 +761,15 @@ POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX turn) {
 	POSITION position = 0;
 
 	for (int i = 0; i < BOARDSIZE; i++) {
-        position *= 3;
         if (theBlankOX[i] == o) {
             position += 1;
         }
         else if (theBlankOX[i] == x) {
             position += 2;
         }
+        position *= 3;
     }
-
-    if (turn == o) {
-        position += 2187;
-    }
-
+    position += (POSITION) turn;
     return position;
 }
 
