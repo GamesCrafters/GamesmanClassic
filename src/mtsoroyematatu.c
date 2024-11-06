@@ -257,12 +257,13 @@ MOVELIST *GenerateMoves(POSITION position) {
                 moves = CreateMovelistNode(i * 10, moves);
             }
         }
-        /*
-        for (int i = 4; i <= 6; i++) {
-            if (gBoard[i] == player && gBoard[i - 3] == opp_player) {
-                moves = CreateMovelistNode(i * 10, moves);
+        if (moves == NULL) {
+            for (int i = 4; i <= 6; i++) {
+                if (gBoard[i] == current_player && gBoard[i - 3] == other_player) {
+                    moves = CreateMovelistNode(i * 10, moves);
+                }
             }
-        }*/
+        }
     }
     else if(abs(blankIndex - 2) == 1) { //1 or 3
         if (gBoard[0] == current_player) {
@@ -309,11 +310,13 @@ MOVELIST *GenerateMoves(POSITION position) {
         if (gBoard[5] == current_player) {
             moves = CreateMovelistNode(50 + blankIndex, moves);
         }
-        if (gBoard[0] == current_player && gBoard[blankIndex - 3] == other_player) {
-            moves = CreateMovelistNode(blankIndex, moves);
-        }
-        if (gBoard[(blankIndex + 2) % 4 + 4] == current_player && gBoard[5] == other_player) {
-            moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
+        if (moves == NULL) {
+            if (gBoard[0] == current_player && gBoard[blankIndex - 3] == other_player) {
+                moves = CreateMovelistNode(blankIndex, moves);
+            }
+            if (gBoard[(blankIndex + 2) % 4 + 4] == current_player && gBoard[5] == other_player) {
+                moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
+            }
         }
         // if (moves == NULL) {
         //     if (gBoard[0] == player) {
@@ -330,8 +333,10 @@ MOVELIST *GenerateMoves(POSITION position) {
                 moves = CreateMovelistNode(10 * i + blankIndex, moves);
             }
         }
-        if (gBoard[0] == current_player && gBoard[2] == other_player) {
-            moves = CreateMovelistNode(5, moves);
+        if (moves == NULL) {
+            if (gBoard[0] == current_player && gBoard[2] == other_player) {
+                moves = CreateMovelistNode(5, moves);
+            }
         }
     }
     /* 
@@ -454,15 +459,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n           1           :        %s         \n",
+	printf("\n             1              :        %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
-    printf("          /|\\          :       /|\\        \n");
-	printf("LEGEND:  2-3-4    BOARD:      %s-%s-%s       \n",
+    printf("            /|\\             :       /|\\        \n");
+	printf("LEGEND:    2-3-4    BOARD:  :      %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-    printf("        /  |  \\        :     /  |  \\      \n");
-	printf("       5---6---7       :    %s---%s---%s   %s\n\n",
+    printf("          /  |  \\           :     /  |  \\      \n");
+	printf("         5---6---7          :    %s---%s---%s   %s\n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
