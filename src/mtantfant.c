@@ -1,4 +1,3 @@
-
 /************************************************************************
 **
 ** NAME:        mtantfant.c
@@ -410,23 +409,24 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
     generic_hash_unhash(position, board);
     int player = generic_hash_turn(position);
 
-    printf("\n          1-2-3          :     ");
+    printf("LEGEND:");
+    printf("\n       1-2-3   :   ");
     printf("%c-", board[0]);
     printf("%c-", board[1]);
-    printf("%c", board[2]);
-    printf("\n          |\\|/|                |\\|/|");
-    printf("\nLEGEND:   4-5-6     BOARD:     ");
+    printf("%c   :", board[2]);
+    printf("\n       |\\|/|   :   |\\|/|   :");
+    printf("\n       4-5-6   :   ");
     printf("%c-", board[3]);
     printf("%c-", board[4]);
     printf("%c", board[5]);
 
-    printf("     %s", GetPrediction(position, playerName, usersTurn));
-    printf("\n          |/|\\|                |/|\\|");
-    printf("\n          7-8-9          :     ");
+    printf("   :   %s", GetPrediction(position, playerName, usersTurn));
+    printf("\n       |/|\\|   :   |/|\\|   :");
+    printf("\n       7-8-9   :   ");
     printf("%c-", board[6]);
     printf("%c-", board[7]);
-    printf("%c", board[8]);
-    printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
+    printf("%c   :", board[8]);
+    printf("   (It is %s's [%c]'s turn)", playerName, pieces[player]);
 }
 
 /**
@@ -447,7 +447,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     {
         /* List of available moves */
         // Modify the player's move prompt as you wish
-        printf("%8s's move: ", playerName);
+        printf("\n\nMake your next move: ");
         ret = HandleDefaultTextInput(position, move, playerName);
         if (ret != Continue)
             return ret;
