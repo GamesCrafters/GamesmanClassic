@@ -694,7 +694,26 @@ POSITION StringToPosition(char *positionString) {
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+    BlankOX oxboard[BOARDSIZE];
+	BlankOX whose_turn = PositionToBlankOX(position, oxboard);
+	char board[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (oxboard[i] == o) {
+			board[i] = 'o';
+		} else if (oxboard[i] == x) {
+			board[i] = 'x';
+		} else {
+			board[i] = '-';
+		}
+	}
+	board[BOARDSIZE] = '\0';
+	AutoGUIMakePositionString(
+		whose_turn == x ? 1 : 2, 
+		board, 
+		autoguiPositionStringBuffer
+	);
+}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
@@ -714,7 +733,18 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    // BlankOX oxboard[BOARDSIZE];
+	// BlankOX whose_turn = PositionToBlankOX(position, oxboard);
+	// char token = (whose_turn == x) ? 'x' : 'o';
+	// AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
+    (void) position;
+	if (move < 9) { // Place Piece
+		AutoGUIMakeMoveButtonStringA('-', move, '-', autoguiMoveStringBuffer);
+	} else { // Slide Piece
+		AutoGUIMakeMoveButtonStringM(move / 10 - 1, move % 10 - 1, '-', autoguiMoveStringBuffer);
+	}
+}
 
 
 
