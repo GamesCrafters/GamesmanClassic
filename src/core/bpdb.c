@@ -538,8 +538,8 @@ bpdb_set_value(
 
 VALUE
 bpdb_get_value(
-			POSITION pos
-			)
+	POSITION pos
+	)
 {
 	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
 	SLICE bpdb_slice = bpdb_write_slice;
