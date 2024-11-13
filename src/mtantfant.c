@@ -207,7 +207,7 @@ void InitializeGame(void)
 {
     gCanonicalPosition = GetCanonicalPosition;
 
-    // We always have 3 blanks, 3 X, 3 O pieces.
+    // We always have 3 blanks, 3 Xs, and 3 Os
     int hash_data[] = {' ', 3, 3, 'X', 3, 3, 'O', 3, 3, -1};
     gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
     char start[] = "OOO   XXX";
@@ -218,7 +218,7 @@ void InitializeGame(void)
     // then leave gPositionToStringFunPtr as NULL, i.e.,
     // delete this next line and also feel free
     // to delete the PositionToString function.
-    gPositionToStringFunPtr = &PositionToString;
+    gPositionToStringFunPtr = NULL; // &PositionToString;
 }
 
 /**
@@ -643,7 +643,13 @@ POSITION StringToPosition(char *positionString)
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer)
+{
+    char board[BOARDSIZE];
+    generic_hash_unhash(position, board);
+    strncpy(autoguiPositionStringBuffer, board, BOARDSIZE);
+    autoguiPositionStringBuffer[BOARDSIZE] = '\0';
+}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move
@@ -663,4 +669,6 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    sprintf(autoguiMoveStringBuffer, "M_%d_%d_y", DECODE_MOVE_START(move) + 1, DECODE_MOVE_END(move) + 1);
+}
