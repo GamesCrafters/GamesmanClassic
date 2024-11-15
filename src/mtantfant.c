@@ -645,10 +645,12 @@ POSITION StringToPosition(char *positionString)
  */
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer)
 {
-    char board[BOARDSIZE];
+    char board[BOARDSIZE + 1];
     generic_hash_unhash(position, board);
-    strncpy(autoguiPositionStringBuffer, board, BOARDSIZE);
+    int turn = generic_hash_turn(position);
+    // strncpy(autoguiPositionStringBuffer, board, BOARDSIZE);
     autoguiPositionStringBuffer[BOARDSIZE] = '\0';
+    AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
 /**
@@ -670,5 +672,8 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * (See src/core/autoguistrings.h)
  */
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-    sprintf(autoguiMoveStringBuffer, "M_%d_%d_y", DECODE_MOVE_START(move) + 1, DECODE_MOVE_END(move) + 1);
+    char board[BOARDSIZE + 1];
+    generic_hash_unhash(position, board);
+    int turn = generic_hash_turn(position);
+    AutoGUIMakeMoveButtonStringA(pieces[turn], move, '-', autoguiMoveStringBuffer);
 }
