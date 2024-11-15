@@ -647,6 +647,9 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 {
     char board[BOARDSIZE + 1];
     generic_hash_unhash(position, board);
+    for (int i=0; i<BOARDSIZE; i++) {
+        board[i] = (board[i] == ' ' ? '-' : board[i]);
+    }
     int turn = generic_hash_turn(position);
     // strncpy(autoguiPositionStringBuffer, board, BOARDSIZE);
     autoguiPositionStringBuffer[BOARDSIZE] = '\0';
@@ -672,8 +675,8 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * (See src/core/autoguistrings.h)
  */
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-    char board[BOARDSIZE + 1];
-    generic_hash_unhash(position, board);
-    int turn = generic_hash_turn(position);
-    AutoGUIMakeMoveButtonStringA(pieces[turn], move, '-', autoguiMoveStringBuffer);
+    // char board[BOARDSIZE + 1];
+    // generic_hash_unhash(position, board);
+    // int turn = generic_hash_turn(position);
+    AutoGUIMakeMoveButtonStringM(DECODE_MOVE_END(move), DECODE_MOVE_START(move), 'y', autoguiMoveStringBuffer);
 }
