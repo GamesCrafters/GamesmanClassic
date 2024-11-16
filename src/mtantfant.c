@@ -614,7 +614,15 @@ POSITION StringToPosition(char *positionString)
     char *board;
     if (ParseStandardOnelinePositionString(positionString, &turn, &board))
     {
-        return 0;
+        char real_board[BOARDSIZE];
+        for (int i=0; i<BOARDSIZE; i++) {
+            if (board[i] == '-') {
+                real_board[i] = ' ';
+            } else {
+                real_board[i] = board[i];
+            }
+        }
+        return generic_hash_hash(real_board, turn);
     }
     return NULL_POSITION;
 }
@@ -650,9 +658,8 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
     for (int i=0; i<BOARDSIZE; i++) {
         board[i] = (board[i] == ' ' ? '-' : board[i]);
     }
+    board[BOARDSIZE] = '\0';
     int turn = generic_hash_turn(position);
-    // strncpy(autoguiPositionStringBuffer, board, BOARDSIZE);
-    autoguiPositionStringBuffer[BOARDSIZE] = '\0';
     AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
@@ -675,8 +682,5 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * (See src/core/autoguistrings.h)
  */
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-    // char board[BOARDSIZE + 1];
-    // generic_hash_unhash(position, board);
-    // int turn = generic_hash_turn(position);
-    AutoGUIMakeMoveButtonStringM(DECODE_MOVE_END(move), DECODE_MOVE_START(move), 'y', autoguiMoveStringBuffer);
+    AutoGUIMakeMoveButtonStringM(DECODE_MOVE_START(move), DECODE_MOVE_END(move), 'y', autoguiMoveStringBuffer);
 }
