@@ -438,13 +438,58 @@ void setOption(int option) {
 They are used for the AutoGUI which eventually we would
 want to implement, but they are not needed for solving. */
 POSITION InteractStringToPosition(STRING board) {
+
   /* YOUR CODE HERE */
-  return 0;
+  // Takes a position hash and returns a UWAPI board string. 
+  // board = "XXX     OOO", this is the starting board for reference
+
+  enum UWAPI_Turn turn;
+  unsigned int num_rows, num_columns;
+	STRING board;
+	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &board)) { //not sure what this func is doing
+		//failed to parse string
+    return INVALID_POSITION;
+	}
+  if (num_rows != BOARD_ROWS || num_columns != BOARD_COLS) { //Alec : determine board_rows, board col, will this be 5 col, 9 rows?  
+  		SafeFreeString(board); // Free the string!
+  		return INVALID_POSITION;
+  }
+
+  // Convert UWAPI standard board string to internal board representation
+  int BOARDSIZE = // will this be num_rows*num_col or board_rows*board_col, I assume the design
+  int i;
+	for (i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == '-') { //Assume we name the files "O" and "X" to map to white and black circle. Then only need to change the space to the dash
+			board[i] = ' ';
+		}
+	}
+
+	int whosTurn = (turn == UWAPI_TURN_A) ? 1 : 2; //ALec:  make sure this is correct
+	POSITION position = getPosition(board, whosTurn);
+	// No need to free string because getPosition does it
+	return position;
 }
 
 STRING InteractPositionToString(POSITION position) {
   /* YOUR CODE HERE */
-  return NULL;
+  //This function is the inverse of interactstring to position.... 
+  //... Take a UWAPI board string and return a has position
+
+  char* board = getBoard(position);
+	int whosTurn = generic_hash_turn(pos);
+	int BOARDSIZE =  //find out
+
+	for (i = 0; i < BOARDSIZE; i++) if (board[i] == ' ') {
+		board[i] = '-';
+	}
+
+  board[BOARD_SIZE] = '\0'; //A:ec: Might need this, not sure
+
+	enum UWAPI_Turn turn = (whosTurn == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	char* formatted = UWAPI_Board_Regular2D_MakePositionString(turn, BOARD_ROWS, BOARD_COLS, board);
+
+  free(board);
+	return formatted;
 }
 
 /* Optional. */
@@ -454,5 +499,10 @@ STRING InteractPositionToEndData(POSITION position) {
 
 STRING InteractMoveToString(POSITION position, MOVE move) {
   /* YOUR CODE HERE */
+  // Takes a move hash and returns a UWAPI movestring
+
+
+  return UWAPI_Board_Regular2D_MakeAddString('-', move); //again not too sure what this does but taken from othello. 
+
   return MoveToString(move);
 }
