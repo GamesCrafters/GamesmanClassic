@@ -1,20 +1,23 @@
 /************************************************************************
 **
-** NAME:        m<your game name>.c
+** NAME:        mtsoroyematatu.c
 **
-** DESCRIPTION: <Your Game Name> (Use this spacing and case)
+** DESCRIPTION: Tsoro Yematatu
 **
-** AUTHOR:      Firstname Lastname
+** AUTHOR:      Ken Zheng
+**              Justin Park
+**              Michael Palmerlee
+**              Jason Ding
 **
-** DATE:        YYYY-MM-DD
+** DATE:        2024-11-20
 **
 ************************************************************************/
 
 #include "gamesman.h"
 
-CONST_STRING kAuthorName = "Ken Zheng, Justin Park";
-CONST_STRING kGameName = "Tsoro Yematatu";  // Use this spacing and case
-CONST_STRING kDBName = "tsoroyematatu";      // Use this spacing and case
+CONST_STRING kAuthorName = "Ken Zheng, Justin Park, Michael Palmerlee, Jason Ding";
+CONST_STRING kGameName = "Tsoro Yematatu"; 
+CONST_STRING kDBName = "tsoroyematatu";
 
 /**
  * @brief An upper bound on the number of reachable positions.
@@ -275,8 +278,10 @@ MOVELIST *GenerateMoves(POSITION position) {
         if (gBoard[blankIndex + 3] == current_player) {
             moves = CreateMovelistNode((blankIndex + 3) * 10 + blankIndex , moves);
         }
-        if (gBoard[(blankIndex + 2) % 4] == current_player && gBoard[2] == other_player) { //only one possibility for move if no adjacent tiles are the player's pieces
-            moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
+        if (moves == NULL) {
+            if (gBoard[(blankIndex + 2) % 4] == current_player && gBoard[2] == other_player) { //only one possibility for move if no adjacent tiles are the player's pieces
+                moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
+            }
         }
     }
     // else if(blankIndex == 1) {
@@ -662,10 +667,29 @@ void PositionToString(POSITION position, char *positionStringBuffer) {}
  * are the same as before.
  */
 POSITION StringToPosition(char *positionString) {
-	int turn;
+	// int turn;
+	// char *board;
+	// if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+	// 	return 0;
+	// }
+	// return NULL_POSITION;
+    int turn;
 	char *board;
 	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
-		return 0;
+		BlankOX oxboard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (board[i] == 'o') {
+				oxboard[i] = o;
+			} else if (board[i] == 'x') {
+				oxboard[i] = x;
+			} else if (board[i] == '-') {
+				oxboard[i] = Blank;
+			} else {
+				return NULL_POSITION;
+			}
+		}
+        BlankOX whose_turn = (turn == 1) ? x : o;
+		return BlankOXToPosition(oxboard, whose_turn);
 	}
 	return NULL_POSITION;
 }
@@ -738,11 +762,18 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	// BlankOX whose_turn = PositionToBlankOX(position, oxboard);
 	// char token = (whose_turn == x) ? 'x' : 'o';
 	// AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
+    PositionToBlankOX(position, gBoard);
     (void) position;
-	if (move < 9) { // Place Piece
-		AutoGUIMakeMoveButtonStringA('-', move, '-', autoguiMoveStringBuffer);
+    int blank_count = 0;
+    for (int i = 0; i < BOARDSIZE; i++) {
+        if (gBoard[i] == Blank) {
+            blank_count++;
+        }
+    }
+	if (move < 9 && blank_count > 1) { // Place Piece
+		AutoGUIMakeMoveButtonStringA('-', move, 'x', autoguiMoveStringBuffer);
 	} else { // Slide Piece
-		AutoGUIMakeMoveButtonStringM(move / 10 - 1, move % 10 - 1, '-', autoguiMoveStringBuffer);
+		AutoGUIMakeMoveButtonStringM(move / 10, move % 10, 'y', autoguiMoveStringBuffer);
 	}
 }
 
