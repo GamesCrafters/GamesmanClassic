@@ -26,15 +26,9 @@ CONST_STRING kDBName = "tsoroyematatu";
  * than `gNumberOfPositions`.
  */
 
-// Which one should it be?
+
 POSITION gNumberOfPositions = 6561; // > 3^7
-//POSITION gNumberOfPositions = 2187; // 3^7
-//POSITION gNumberOfPositions = 713;
-/*1 for 0 pieces, 7 for 1 piece, 7*6 = 42 for 2 pieces, 
-7*6*5/2! = 105 for 3 pieces, 7*6*5*4/2!*2! = 210 for 4 pieces, 
-7*6*5*4*3/3!*2! = 210 for 5 pieces, 7*6*5*4*3*2/3!*3! - 2 = 138 
-for 6 pieces due to it not being possible to get w,w,w b,b,b 
-or b,b,b w,w,w*
+
 /**
  * @brief The hash value of the initial position of the default
  * variant of the game.
@@ -98,27 +92,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
  */
 POSITION GetCanonicalPosition(POSITION position);
 
-void PositionToString(POSITION, char*); /**{
-    char positionString[11];
-    positionString[0] = ' '; 
-    positionString[2] = ' ';
-    positionString[3] = '\n';
-    positionString[7] = '\n';
-    int piecePositions[] = {1,4,5,6,8,9,10};
-    POSITION position;
-    for(int i = 0; i < 7; i++) {
-        if(position % 3 == 0) {
-            positionString[piecePosition[i]] = ' ';
-        }
-        else if(position % 3 == 1) {
-            positionString[piecePosition[i]] = 'W';
-        }
-        else {
-            positionString[piecePosition[i]] = 'B';
-        }
-        position /= 3;
-    }
-}**/
+void PositionToString(POSITION, char*);
 //fix this to get right arguments
 
 /**
@@ -137,13 +111,23 @@ BOOLEAN kDebugMenu = FALSE;
  * after you're done solving the game you should initialize them
  * with something helpful, for the TextUI.
  */
-CONST_STRING kHelpGraphicInterface = "";
-CONST_STRING kHelpTextInterface = "";
-CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 01 (move piece from position 0 to 1) or 4 (to drop a piece at position 4)";
-CONST_STRING kHelpStandardObjective = "";
-CONST_STRING kHelpReverseObjective = "";
-CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
-CONST_STRING kHelpExample = "";
+CONST_STRING kHelpGraphicInterface = "The LEFT button puts an X or O (depending on whether you went first\n\
+or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
+button does nothing, and the RIGHT button is the same as UNDO, in that\n\
+it reverts back to your your most recent position.";
+CONST_STRING kHelpTextInterface = "On your turn, use the LEGEND to determine which number(s) to choose (between\n\
+1 and 7, with 1 at the top and 7 at the lower right) to correspond\n\
+to the empty board position you desire and hit return. If at any point\n\
+you have made a mistake, you can type u and hit return and the system will\n\
+revert back to your most recent position.";
+CONST_STRING kHelpOnYourTurn = "You place one of your pieces on one of the empty board positions or slide a piece around the board";
+CONST_STRING kHelpStandardObjective = "To get three of your markers (either X or O) in a row, either\n\
+horizontally, vertically, or diagonally. 3-in-a-row WINS.";
+CONST_STRING kHelpReverseObjective = "To force your opponent into getting three of his markers (either X or\n\
+O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
+LOSES.";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "the board positions keep repeating every a couple of steps.";
+CONST_STRING kHelpExample = "You got this!";
 
 #define BOARDSIZE   7
 
@@ -160,14 +144,6 @@ char *gBlankOXString[] = { " ", "o", "x" };
 BlankOX gBoard[BOARDSIZE]; //board of the game
 
 int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
-
-// for printing purposes?
-char game_board_blueprint[46] = {' ', ' ', ' ', ' ', '1', ' ', ' ', ' ',' ', 
-                                ' ', ' ', ' ', '/', '|', '\\', ' ', ' ', ' ', 
-                                ' ', ' ', '2', '-', '3', '-', '4', ' ', ' ',
-                                ' ', '/', ' ', ' ', '|', ' ', ' ', '\\', ' ', 
-                                '5', '-', '-', '-', '6', '-', '-', '-', '7', 
-                                '\0'};
 
 int X_placed = 0; // changes game from placing to moving when second player places third piece
 
@@ -220,15 +196,7 @@ int centerAdjacent[4] = {0, 1, 3, 5};
 MOVELIST *GenerateMoves(POSITION position) {
     BlankOX current_player = PositionToBlankOX(position, gBoard);
     BlankOX other_player = current_player == o ? x : o;
-    // if (xTurn) {
-    //     BlankOX player = x;
-    //     BlankOX opp_player = o;
-    // }
-    // else {
-    //     BlankOX player = o;
-    //     BlankOX opp_player = x;
-    // }
-    // xTurn = !xTurn;
+
     int blankIndex;
     MOVELIST *moves = NULL;
     int blankCount = 0;
@@ -246,15 +214,7 @@ MOVELIST *GenerateMoves(POSITION position) {
         return moves;
     }
 
-    if (blankIndex == 0) { //there must be a player piece in 1, 2, or 3
-        // for (int i = 1; i <= 2; i++) {
-        //     if (gBoard[centerAdjacent[i]] == player) {
-        //         moves = CreateMovelistNode(i * 10, moves);
-        //     }
-        //     if (gBoard[centerAdjacent[3] == player && gBoard[2] == opp_player]) {
-        //         move = CreateMovelistNode(50, moves)
-        //     }
-        // }
+    if (blankIndex == 0) {
         for (int i = 1; i <= 3; i++) {
             if (gBoard[i] == current_player) {
                 moves = CreateMovelistNode(i * 10, moves);
@@ -284,23 +244,7 @@ MOVELIST *GenerateMoves(POSITION position) {
             }
         }
     }
-    // else if(blankIndex == 1) {
-    //     if (gBoard[0] == player) {
-    //             moves = CreateMovelistNode(blankIndex, moves);
-    //     }
-    //     if (gBoard[2] == player) {
-    //         moves = CreateMovelistNode(20 + blankIndex , moves);
-    //     }
-    //     if (gBoard[4] == player) {
-    //         moves = CreateMovelistNode(40 + blankIndex , moves);
-    //     }
-    //     if (gBoard[3] == player && gBoard[2] == opp_player) {
-    //         moves = CreateMovelistNode(30 + blankIndex , moves);
-    //     }
-    //     if (moves == NULL) { //only one possibility for move if no adjacent tiles are the player's pieces
-    //         moves = CreateMovelistNode(((blankIndex + 2) % 4) * 10 + blankIndex , moves);
-    //     }
-    // }
+   
     else if (blankIndex == 2) { //center position
         for (int i = 0; i < 4; i++) {
             if (gBoard[centerAdjacent[i]] == current_player) {
@@ -323,14 +267,7 @@ MOVELIST *GenerateMoves(POSITION position) {
                 moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
             }
         }
-        // if (moves == NULL) {
-        //     if (gBoard[0] == player) {
-        //         moves = CreateMovelistNode(blankIndex, moves);
-        //     }
-        //     if (gBoard[(blankIndex + 2) % 4 + 4] == player) {
-        //         moves = CreateMovelistNode(((blankIndex + 2) % 4 + 4) * 10 + blankIndex, moves);
-        //     }
-        // }
+  
     }
     else { //5
         for (int i = 2; i <= 6; i += 2) {
@@ -426,18 +363,6 @@ VALUE Primitive(POSITION position) {
  * @param position : The position to inspect.
  */
 POSITION GetCanonicalPosition(POSITION position) {
-    /*POSITION newPosition, theCanonicalPosition;
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-		newPosition = DoSymmetry(position, i); /* get new *//*
-		if(newPosition < theCanonicalPosition) /* THIS is the one *//*
-			theCanonicalPosition = newPosition; /* set it to the ans *//*
-	}
-
-	return(theCanonicalPosition);*/
     return position;
 }
 
@@ -858,4 +783,3 @@ BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
 	        theBlankOX[b] == theBlankOX[c] &&
 	        theBlankOX[c] != Blank);
 }
-
