@@ -6,7 +6,7 @@
 **
 ** AUTHOR:      Ken Zheng
 **              Justin Park
-**              Michael Palmerlee
+**              Michael SP
 **              Jason Ding
 **
 ** DATE:        2024-11-20
@@ -15,7 +15,7 @@
 
 #include "gamesman.h"
 
-CONST_STRING kAuthorName = "Ken Zheng, Justin Park, Michael Palmerlee, Jason Ding";
+CONST_STRING kAuthorName = "Ken Zheng, Justin Park, Michael SP, Jason Ding";
 CONST_STRING kGameName = "Tsoro Yematatu"; 
 CONST_STRING kDBName = "tsoroyematatu";
 
