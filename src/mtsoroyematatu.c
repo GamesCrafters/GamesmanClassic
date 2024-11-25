@@ -126,7 +126,7 @@ horizontally, vertically, or diagonally. 3-in-a-row WINS.";
 CONST_STRING kHelpReverseObjective = "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES.";
-CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "the board positions keep repeating every a couple of steps.";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "the board positions keep repeating every couple of steps.";
 CONST_STRING kHelpExample = "You got this!";
 
 #define BOARDSIZE   7
