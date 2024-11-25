@@ -1,10 +1,3 @@
-// $Id: mcambio.c,v 1.36 2007-01-26 19:13:33 simontaotw Exp $
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mcambio.c
@@ -12,37 +5,7 @@
 ** DESCRIPTION: Cambio
 ** AUTHOR:      Albert Chae and Simon Tao
 **
-** DATE:        Begin: 2/20/2006 End:
-**
-** UPDATE HIST: 2/20/2006 - Updated game-specific constants.
-**              2/21/2006 - Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
-**              2/26/2006 - Updated PrintPosition() (Modified PrintPosition() from mtopitop.c).
-**              3/02/2006 - Fixed various errors.
-**              3/04/2006 - Fixed compile errors.
-**              3/05/2006 - Updated Primitive() and added FiveInARow(). Updated tie possible.
-**              3/06/2006 - Updated GetInitialPosition().
-**	        3/12/2006 - Fixed PrintPosition() seg fault. Fixed GetInitialPosition() polling loop.
-**                          Removed blanks from the game.
-**              3/14/2006 - Reducing game to 4x4 to see if that fixes a hash problem.
-**              3/16/2006 - Changed board printout. Made GetInitialPosition check inputs.
-**              3/18/2006 - Added GenerateMove() and PrintMove() and ValidTextInput() and ConvertTextInputToMove().
-**                          Also added DoMove(). Some bugs left to work out with involving the alternation of moves etc.
-**              3/19/2006 - Changed the Legend so it looks less cramped.
-**	        4/16/2006 - Trying 3x3 board to see if it solves
-**              4/28/2006 - Added new input format with 3x3 board.
-**              5/03/2006 - Fix small bug in DoMove, changed GetAndPrintPlayersMove.
-**              5/03/2006 - Changed winning condition in DoMove.
-**              5/08/2006 - Fixed some bugs. Game solves.
-**              5/09/2006 - Code cleanup.
-**              5/09/2006 - Added FourInARow, FiveInARow. Modified PrintPosition, ValidTextInput, ConvertTextInputToMove.
-**              5/10/2006 - Added NInARow. Modified PrintPosition, GenerateMove, Primitive, PrintMove, GetAndPrintPlayersMove.
-**              5/22/2006 - Added shiftXX functions to accommodate DoMove. Modified DoMove and GameSpecificMenu.
-**              5/24/2006 - Modified some hash calls. 5x5 does not work because 3^25 is too big.
-**              10/05/2006 - Deleted unnecessary functions. 5x5 player vs. player does not work... too big for hash...
-**              12/19/2006 - Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
-**              1/5/2007 - Added variable number of placement variant.
-**              1/7/2007 - Fixed original gamesman; changed input so it does not conflict with system inputs.
-**		1/26/2007 - Fixed setOption
+** DATE:        Begin: 2/20/2006
 **
 **************************************************************************/
 
@@ -52,11 +15,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 /*************************************************************************
 **
@@ -64,9 +23,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Cambio";   /* The name of your game */
-STRING kAuthorName          = "Albert Chae and Simon Tao";   /* Your name(s) */
-STRING kDBName              = "cambio";   /* The name to store the database under */
+CONST_STRING kGameName            = "Cambio";   /* The name of your game */
+CONST_STRING kAuthorName          = "Albert Chae and Simon Tao";   /* Your name(s) */
+CONST_STRING kDBName              = "cambio";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -88,16 +47,16 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Input the letter or number you wish to move to then press enter.\n\
 You may only push off neutral cubes, or cubes of your own symbol.\n\
 As the game progresses, you should have more and more of your own\n\
 cubes in play.\n"                                                                                                                                                                                                                          ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "BOARD SETUP:\n\
 1. The players each select a symbol to be their own, and decide\n\
    who will begin the game.\n\
@@ -116,17 +75,17 @@ it from the board; then pushes all the pieces in that line along\n\
 one place. A player MAY NOT push cubes with your opponents symbol\n\
 showing OFF the board.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To make a line composed of all 3, 4, or 5 (depending on the board size)\n\
 of your own symbol - horizontally, vertically or diagonally.\n"                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "a player's move causes two 3 in a rows simultaneously.\n";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -223,17 +182,6 @@ char *gBoard;
 **
 *************************************************************************/
 
-/* External */
-extern GENERIC_PTR      SafeSafeMalloc ();
-extern void             SafeSafeFree ();
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-extern void             generic_hash_custom_context_mode(BOOLEAN on);
-extern void             generic_hash_set_context(int context);
-extern void             generic_hash_context_switch(int context);
-/* Internal */
 void                    InitializeGame();
 MOVELIST               *GenerateMoves(POSITION position);
 POSITION                DoMove (POSITION position, MOVE move);
@@ -246,7 +194,6 @@ BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
 void                    GameSpecificMenu();
 void                    SetTclCGameSpecificOptions(int options[]);
-POSITION                GetInitialPosition();
 int                     NumberOfOptions();
 int                     getOption();
 void                    setOption(int option);
@@ -339,7 +286,6 @@ MOVELIST *GenerateMoves (POSITION position)
 /* must check all the math used for general case, such as 5x5 and on */
 {
 	MOVELIST *moves = NULL;
-	MOVELIST *CreateMovelistNode();
 
 	char opposymbol;
 	int turn, i;
@@ -588,7 +534,8 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
-
+	(void)playersName;
+	(void)usersTurn;
 	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 	int countA = 0, countB = 0, i = 0;
 
@@ -858,7 +805,6 @@ void PrintMove (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	char *gBoard = (char *) SafeMalloc(boardSize*sizeof(char));
 
@@ -866,9 +812,7 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 
 	//generic_hash_unhash(position, gBoard);
 
-	int countA = 0, countB = 0, i = 0, turn;
-
-	turn = generic_hash_turn(position);
+	int countA = 0, countB = 0, i = 0;
 
 	/* count the number of pieces for each player */
 	for(i = 0; i < boardSize; i++)
@@ -1040,8 +984,10 @@ MOVE ConvertTextInputToMove (STRING input)
 		move = (colcount*rowcount) + (colcount+rowcount) + (move1-'v');
 	else if(move1 >= '0' && move1 <= ('0'+rowcount-1))
 		move = (colcount*rowcount) + (colcount+rowcount+colcount) + (move1-'0');
-	else
+	else {
 		printf("Error in: ConvertTextInputToMove");
+		return -1;
+	}
 
 	return (MOVE) move;
 }
@@ -1139,69 +1085,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	int turn, i;
-	char piece, turnString;
-
-	gBoard = (char*) SafeMalloc(boardSize*sizeof(char));
-
-	getchar(); // for the enter after picking option 1 on the debug menu
-
-	for(i = 0; i < boardSize; i++) {
-		do {
-			printf("Input the character at cell %i: ", i);
-			piece = (char) getchar();
-			getchar();
-		} while((piece != neutral) && (piece != aPiece) && (piece != bPiece));
-		gBoard[i] = piece;
-	}
-
-
-	do {
-		printf("Input whose turn it is (1 for player A, 2 for player B): ");
-		turnString = (char) getchar();
-		getchar();
-	} while((turnString != '1') && (turnString != '2'));
-	turn = atoi(&turnString);
-
-	if(colcount == 3) {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray3, NULL, 0);
-	}
-	else if(colcount == 4) {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray4, NULL, 0);
-	}
-	else {
-		gNumberOfPositions = generic_hash_init(boardSize, piecesArray5, NULL, 0);
-	}
-
-	// boardSize^3 to avoid conflict with Tier
-	generic_hash_set_context(boardSize*boardSize*boardSize);
-
-	gInitialPosition = generic_hash_hash(gBoard, turn);
-
-	SafeFree(gBoard);
-
-	return gInitialPosition;
-}
-
 
 /************************************************************************
 **
@@ -1262,6 +1147,7 @@ void setOption (int option)
 	/* If you have implemented symmetries you should
 	   include the boolean variable gSymmetries in your
 	   hash */
+	(void)option;
 }
 
 
@@ -1535,7 +1421,7 @@ TIERLIST *TierChildren(TIER tier) {
 	int i;
 	int countA, countB;
 
-	if(tier < (rowcount - 1) + (rowcount - 1)*boardSize*boardSize) {
+	if(tier < (TIER)((rowcount - 1) + (rowcount - 1)*boardSize*boardSize)) {
 		for(i = 0; i < (rowcount - 1)*2; i++) {
 			// initial tier
 			if(i == 0) {
@@ -1549,7 +1435,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2 + 1;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 					return tierlist;
 				}
@@ -1559,7 +1445,7 @@ TIERLIST *TierChildren(TIER tier) {
 				countA = i/2;
 				countB = i/2;
 
-				if(tier == countA + countB*boardSize*boardSize) {
+				if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					tierlist = CreateTierlistNode(tier+1, tierlist);
 					return tierlist;
 				}
@@ -1570,8 +1456,8 @@ TIERLIST *TierChildren(TIER tier) {
 	else {
 		for(countA = (rowcount - 1); countA <= boardSize; countA++) {
 			for(countB = (rowcount - 1); countB <= boardSize - countA; countB++) {
-				if(tier + 1 == countA + countB*boardSize*boardSize ||
-				   tier + boardSize*boardSize == countA + countB*boardSize*boardSize) {
+				if(tier + 1 == (TIER)(countA + countB*boardSize*boardSize) ||
+				   tier + boardSize*boardSize == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 					// putting an X down
@@ -1579,7 +1465,7 @@ TIERLIST *TierChildren(TIER tier) {
 					// putting an O down
 					tierlist = CreateTierlistNode(tier+boardSize*boardSize, tierlist);
 				}
-				else if(tier == countA + countB*boardSize*boardSize) {
+				else if(tier == (TIER)(countA + countB*boardSize*boardSize)) {
 					// self loop
 					tierlist = CreateTierlistNode(tier, tierlist);
 				}
@@ -1631,145 +1517,23 @@ char *PositionToBoard(POSITION position) {
 	}
 }
 
-// $Log: not supported by cvs2svn $
-// Revision 1.35  2007/01/08 02:53:03  simontaotw
-// Fixed original gamesman; changed game inputs so they do not conflict with system inputs.
-//
-// Revision 1.33  2006/12/19 20:23:48  simontaotw
-// Added/Debugged Tierfication functions. 3x3 and 4x4 solve with Tierfication. Working on 5x5 and invariants.
-//
-// Revision 1.31  2006/10/17 10:45:20  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.30  2006/10/06 05:47:13  simontaotw
-//
-// Deleted unnecessary functions. 5x5 player vs. player does not work...
-// too big for hash...
-//
-// Revision 1.29  2006/05/08 19:09:49  simontaotw
-// Code cleanup.
-//
-// Revision 1.28  2006/05/08 07:15:41  simontaotw
-// Fixed some bugs. Game solves.
-//
-// Revision 1.27  2006/05/04 04:59:29  simontaotw
-// Changed winning condition in DoMove.
-//
-// Revision 1.26  2006/05/03 20:15:50  simontaotw
-// Fix small bug in DoMove, changed GetAndPrintPlayersMove.
-//
-// Revision 1.25  2006/04/29 01:40:56  simontaotw
-// Added new input format with 3x3 board.
-//
-// Revision 1.19  2006/03/19 20:39:15  simontaotw
-// Changed the legend so it looks less cramped.
-//
-// Revision 1.18  2006/03/19 06:21:27  albertchae
-// DoMove() works somewhat. Able to play human v human except for a bug
-// with alternating player's move and challenger's move.
-//
-// Revision 1.17  2006/03/18 10:36:35  albertchae
-// Wrote the code for GenerateMoves and PrintMoves. Tried to keep
-// the logic general in case we have variant board sizes. Still needs some
-// testing.
-//
-// Revision 1.16  2006/03/14 12:38:29  albertchae
-// Minor edit. Changed help strings to reflect 4x4. Added some ideas for
-// generate move.
-//
-// Revision 1.15  2006/03/14 12:06:05  albertchae
-// Changed game to 4x4 variant. Added test case to Primitive().
-//
-// Revision 1.14  2006/03/13 06:15:12  albertchae
-// Removed blanks as a possible piece. By rewriting the instructions, we can play using only neutrals.
-//
-// Revision 1.13  2006/03/12 22:16:55  albertchae
-// I fixed the PrintPosition() seg fault. generic_hash requires an empty board which we did not have allocated before.
-// I also fixed the loop in GetInitialPosition() that asks for input. There is something wrong with hashing.
-//
-// Revision 1.12  2006/03/12 22:13:02  albertchae
-// *** empty log message ***
-//
-// Revision 1.11  2006/03/08 06:25:41  simontaotw
-// Updated GetInitialPosition().
-//
-// Revision 1.10  2006/03/07 07:59:11  albertchae
-// Minor change to the help strings regarding ties.
-//
-// Revision 1.9  2006/03/06 06:07:10  simontaotw
-// Updated tie possible.
-//
-// Revision 1.8  2006/03/06 01:57:32  simontaotw
-// Updated Primitive() and added FiveInARow().
-//
-// Revision 1.7  2006/03/05 03:28:15  yanpeichen
-// Yanpei Chen changing mcambio.c
-//
-// deleted two stray characters that caused a compiler error.
-//
-// Revision 1.6  2006/03/04 20:00:54  simontaotw
-// Fixed compile errors.
-//
-// Revision 1.5  2006/03/03 05:19:49  simontaotw
-// Fixed various errors.
-//
-// Revision 1.4  2006/02/26 20:36:53  simontaotw
-// Updated PrintPosition() (Modified PrintPosition() in mtopitop.c).
-//
-// Revision 1.3  2006/02/22 02:54:48  simontaotw
-// Updated defines and structs, global variables, and InitializeGame(). Corrected CVS log.
-//
-// Revision 1.1  2006/02/21 03:17:00  simontaotw
-// Updated game-specific constants
-//
-// Revision 1.7  2006/01/29 09:59:47  ddgarcia
-// Removed "gDatabase" reference from comment in InitializeGame
-//
-// Revision 1.6  2005/12/27 10:57:50  hevanm
-// almost eliminated the existance of gDatabase in all files, with some declarations commented earlier that need to be hunt down and deleted from the source file.
-//
-// Revision 1.5  2005/10/06 03:06:11  hevanm
-// Changed kDebugDetermineValue to be FALSE.
-//
-// Revision 1.4  2005/05/02 17:33:01  nizebulous
-// mtemplate.c: Added a comment letting people know to include gSymmetries
-//           in their getOption/setOption hash.
-// mttc.c: Edited to handle conflicting types.  Created a PLAYER type for
-//         gamesman.  mttc.c had a PLAYER type already, so I changed it.
-// analysis.c: Changed initialization of option variable in analyze() to -1.
-// db.c: Changed check in the getter functions (GetValueOfPosition and
-//       getRemoteness) to check if gMenuMode is Evaluated.
-// gameplay.c: Removed PlayAgainstComputer and PlayAgainstHuman.  Wrote PlayGame
-//             which is a generic version of the two that uses to PLAYER's.
-// gameplay.h: Created the necessary structs and types to have PLAYER's, both
-//          Human and Computer to be sent in to the PlayGame function.
-// gamesman.h: Really don't think I changed anything....
-// globals.h: Also don't think I changed anything....both these I just looked at
-//            and possibly made some format changes.
-// textui.c: Redid the portion of the menu that allows you to choose opponents
-//        and then play a game.  Added computer vs. computer play.  Also,
-//           changed the analysis part of the menu so that analysis should
-//        work properly with symmetries (if it is in getOption/setOption hash).
-//
-// Revision 1.3  2005/03/10 02:06:47  ogren
-// Capitalized CVS keywords, moved Log to the bottom of the file - Elmer
-//
-
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	(void) move;
+	(void) moveStringBuffer;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return "Implement MoveToString";
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

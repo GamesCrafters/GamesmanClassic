@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mkono.c
@@ -16,47 +8,13 @@
 **
 ** DATE:        09/29/04
 **
-** UPDATE HIST: 09/29/04 - Initial Commit: DoMove, PrintPosition, Primitive,
-**                         helper functions, board representation.
-**
-**              10/07/04 - Fixed up everything. Game runs!
-**                         To-do: ValidTextInput and game specific options.
-**
-**              10/08/04 - Changed it so the user input is 1-16 instead of 0-15.
-**                         Added help strings. Added LEGEND and BOARD to printPosition.
-**
-**              10/11/04 - Fixed i/o formatting a bit, added predictions to PrintPosition.
-**
-**              12/09/04 - Fixed misere to use gStandard instead of our own bool.
-**                         Added [x, y] to PrintComputersMove.
-**                         Fixed little bug in GenerateMoves that was generating bogus moves.
-**                         Fixed bug in numberOfPieces so that it now works.
-**                         Tweaked the hash to be slightly more efficient.
-**
 **************************************************************************/
 
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
-**************************************************************************/
-
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
-/*************************************************************************
-**
-** Game-specific constants
-**
-**************************************************************************/
-
-STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
-STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
-STRING kDBName              = "kono";   /* The name to store the database under */
+CONST_STRING kGameName            = "(Four Field) Kono";   /* The name of your game */
+CONST_STRING kAuthorName          = "Greg Bonin and Nathan Spindel";     /* Your name(s) */
+CONST_STRING kDBName              = "kono";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,33 +34,33 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose to move your\n\
 piece from, a space character, and a second number to where you want the piece\n\
 to move to, and hit return. If at any point you have made a mistake, you can\n\
  type u and hit return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                            ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If a capture is available, you must make a capture move by moving one of your\n\
 pieces (up/down/left/right) over another one of your pieces and capturing the\n\
 opponent piece two spaces away. If a capture move is not available, you move\n\
 one of your pieces to an adjacent space."                                                                                                                                                                                                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture all but one of your opponent's pieces, or to put them into a position\n\
 where they cannot move."                                                                                             ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To have all but one of your pieces captured first, or to be put in a position where\n\
 you cannot move."                                                                                                ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Both players have exactly one piece each, or both players cannot move.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "";
 
 
@@ -115,6 +73,18 @@ STRING kHelpExample =
 #define EMPTY  0
 #define BLACK_PLAYER 1
 #define WHITE_PLAYER 2
+
+BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
+int gSymmetryMatrix[8][16] = {
+	{0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15},
+	{0,4,8,12,1,5,9,13,2,6,10,14,3,7,11,15},
+	{15,14,13,12,11,10,9,8,7,6,5,4,3,2,1,0},
+	{15,11,7,3,14,10,6,2,13,9,5,1,12,8,4,0},
+	{3,2,1,0,7,6,5,4,11,10,9,8,15,14,13,12},
+	{12,8,4,0,13,9,5,1,14,10,6,2,15,11,7,3},
+	{12,13,14,15,8,9,10,11,4,5,6,7,0,1,2,3},
+	{3,7,11,15,2,6,10,14,1,5,9,13,0,4,8,12}
+};
 
 /*************************************************************************
 **
@@ -147,13 +117,7 @@ int getDestFromMove(MOVE move);
 MOVE makeMove(int source, int dest);
 int neighbors(int x, int y);
 
-STRING MoveToString(MOVE);
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
+POSITION GetCanonicalPosition(POSITION position);
 
 /************************************************************************
 **
@@ -192,8 +156,8 @@ void InitializeGame ()
 	}
 
 	gInitialPosition = generic_hash_hash(gBoard, 1);
-
-	gMoveToStringFunPtr = &MoveToString;
+	gCanonicalPosition = GetCanonicalPosition;
+	gSymmetries = TRUE;
 }
 
 
@@ -376,6 +340,48 @@ VALUE Primitive (POSITION position)
 		return undecided;
 }
 
+/* Symmetry Handling: Return the canonical position. */
+POSITION GetCanonicalPosition(POSITION position) {
+  char board[BOARDSIZE];
+  char board2[BOARDSIZE];
+  generic_hash_unhash(position, board);
+  int turn = generic_hash_turn(position);
+  int oppTurn = (turn == 1) ? 2 : 1;
+  POSITION symmetricPosition = 0;
+  int *t;
+  int i, j;
+  for (i = 1; i < 8; i++) {
+    t = gSymmetryMatrix[i];
+    for (j = 0; j < BOARDSIZE; j++) {
+      board2[j] = board[t[j]];
+    }
+    symmetricPosition = generic_hash_hash(board2, turn);
+    if (symmetricPosition < position) {
+      position = symmetricPosition;
+    }
+  }
+  
+  for (i = 0; i < BOARDSIZE; i++) {
+    if (board[i] == 'x') {
+		board[i] = 'o';
+    } else if (board[i] == 'o') {
+		board[i] = 'x';
+	}
+  }
+
+  for (i = 0; i < 8; i++) {
+    t = gSymmetryMatrix[i];
+    for (j = 0; j < BOARDSIZE; j++) {
+      board2[j] = board[t[j]];
+    }
+    symmetricPosition = generic_hash_hash(board2, oppTurn);
+    if (symmetricPosition < position) {
+      position = symmetricPosition;
+    }
+  }
+  return position;
+}
+
 
 /************************************************************************
 **
@@ -483,24 +489,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 		       source, dest, computersName, dest, source);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -511,12 +499,8 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(8);
-	sprintf(move, "[%d %d]", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
-	return move;
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
+	sprintf(moveStringBuffer, "%d %d", getSourceFromMove(theMove)+1, getDestFromMove(theMove)+1);
 }
 
 
@@ -543,7 +527,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		printf("%8s's move [(u)ndo/1-%d 1-%d] : ", playersName, BOARDSIZE, BOARDSIZE);
@@ -589,9 +572,9 @@ BOOLEAN ValidTextInput (STRING input)
 	/* move format: "xx yy" where xx is source and yy is dest (board is 10 to 99 squares)
 	 *              "xxx yyy" is board has 100 to 999 squares */
 
-	int i, spaceCount = 0;
+	int spaceCount = 0;
 
-	for (i = 0; i < strlen(input); i++) {
+	for (size_t i = 0; i < strlen(input); i++) {
 		if (input[i] == ' ')
 			spaceCount++;
 	}
@@ -627,7 +610,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	k = 0;
 	stringPos = i;
 
-	for (; i < strlen(input); i++) {}
+	for (; i < (int)strlen(input); i++) {}
 
 	for (j = i-1; j >= stringPos; j--)
 		dest += ((input[j]-'0') * exponent(10, k++));
@@ -670,6 +653,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -720,28 +704,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -779,12 +743,8 @@ int NumberOfOptions ()
 
 int getOption ()
 {
-	return WIDTH
-	       + (6 + HEIGHT)
-	       + (12 + (gStandardGame ? 2 : 1))
-	       + (14 + (gAllowVWrap ? 2 : 1))
-	       + (16 + (gAllowHWrap ? 2 : 1))
-	       + (18 + (gMustCapture ? 2 : 1));
+	return (WIDTH << 8) | (HEIGHT << 4) | ((gStandardGame ? 1 : 0) << 3) |\
+	 ((gAllowVWrap ? 1 : 0) << 2) | ((gAllowHWrap ? 1 : 0) << 1) | (gMustCapture ? 1 : 0);
 }
 
 
@@ -801,22 +761,23 @@ int getOption ()
 
 void setOption (int option)
 {
-	gMustCapture = (option % 18 == 2);
-	option -= 2;
+	gMustCapture = option & 1;
+	option >>= 1;
 
-	gAllowHWrap = (option % 16 == 2);
-	option -= 2;
+	gAllowHWrap = option & 1;
+	option >>= 1;
 
-	gAllowVWrap = (option % 14 == 2);
-	option -= 2;
+	gAllowVWrap = option & 1;
+	option >>= 1;
 
-	gStandardGame = (option % 12 == 2);
-	option -= 2;
+	gStandardGame = option & 1;
+	option >>= 1;
 
-	HEIGHT = option % 5;
-	option -= 6;
+	HEIGHT = option & 0xF;
+	option >>= 4;
 
 	WIDTH = option;
+	InitializeGame();
 }
 
 
@@ -897,20 +858,37 @@ int neighbors(int x, int y) {
 		return 0;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *str;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &str)) {
+		char board[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			if (str[i] == '-') {
+				board[i] = ' ';
+			} else {
+				board[i] = str[i];
+			}
+		}
+		return generic_hash_hash(board, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[BOARDSIZE + 1];
+	generic_hash_unhash(position, board);
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (board[i] == ' ') {
+			board[i] = '-';
+		}
+	}
+	board[BOARDSIZE] = '\0';
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  AutoGUIMakeMoveButtonStringM(getSourceFromMove(move), getDestFromMove(move), 'x', autoguiMoveStringBuffer);
 }

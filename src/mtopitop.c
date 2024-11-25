@@ -11,7 +11,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* Defines */
@@ -86,9 +85,9 @@ int idsToMoves[2][41] = {
 	{0, 1, 3, 4, 0, 2, 3, 4, 5, 1, 4, 5, 0, 1, 4, 6, 7, 0, 1, 2, 3, 5, 6, 7, 8, 1, 2, 4, 7, 8, 3, 4, 7, 3, 4, 5, 6, 8, 4, 5, 7}
 };
 
-STRING kAuthorName = "(V1) Mike Hamada, Alex Choy; (V2) Matthew Yu, Cameron Cheung";
-STRING kGameName = "Topitop";
-STRING kDBName = "topitop";   /* The name to store the database under */
+CONST_STRING kAuthorName = "(V1) Mike Hamada, Alex Choy; (V2) Matthew Yu, Cameron Cheung";
+CONST_STRING kGameName = "Topitop";
+CONST_STRING kDBName = "topitop";   /* The name to store the database under */
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = TRUE;
@@ -102,11 +101,11 @@ BOOLEAN tyingRule = FALSE;
 VALUE ifNoLegalMoves = undecided;
 BOOLEAN isMisere = FALSE;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
 "Each player takes turns making one valid move, also noting\n\
 that player CANNOT reverse an opponent's move that was just made.\n\
 Use the BOARD to determine which numbers to choose to\n\
@@ -132,16 +131,16 @@ VALID MOVES:\n\
 3.) Move any combination of Sand Piles with your Buckets on top,\n\
     or any Sand Castle, to any free space.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
 "Be the first to have your 2 Buckets on top of 2 Sand Castles,\n\
 where a Sand Castle consists of 1 Small Sand Pile put on top\n\
 of 1 Large Sand Pile.";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = "A tie never occurs.";
+CONST_STRING kHelpTieOccursWhen = "A tie never occurs.";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -153,12 +152,11 @@ void InitializeGame();
 void DebugMenu();
 char* unhashPosition(POSITION position, char *turn, int *disallowedMove, int *blueLeft, int *redLeft, int *smallLeft, int *largeLeft);
 POSITION hashPosition(char* board, char turn, int disallowedMove);
-void unhashMove(MOVE move, char *piece, int *from, int *to);
-MOVE hashMove(char piece, int from, int to);
+void unhashMove(MOVE move, char *piece, int *from, int *to, BOOLEAN *p2Turn);
+MOVE hashMove(char piece, int from, int to, BOOLEAN p2Turn);
 void GameSpecificMenu();
 void SetTclCGameSpecificOptions(int theOptions[]);
 POSITION DoMove(POSITION position, MOVE move);
-POSITION GetInitialPosition();
 void PrintComputersMove(MOVE computersMove, STRING computersName);
 char* PrintHelper(char piece, int level);
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
@@ -167,18 +165,11 @@ POSITION GetCanonicalPosition(POSITION position);
 USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName);
 BOOLEAN ValidTextInput(STRING input);
 MOVE ConvertTextInputToMove(STRING input);
-void PrintMove(MOVE theMove);
 STRING DisallowedMoveToString(int disallowedMove);
-STRING MoveToString(MOVE move);
 int NumberOfOptions();
 int getOption();
 void setOption(int option);
-POSITION InteractStringToPosition(STRING board);
-STRING InteractPositionToString(POSITION pos);
-STRING InteractPositionToEndData(POSITION pos);
-STRING InteractMoveToString(POSITION pos, MOVE mv);
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
-
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 void countPiecesOnBoard(char *board, int *bb, int *rb, int *bs, int *rs, int *bc, int *rc, int *s, int *l, int *c);
 
@@ -210,7 +201,7 @@ void InitializeGame() {
 	/********************************/
 	
 	gCanonicalPosition = GetCanonicalPosition;
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
 
 	kSupportsTierGamesman = TRUE;
 	kExclusivelyTierGamesman = TRUE;
@@ -220,7 +211,6 @@ void InitializeGame() {
 	gNumberOfTierPositionsFunPtr = &gNumberOfTierPositions;
 	gTierToStringFunPtr = &TierToString;
 	gIsLegalFunPtr = &isLegal;
-	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 
 	symmetriesToUse = gSymmetryMatrix;
 	unhashCacheInit();
@@ -457,22 +447,31 @@ void hashBoard(char *board, char turn, int disallowedMove, TIER *tier, TIERPOSIT
 		switch(board[i]) {
 			case REDCASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc - 1, rc, s, l, c);
+  				// fall through
 			case BLUECASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s, l, c - 1);
+  				// fall through
 			case CASTLEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs - 1, bc, rc, s, l, c);
+  				// fall through
 			case REDSMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs - 1, rs, bc, rc, s, l, c);
+  				// fall through
 			case BLUESMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s, l - 1, c);
+  				// fall through
 			case LARGEPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb, bs, rs, bc, rc, s - 1, l, c);
+  				// fall through
 			case SMALLPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb, rb - 1, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			case REDBUCKETPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks, bb - 1, rb, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			case BLUEBUCKETPIECE:
 				(*tierposition) += numRearrangements(8 - i, numBlanks - 1, bb, rb, bs, rs, bc, rc, s, l, c);
+  				// fall through
 			default:
 				break; 
 		}
@@ -675,12 +674,12 @@ STRING TierToString(TIER tier) {
 	return str;
 }
 
-void unhashMove(MOVE move, char *piece, int *from, int *to) {
+void unhashMove(MOVE move, char *piece, int *from, int *to, BOOLEAN *p2Turn) {
 	*to = move & 0b1111;
 	move >>= 4;
 	*from = move & 0b1111;
 	move >>= 4;
-	switch (move) {
+	switch (move & 0b1111) {
 		case 1:
 			*piece = REDBUCKETPIECE;
 			break;
@@ -694,9 +693,11 @@ void unhashMove(MOVE move, char *piece, int *from, int *to) {
 			*piece = BLUEBUCKETPIECE;
 			break;
 	}
+	move >>= 4;
+	*p2Turn = move ? TRUE : FALSE;
 }
 
-MOVE hashMove(char piece, int from, int to) {
+MOVE hashMove(char piece, int from, int to, BOOLEAN p2Turn) {
 	MOVE theHash = 0;
 	theHash |= to;
 	theHash |= from << 4;
@@ -712,6 +713,9 @@ MOVE hashMove(char piece, int from, int to) {
 			break;
 		default:
 			break;
+	}
+	if (p2Turn) {
+		theHash |= 1 << 12;
 	}
 	return theHash;
 }
@@ -823,6 +827,7 @@ void setOption(int option) {
 ************************************************************************/
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -854,7 +859,8 @@ POSITION DoMove(POSITION position, MOVE move) {
 	
 	char piece;
 	int from, to;
-	unhashMove(move, &piece, &from, &to);
+	BOOLEAN p2Turn;
+	unhashMove(move, &piece, &from, &to, &p2Turn);
 	if (from == to) { // Placement
 		board[to] = piece;
 		switch (piece) {
@@ -921,40 +927,6 @@ POSITION DoMove(POSITION position, MOVE move) {
 	SafeFree(board);
 
 	return position;
-}
-
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	char board[9] = {BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE, BLANKPIECE};
-	return hashPosition(board, BLUE, 0);
-}
-
-/************************************************************************
-**
-** NAME: PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS: MOVE computersMove : The computer's move.
-** STRING computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(MOVE computersMove, STRING computersName) {
-	STRING str = MoveToString(computersMove);
-	printf("%8s's move: %s\n", computersName, str);
-	SafeFree(str);
 }
 
 VALUE Primitive(POSITION position) {
@@ -1103,32 +1075,32 @@ MOVELIST *GenerateMoves(POSITION position) {
 	
 			// PLACEMENT //
 			if (blueLeft > 0 && turn == BLUE)
-				moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, to, to), moveList);
+				moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, to, to, turn == RED), moveList);
 			else if (redLeft > 0 && turn == RED)
-				moveList = CreateMovelistNode(hashMove(REDBUCKETPIECE, to, to), moveList);
+				moveList = CreateMovelistNode(hashMove(REDBUCKETPIECE, to, to, turn == RED), moveList);
 
-			if (smallLeft > 0) moveList = CreateMovelistNode(hashMove(SMALLPIECE, to, to), moveList);
-      		if (largeLeft > 0) moveList = CreateMovelistNode(hashMove(LARGEPIECE, to, to), moveList);
+			if (smallLeft > 0) moveList = CreateMovelistNode(hashMove(SMALLPIECE, to, to, FALSE), moveList);
+      		if (largeLeft > 0) moveList = CreateMovelistNode(hashMove(LARGEPIECE, to, to, FALSE), moveList);
 
 			// SLIDE TO BLANK //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if (!(from == idsToMoves[0][disallowedMove] && to == idsToMoves[1][disallowedMove])) { // Don't undo previous person's slide
 					if ((turn == BLUE && board[from] != BLANKPIECE && board[from] != REDBUCKETPIECE && board[from] != REDSMALLPIECE && board[from] != REDCASTLEPIECE) || (turn == RED && board[from] != BLANKPIECE && board[from] != BLUEBUCKETPIECE && board[from] != BLUESMALLPIECE && board[from] != BLUECASTLEPIECE))
-						moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+						moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 				}
 			}
 		} else if (board[to] == SMALLPIECE || board[to] == CASTLEPIECE) { // SLIDE ONTO SMALL PIECE OR CASTLE PIECE //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if ((turn == BLUE && board[from] == BLUEBUCKETPIECE) || (turn == RED && board[from] == REDBUCKETPIECE))
-					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 			}
 		} else if (board[to] == LARGEPIECE) { // SLIDE ONTO LARGE PIECE //
 			for (int j = 0; j < numAdjacencies[to]; j++) {
 				int from = adjacencyMatrix[to][j];
 				if (board[from] == SMALLPIECE || (turn == BLUE && board[from] == BLUESMALLPIECE) || (turn == RED && board[from] == REDSMALLPIECE))
-					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to), moveList);
+					moveList = CreateMovelistNode(hashMove(BLUEBUCKETPIECE, from, to, FALSE), moveList);
 			}
 		}
 	}
@@ -1270,7 +1242,7 @@ BOOLEAN ValidTextInput(STRING input) {
 MOVE ConvertTextInputToMove(STRING input) {
 	char piece = BLUEBUCKETPIECE;
 	if (input[0] >= 49 && input[0] <= 57) {// Movement
-		return hashMove(piece, input[0] - '1', input[2] - '1');
+		return hashMove(piece, input[0] - '1', input[2] - '1', FALSE);
 	} else if (input[0] == 'N' || input[0] == 'n') {
 		return NULLMOVE;
 	} else {
@@ -1290,24 +1262,8 @@ MOVE ConvertTextInputToMove(STRING input) {
 			default:
 				break;
 		}
-		return hashMove(piece, input[1] - '1', input[1] - '1');
+		return hashMove(piece, input[1] - '1', input[1] - '1', FALSE);
 	}
-}
-
-/************************************************************************
-**
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
 }
 
 STRING DisallowedMoveToString(int disallowedMove) {
@@ -1330,145 +1286,169 @@ STRING DisallowedMoveToString(int disallowedMove) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	char piece;
 	int from, to;
+	BOOLEAN p2Turn;
 	if (move == NULLMOVE) {
-		STRING moveString = (STRING) SafeMalloc(7);
-		sprintf(moveString, "None");
-		return moveString;
-	}
-	unhashMove(move, &piece, &from, &to);
-	if (from == to) { // Placement
-		STRING moveString = (STRING) SafeMalloc(5);
-		sprintf(moveString, "%c%d", piece, from + 1);
-		return moveString;
-	} else { // Sliding
-		STRING moveString = (STRING) SafeMalloc(6);
-		sprintf(moveString, "%d-%d", from  +1, to + 1);
-		return moveString;
+		sprintf(moveStringBuffer, "None");
+	} else {
+		unhashMove(move, &piece, &from, &to, &p2Turn);
+		if (from == to) { // Placement
+			sprintf(moveStringBuffer, "%c%d", piece, from + 1);
+		} else { // Sliding
+			sprintf(moveStringBuffer, "%d-%d", from + 1, to + 1);
+		}
 	}
 }
 
-STRING initialTopitopInteractString = "R_A_8_5_-------------------------B--R-S--L------";
-#define NUMBINDEX 34
-#define NUMRINDEX 37
-#define NUMSINDEX 39
-#define NUMLINDEX 42
-#define DISALLOWEDFROMINDEX 43
-#define DISALLOWEDTOINDEX 44
-#define PASSTURNINDEX 30
-#define ADDITIONALTURNINDEX 46
-#define PIECEBEINGPLACEDINDEX 47
-#define INTERMEDIATEPOSMASK 0xE000000000000000
-int indexMap[9] = {14,15,16,19,20,21,24,25,26};
-char pieceMap[4] = {'b', 'r', 's', 'l'};
-int pieceIndexMap[4] = {33, 36, 38, 41};
+/************************************************************************
+**
+** NAME: PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS: MOVE computersMove : The computer's move.
+** STRING computersName : The computer's name.
+**
+************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) { // Assumes board is non-intermediate
-	char turn = (board[2] == 'A') ? BLUE : RED;
-	char fboard[9] = {board[14], board[15], board[16], board[19], board[20], board[21], board[24], board[25], board[26]};
-	int disallowedMove = (board[DISALLOWEDFROMINDEX] == '-') ? 0 : movesToIds[board[DISALLOWEDFROMINDEX] - '1'][board[DISALLOWEDTOINDEX] - '1'];
-
-	TIER tier;
-	TIERPOSITION tierposition;
-	hashBoard(fboard, turn, disallowedMove, &tier, &tierposition);
-	gInitializeHashWindow(tier, FALSE);
-	return tierposition;
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	char str[10];
+	MoveToString(computersMove, str);
+	printf("%8s's move: %s\n", computersName, str);
 }
 
-STRING InteractPositionToString(POSITION position) {
-	int partialInfo = position >> 61;
-	if (partialInfo) {
-		position &= ~INTERMEDIATEPOSMASK;
-	}
-	char* finalBoard = calloc(49, sizeof(char));
-	memcpy(finalBoard, initialTopitopInteractString, 48);
+// 27 bucket centers
+// 18 small piece centers
+// 9 large piece centers
+// 1 disallowedFromIdx [54]
+// 1 disallowedToIdx [55]
+// 20*2 arrow centers [56-95]
+// 27 placepiece move button centers [96-122]
+// 1 pass turn center [123]
+
+// BUCKET (3) top mid bottom SMALL mid bottom (2) LARGE bottom (1) 
+
+int uwapiArrowCoords[8][9] = {
+	{ 9,  0,  9,  2,  4,  9,  9,  9,  9},
+	{ 9,  9,  6,  8, 10, 12,  9,  9,  9},
+	{ 9,  9,  9,  9, 14, 16,  9,  9,  9},
+	{ 9,  9,  9,  9, 18,  9, 20, 22,  9},
+	{ 9,  9,  9,  9,  9, 24, 26, 28, 30},
+	{ 9,  9,  9,  9,  9,  9,  9, 32, 34},
+	{ 9,  9,  9,  9,  9,  9,  9, 36,  9},
+	{ 9,  9,  9,  9,  9,  9,  9,  9, 38}
+};
+
+void PositionToString(POSITION position, char *positionStringBuffer) {
 	char turn;
 	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
 	char *board = unhashPosition(position, &turn, &disallowedMove, &blueLeft, &redLeft, &smallLeft, &largeLeft);
 
-	for (int i = 0; i < 9; i++) {
-		finalBoard[indexMap[i]] = board[i];
-	}
-
-	if (turn == BLUE) {
-		finalBoard[ADDITIONALTURNINDEX] = 'B';
+	positionStringBuffer[0] = turn == BLUE ? '1' : '2';
+	positionStringBuffer[1] = '_';
+	memcpy(positionStringBuffer + 2, board, 9);
+	if (disallowedMove) {
+		positionStringBuffer[11] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
+		positionStringBuffer[12] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
+		positionStringBuffer[13] = '\0';
 	} else {
-		finalBoard[2] = 'B';
-		finalBoard[ADDITIONALTURNINDEX] = 'R';
+		positionStringBuffer[11] = '\0';
 	}
-	finalBoard[NUMBINDEX] = blueLeft + '0';
-	finalBoard[NUMRINDEX] = redLeft + '0';
-	finalBoard[NUMSINDEX] = smallLeft + '0';
-	finalBoard[NUMLINDEX] = largeLeft + '0';
-	finalBoard[DISALLOWEDFROMINDEX] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
-	finalBoard[DISALLOWEDTOINDEX] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
-	if (partialInfo) {
-		finalBoard[PIECEBEINGPLACEDINDEX] = pieceMap[partialInfo & 0b11];
-		finalBoard[pieceIndexMap[partialInfo & 0b11]] = pieceMap[partialInfo & 0b11];
-	}
-	return finalBoard;
+	SafeFree(board);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		char turnChar = (turn == 1) ? BLUE : RED;
+		int disallowedMove = (board[9] == '\0') ? 0 : movesToIds[board[9] - '1'][board[10] - '1'];
+
+		TIER tier;
+		TIERPOSITION tierposition;
+		hashBoard(board, turnChar, disallowedMove, &tier, &tierposition);
+		gInitializeHashWindow(tier, FALSE);
+		return tierposition;
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-	if (move == NULLMOVE) {
-		char* finalMove = calloc(7, sizeof(char));
-		memcpy(finalMove, "A_-_22", 6);
-		return finalMove;
-	}
-	BOOLEAN partial = move >> 10;
-	move &= 0b1111111111;
-	
-	int to = move & 0b1111;
-	int from = (move >> 4) & 0b1111;
-	int piece = (move >> 8) & 0b11;
-	
-	if (partial == 0 && to == from) {
-		return MoveToString(move);
-	}
-	
-	switch (partial) {
-		case 0: // sliding
-			return UWAPI_Board_Regular2D_MakeMoveString(indexMap[from] - 8, indexMap[to] - 8);
-		case 1: // selecting piece to place
-			return UWAPI_Board_Regular2D_MakeAddString('-', pieceIndexMap[piece] - 8);
-		default: // placing selected piece
-			return UWAPI_Board_Regular2D_MakeAddString('-', indexMap[to] - 8);
-	}
-}
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	MULTIPARTEDGELIST *mpel = NULL;
-	BOOLEAN edgeToAdded[4] = {FALSE, FALSE, FALSE, FALSE};
-	while (moveList != NULL) {
-		MOVE move = moveList->move;
-		if (move == NULLMOVE) {
-			break;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char entityString[57];
+	memset(entityString, '-', 57 * sizeof(char));
+
+	char turn;
+	int disallowedMove, blueLeft, redLeft, smallLeft, largeLeft;
+	char *board = unhashPosition(position, &turn, &disallowedMove, &blueLeft, &redLeft, &smallLeft, &largeLeft);
+	int i, j;
+
+	for (i = 0, j = 0; i < 9; i++, j += 6) {
+		if (board[i] == BLUECASTLEPIECE) {
+			entityString[j] = BLUEBUCKETPIECE;
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == REDCASTLEPIECE) {
+			entityString[j] = REDBUCKETPIECE;
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == BLUESMALLPIECE) {
+			entityString[j + 1] = BLUEBUCKETPIECE;
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == REDSMALLPIECE) {
+			entityString[j + 1] = REDBUCKETPIECE;
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == BLUEBUCKETPIECE) {
+			entityString[j + 2] = BLUEBUCKETPIECE;
+		} else if (board[i] == REDBUCKETPIECE) {
+			entityString[j + 2] = REDBUCKETPIECE;
+		} else if (board[i] == CASTLEPIECE) {
+			entityString[j + 3] = SMALLPIECE;
+			entityString[j + 5] = LARGEPIECE;
+		} else if (board[i] == SMALLPIECE) {
+			entityString[j + 4] = SMALLPIECE;
+		} else if (board[i] == LARGEPIECE) {
+			entityString[j + 5] = LARGEPIECE;
 		}
-		int to = move & 0b1111;
-		int from = (move >> 4) & 0b1111;
-		MOVE piece = (move >> 8) & 0b11;
-		POSITION intermediateMarker = ((POSITION) (4L | piece)) << 61;
-		if (from == to) {
-			// Select piece to place
-			if (!edgeToAdded[piece]) {
-				mpel = CreateMultipartEdgeListNode(position, position | intermediateMarker, move | 0b10000000000, 0, FALSE, mpel);
-				edgeToAdded[piece] = TRUE;
-			}
-			
-			// Place selected piece
-			mpel = CreateMultipartEdgeListNode(position | intermediateMarker, positionList->position, move | 0b100000000000, move, TRUE, mpel);
-		}
-
-		// Ignore sliding moves, they are single-part
-
-		moveList = moveList->next;
-		positionList = positionList->next;
 	}
-	return mpel;
+
+	SafeFree(board);
+
+	int uturn = (turn == BLUE) ? 1 : 2;
+	entityString[54] = (disallowedMove == 0) ? '-' : idsToMoves[0][disallowedMove] + '1';
+	entityString[55] = (disallowedMove == 0) ? '-' : idsToMoves[1][disallowedMove] + '1';
+	entityString[56] = '\0';
+	AutoGUIMakePositionString(uturn, entityString, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+  	if (move == NULLMOVE) {
+		AutoGUIMakeMoveButtonStringA('P', 123, 'v', autoguiMoveStringBuffer);
+		return;
+	}
+	
+	char piece;
+	int from, to;
+	BOOLEAN p2Turn;
+	unhashMove(move, &piece, &from, &to, &p2Turn);
+
+	if (from == to) {// Placement
+		if (piece == SMALLPIECE) {
+			AutoGUIMakeMoveButtonStringA('v', 105 + to, 'w', autoguiMoveStringBuffer);
+		} else if (piece == LARGEPIECE) {
+			AutoGUIMakeMoveButtonStringA('w', 114 + to, 'x', autoguiMoveStringBuffer);
+		} else {
+			AutoGUIMakeMoveButtonStringA(p2Turn ? 'u' : 't', 96 + to, 'y', autoguiMoveStringBuffer);
+		}
+	} else {
+		if (to > from) {
+			int d = uwapiArrowCoords[from][to] + 56;
+			AutoGUIMakeMoveButtonStringM(d, d + 1, 'z', autoguiMoveStringBuffer);
+		} else {
+			int d = uwapiArrowCoords[to][from] + 56;
+			AutoGUIMakeMoveButtonStringM(d + 1, d, 'z', autoguiMoveStringBuffer);
+		}
+	}
 }

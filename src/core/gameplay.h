@@ -4,20 +4,20 @@
 
 /* General gameplay entry points */
 
-void            PlayAgainstHuman                ();
-void            PlayAgainstComputer             ();
+void            PlayAgainstHuman                (void);
+void            PlayAgainstComputer             (void);
 
 /* Undo handling */
 
 void            ResetUndoList                   (UNDO* list);
 UNDO*           HandleUndoRequest               (POSITION* pos, UNDO* list, BOOLEAN* error);
 UNDO*           UpdateUndo                      (POSITION pos, UNDO* undo, BOOLEAN* abort);
-UNDO*           InitializeUndo                  ();
+UNDO*           InitializeUndo                  (void);
 
 /* Output functions (mostly explanations) */
 
-void            PrintHumanValueExplanation      ();
-void            PrintComputerValueExplanation   ();
+void            PrintHumanValueExplanation      (void);
+void            PrintComputerValueExplanation   (void);
 void            PrintVisualValueHistory         (POSITION position, int showAllMoves);
 void            PrintMoveHistory                (POSITION position);
 UNDO*           Stalemate                       (UNDO*, POSITION stalematePos, BOOLEAN* abort);

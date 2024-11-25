@@ -362,16 +362,13 @@ MOVELIST *CreateMovelistNode(MOVE theMove, MOVELIST* theNextMove)
 	return(theHead);
 }
 
-MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next)
+MULTIPARTEDGELIST *CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST* next)
 {
-	MULTIPARTEDGELIST* theHead;
-
-	theHead = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
+	MULTIPARTEDGELIST* theHead = (MULTIPARTEDGELIST*) SafeMalloc (sizeof(MULTIPARTEDGELIST));
 	theHead->from = from;
 	theHead->to = to;
 	theHead->partMove = partMove;
 	theHead->fullMove = fullMove;
-	theHead->isTerminal = isTerminal;
 	theHead->next = next;
 
 	return theHead;
@@ -428,6 +425,16 @@ POSITIONLIST *StorePositionInList(POSITION pos, POSITIONLIST* head)
 	tmp->next     = head;
 
 	return(tmp);
+}
+
+POSITIONLIST *AppendToTailOfPositionList(POSITION pos, POSITIONLIST* tail) {
+	POSITIONLIST *newTail = (POSITIONLIST *) SafeMalloc (sizeof(POSITIONLIST));
+	newTail->position = pos;
+	newTail->next = NULL;
+	if (tail != NULL) {
+		tail->next = newTail;
+	}
+	return newTail;
 }
 
 POSITIONLIST *CopyPositionlist(POSITIONLIST* thePositionlist)
@@ -574,8 +581,10 @@ void FoundBadPosition (POSITION pos, POSITION parent, MOVE move)
 }
 
 
-BOOLEAN DefaultGoAgain(POSITION pos,MOVE move)
+BOOLEAN DefaultGoAgain(POSITION pos, MOVE move)
 {
+	(void) pos;
+	(void) move;
 	return FALSE; /* Always toggle turn by default */
 }
 
@@ -601,7 +610,7 @@ POSITION GetNextPosition()
 
 MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
 {
-	if(theMex > 31) {
+	if(theMex > 62) {
 		fprintf(stderr, "Error: MexAdd handed a theMex greater than 31\n");
 		ExitStageRight();
 		exit(0);
@@ -610,13 +619,13 @@ MEXCALC MexAdd(MEXCALC theMexCalc, MEX theMex)
 		ExitStageRight();
 		exit(0);
 	}
-	return(theMexCalc | (1 << theMex));
+	return(theMexCalc | (((MEXCALC) 1) << theMex));
 }
 
 MEX MexCompute(MEXCALC theMexCalc)
 {
 	MEX ans = 0;
-	while(theMexCalc & (1 << ans))
+	while(theMexCalc & (((MEXCALC) 1) << ans))
 		ans++;
 	return(ans);
 }
@@ -631,7 +640,7 @@ void MexFormat(POSITION position, STRING string)
 	MEX theMex;
 	char tmp[5];
 
-	if (!kPartizan && !gTwoBits) { /* Impartial, mex value available */
+	if (gSupportsMex && !gTwoBits) { /* Impartial, mex value available */
 		theMex = MexLoad(position);
 		if(theMex == (MEX)0)
 			(void) sprintf(tmp, "0");

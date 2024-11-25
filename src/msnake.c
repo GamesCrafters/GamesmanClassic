@@ -22,7 +22,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /* The beginning position is:
@@ -63,9 +62,9 @@ POSITION gInitialPosition    = 8357;
 POSITION gMinimalPosition    = 8357; /* This may not be the minimal position. Use the upward solver when it's invented */
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Alice Chang, Judy Chen, Eleen Chiang, and Peter Foo";
-STRING kGameName           = "Snake";
-STRING kDBName             = "snake";
+CONST_STRING kAuthorName         = "Alice Chang, Judy Chen, Eleen Chiang, Peter Foo, Cameron Cheung";
+CONST_STRING kGameName           = "Snake";
+CONST_STRING kDBName             = "snake";
 BOOLEAN kPartizan           = TRUE;  /* each player only has control
                                       * over one type of piece, so
                                       * both players do not have the
@@ -80,25 +79,25 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose (between\n1 and 16, with 1 at the upper left and 16 at the lower right) to correspond\nto the board position that you desire to move from and the empty board position\n you desire to move to and hit return. If at any point you have made a mistake\nyou can type u and hit return and the system will revert back to your most recent\nposition.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You move your piece to one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To trap your opponent so that he/she is no longer able to make a valid move.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To trap yourself so that you are no longer able to make a valid move.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie is not possible in this game.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "          1   2   3   4             +   +   +   +\nLEGEND:   5   6   7   8  TOTAL:     +   H   B   + \n          9   10  11  12            +   +   T   +\n          13  14  15  16            +   +   +   + \n\
 Head's turn.\n     Dan's move [(u)ndo/1-9] : 6 10\n          1   2   3   4             +   +   +   + \n\
 LEGEND:   5   6   7   8  TOTAL:     +   B   B   + \n          9   10  11  12            +   H   T   + \n          13  14  15  16            +   +   +   + \nTail's turn.\nComputer's move              : 11 15\n          1   2   3   4             +   +   +   + \nLEGEND:   5   6   7   8  TOTAL:     +   B   B   + \n          9   10  11  12            +   H   B   + \n          13  14  15  16            +   +   T   +\n\
@@ -155,16 +154,19 @@ BlankBHT moveHandT = FALSE;  /* Giving the player the option to move
 
 BlankBHT whoseTurn(BlankBHT *theBlankBHT);
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn);
-void PrintMove(MOVE theMove);
 void SnakeUnhash(POSITION thePos, BlankBHT *theBlankBHT);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, MOVE *toSlot);
 POSITION SnakeHash(BlankBHT* theBlankBHT);
 MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot);
-
-STRING MoveToString( MOVE );
+BOOLEAN trapped(BlankBHT *theBlankBHT, BlankBHT who);
+void PositionToString(POSITION position, char *positionStringBuffer);
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childPositionAutoGUIStringBuffer);
+void PositionStringToAutoGUIPositionString(char *positionString, char *autoguiPositionStringBuffer);
 
 void InitializeGame() {
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
+	gPositionStringToAutoGUIPositionStringFunPtr = &PositionStringToAutoGUIPositionString;
+	gPositionStringDoMoveFunPtr = &PositionStringDoMove;
 }
 
 /************************************************************************
@@ -213,6 +215,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -242,9 +245,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int *theOptions) {
 	moveHandT = (BOOLEAN) theOptions[1];
 }
 
@@ -266,10 +267,7 @@ int theOptions[];
 *************************************************************************/
 SLOT DESIREDPIECE; /* Global variable to determine whose turn it is. */
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	BlankBHT theBlankBHT[BOARDSIZE], who;
 	POSITION newPosition;
@@ -305,9 +303,7 @@ MOVE theMove;
 
 /* whoseTurn takes in theBlankBHT and returns H or T in a length 1
  * BlankBHT */
-BlankBHT whoseTurn(theBlankBHT)
-BlankBHT *theBlankBHT;
-{
+BlankBHT whoseTurn(BlankBHT *theBlankBHT) {
 	int i;
 	int count = 0;
 	BlankBHT who;
@@ -367,8 +363,7 @@ POSITION GetInitialPosition()
 			theBlankBHT[i++] = b;
 		else if(c == '+')
 			theBlankBHT[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	printf("In this game, the head of the snake always goes first.\n");
@@ -387,10 +382,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	SLOT fromSlot,toSlot;
 	MoveToSlots(computersMove,&fromSlot,&toSlot);
 	printf("%8s's move              : %d %d\n", computersName,
@@ -419,10 +411,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN trapped();
+VALUE Primitive(POSITION position) {
 	BlankBHT theBlankBHT[BOARDSIZE];
 	BlankBHT who;
 
@@ -436,10 +425,7 @@ POSITION position;
 		return (undecided);
 }
 
-BOOLEAN trapped(theBlankBHT,who)
-BlankBHT *theBlankBHT;
-BlankBHT who;
-{
+BOOLEAN trapped(BlankBHT *theBlankBHT, BlankBHT who) {
 	int whoIndex;
 	int i;
 
@@ -492,13 +478,13 @@ BlankBHT who;
 /* PrintPosition function call prototypes:  */
 struct node * constructTree (struct node* node, BlankBHT boardArray[36], struct node* nodeArray[36], struct node *root);
 struct node* farthestTail (struct node *tree, BlankBHT boardArray[36]);
-void path(struct node *tailNode, struct node* pathArray[tailNode->depth]);
+void path(struct node *tailNode, struct node **pathArray);
 void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]);
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-
+	(void)playerName;
+	(void)usersTurn;
 	int i;
-	//    VALUE GetValueOfPosition();
 	BlankBHT theBlankBHT[BOARDSIZE];
 
 	SnakeUnhash(position, theBlankBHT);
@@ -677,7 +663,7 @@ struct node* farthestTail (struct node *tree, BlankBHT boardArray[36]) {
 
 // took tailNode->depth out of pathArray (we don't need to know its size to declare
 // the function) -JJ
-void path(struct node *tailNode, struct node* pathArray[]) {
+void path(struct node *tailNode, struct node **pathArray) {
 	struct node* temp = tailNode;
 	//struct node* pathArray[temp->depth];
 	int i = (temp->depth)-1;
@@ -828,11 +814,8 @@ void PrintBoard(struct node* *pathArray, int pathArrayLength, BlankBHT board[36]
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankBHT theBlankBHT[BOARDSIZE], who;
 	SLOT fromSlot, toSlot;
 	int i;
@@ -959,11 +942,7 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 	BlankBHT theBlankBHT[BOARDSIZE];
 	SnakeUnhash(thePosition,theBlankBHT);
@@ -996,9 +975,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	SLOT fromSlot, toSlot;
 	int ret;
 	ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
@@ -1023,35 +1000,14 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
-	MOVE SlotsToMove();
+MOVE ConvertTextInputToMove(STRING input) {
 	SLOT fromSlot, toSlot;
-	int text = sscanf(input, "%d %d", &fromSlot, &toSlot);
+	(void)sscanf(input, "%d %d", &fromSlot, &toSlot);
 
 	fromSlot--;
 	toSlot--;
 
 	return(SlotsToMove(fromSlot,toSlot));
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -1064,15 +1020,11 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 8 );
+void MoveToString(MOVE move, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
-	MoveToSlots(theMove, &fromSlot, &toSlot);
+	MoveToSlots(move, &fromSlot, &toSlot);
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( m, "[%d %d]", fromSlot+1, toSlot+1);
-	return m;
+	sprintf(moveStringBuffer, "%d %d", fromSlot + 1, toSlot + 1);
 }
 
 
@@ -1095,10 +1047,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void SnakeUnhash(thePos,theBlankBHT)
-POSITION thePos;
-BlankBHT *theBlankBHT;
-{
+void SnakeUnhash(POSITION thePos, BlankBHT *theBlankBHT) {
 	int findHead = (thePos & 0xf);
 	int findTail = ((thePos >> 4) & 0xf);
 	int findBody = (thePos >> 8);
@@ -1141,10 +1090,7 @@ BlankBHT *theBlankBHT;
 **
 ************************************************************************/
 
-void MoveToSlots(theMove, fromSlot, toSlot)
-MOVE theMove;
-SLOT *fromSlot, *toSlot;
-{
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot) {
 	*fromSlot = theMove % (BOARDSIZE+1);
 	*toSlot   = theMove / (BOARDSIZE+1);
 	DESIREDPIECE = *fromSlot; /*added*/
@@ -1163,9 +1109,7 @@ SLOT *fromSlot, *toSlot;
 **
 ************************************************************************/
 
-MOVE SlotsToMove(fromSlot, toSlot)
-SLOT fromSlot, toSlot;
-{
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot) {
 	return ((MOVE) toSlot*(BOARDSIZE+1) + fromSlot);
 }
 
@@ -1181,9 +1125,7 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-POSITION SnakeHash(theBlankBHT)
-BlankBHT *theBlankBHT;
-{
+POSITION SnakeHash(BlankBHT *theBlankBHT) {
 	POSITION thePosition = 0;
 	int i;
 	int bodyIndex = 0;
@@ -1246,83 +1188,139 @@ void setOption(int option)
 
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
+/* When we convert from position string to hash, we lose information
+about the body connectors, so we need this function. */
+// CONNECTORS: 0- 1L 2_| 3|  4|-  5 -|
+// 6 <  7 ^  8 >  9 v
+void PositionStringDoMove(char *parentPositionString, MOVE move, char *childPositionStringBuffer) {
+    memcpy(childPositionStringBuffer, parentPositionString, BOARDSIZE + 2);
+    childPositionStringBuffer[BOARDSIZE + 2] = '\0';
+	childPositionStringBuffer[0] = (parentPositionString[0] == '1') ? '2' : '1';
 
-	BlankBHT realBoard[BOARDSIZE];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				realBoard[i] = Blank;
-				break;
-			case 'b':
-				realBoard[i] = b;
-				break;
-			case 'h':
-				realBoard[i] = h;
-				break;
-			case 't':
-				realBoard[i] = t;
-				break;
-		}
-	}
-
-	SafeFreeString(board); // Free the string.
-	return SnakeHash(realBoard);
-}
-
-STRING InteractPositionToString(POSITION pos) {
-	BlankBHT realBoard[BOARDSIZE];
-	SnakeUnhash(pos, realBoard);
-
-	char board[BOARDSIZE + 1];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (realBoard[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected position\n");
-				break;
-			case Blank:
-				board[i] = '-';
-				break;
-			case b:
-				board[i] = 'b';
-				break;
-			case h:
-				board[i] = 'h';
-				break;
-			case t:
-				board[i] = 't';
-				break;
-		}
-	}
-	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
-
-	enum UWAPI_Turn turn = (whoseTurn(realBoard) == h) ? UWAPI_TURN_A : UWAPI_TURN_B;
-
-	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-BOOLEAN arrowMoves = TRUE;
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	SLOT fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
-	if (arrowMoves) {
-		return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	MoveToSlots(move, &fromSlot, &toSlot);
+	char *childEntityString = childPositionStringBuffer + 2;
+	childEntityString[toSlot] = childEntityString[fromSlot];
+
+	int previousConnector = -1;
+	if (fromSlot / 4 > 0 && childEntityString[fromSlot - 4] >= '3' && childEntityString[fromSlot - 4] <= '5') { // is connector above
+		previousConnector = fromSlot - 4;
+	} else if (fromSlot / 4 < 3 && childEntityString[fromSlot + 4] >= '1' && childEntityString[fromSlot + 4] <= '3') { // is connector below
+		previousConnector = fromSlot + 4;
+	} else if (fromSlot % 4 > 0 && (childEntityString[fromSlot - 1] == '0' || childEntityString[fromSlot - 1] == '1' || childEntityString[fromSlot - 1] == '4')) {// is connector on left
+		previousConnector = fromSlot - 1;
 	} else {
-		return UWAPI_Board_Regular2D_MakeAddString('-', toSlot);
+		previousConnector = fromSlot + 1;
 	}
+
+	int rowDiff = (toSlot / 4) - (previousConnector / 4);
+	int colDiff = (toSlot % 4) - (previousConnector % 4);
+	if (rowDiff == 0) {
+		childEntityString[fromSlot] = '0';
+	} else if (colDiff == 0) {
+		childEntityString[fromSlot] = '3';
+	} else if (rowDiff > 0) { // down
+		if (colDiff > 0) { // right
+			childEntityString[fromSlot] = (fromSlot == toSlot - 1) ? '1' : '5';
+		} else { // left
+			childEntityString[fromSlot] = (fromSlot == toSlot + 1) ? '2' : '4';
+		}
+	} else { // up
+		if (colDiff > 0) { // right
+			childEntityString[fromSlot] = (fromSlot == toSlot - 1) ? '4' : '2';
+		} else { // left
+			childEntityString[fromSlot] = (fromSlot == toSlot + 1) ? '5' : '1';
+		}
+	}
+}
+
+void PositionStringToAutoGUIPositionString(char *positionString, char *autoguiPositionStringBuffer) {
+	memcpy(autoguiPositionStringBuffer, positionString, BOARDSIZE + 2);
+	char *entityString = autoguiPositionStringBuffer + 2;
+	memset(entityString + BOARDSIZE, '-', BOARDSIZE * sizeof(char));
+	entityString[BOARDSIZE << 1] = '\0';
+
+	int jh = 0, jt = 0;
+	for (int i = 0; i < BOARDSIZE; i++) {
+		if (entityString[i] == 'h') {
+			entityString[i + BOARDSIZE] = 'h';
+			jh = i;
+		} else if (entityString[i] == 't') {
+			entityString[i + BOARDSIZE] = 't';
+			jt = i;
+		}
+	}
+
+	// connection if 
+	// left is 0, 1, or 4
+	// right is 0, 1, or 5
+	// top is 3, 4, 5
+	// down is 1, 2, 3
+
+	// 6 >  7 v  8 <  9 ^
+
+	int headtail[2] = {jh, jt};
+	for (int j = 0; j < 2; j++) {
+		int slot = headtail[j];
+		if (slot / 4 > 0 && entityString[slot - 4] >= '3' && entityString[slot - 4] <= '5') { // is connector above
+			entityString[slot] = '7';
+		} else if (slot / 4 < 3 && entityString[slot + 4] >= '1' && entityString[slot + 4] <= '3') { // is connector below
+			entityString[slot] = '9';
+		} else if (slot % 4 > 0 && (entityString[slot - 1] == '0' || entityString[slot - 1] == '1' || entityString[slot - 1] == '4')) {// is connector on left
+			entityString[slot] = '6';
+		} else {
+			entityString[slot] = '8';
+		}
+	}
+}
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankBHT realBoard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case 'h':
+					realBoard[i] = h;
+					break;
+				case 't':
+					realBoard[i] = t;
+					break;
+				case '-':
+					realBoard[i] = Blank;
+					break;
+				default:
+					realBoard[i] = b;
+					break;
+			}
+		}
+		return SnakeHash(realBoard);
+	}
+	return NULL_POSITION;
+}
+
+/* This function will only be called on the initial position because we have
+implemented gPositionStringDoMoveFunPtr. */
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	(void) position;
+	char board[17] = "-----h5---t-----";
+	board[16] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(1, board, positionStringBuffer);
+}
+
+/* This function will only be called on the initial position because we have
+implemented gPositionStringDoMoveFunPtr. */
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	char board[33] = "-----85---7----------h----t-----";
+	board[32] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(1, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	SLOT fromSlot, toSlot;
+	MoveToSlots(move, &fromSlot, &toSlot);
+  	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, 'x', autoguiMoveStringBuffer);
 }

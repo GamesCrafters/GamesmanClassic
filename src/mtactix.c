@@ -54,15 +54,14 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <math.h>
 #include "gamesman.h"
 
 POSITION gInitialPosition  = 65535;
 POSITION gMinimalPosition  = 65535;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Tac Tix";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Tac Tix";
+CONST_STRING kDBName = "tactix";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -72,7 +71,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button toggles the pieces under the cursor on and off for\n\
 removal.  An 'X' is drawn in the center of the piece when it has been\n\
 chosen for removal. The interface prevents you from selecting invalid\n\
@@ -81,7 +80,7 @@ doesn't matter where the cursor is when you click the MIDDLE button.\n\
 The RIGHT button is the same as UNDO, in that it reverts back to\n\
 your your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine the positions (between 1 and\n\
 16, with 1 at the upper left and 9 at the lower right) of the pieces you\n\
 wish to remove and hit return. To select more than one piece (which\n\
@@ -91,23 +90,23 @@ the top layer, type '1 2 3' and hit return. If at any point you have\n\
 made a mistake, you can type u and hit return and the system will\n\
 revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You remove as many disks as you want from any row or column (but NOT\n\
 diagonal), as long as the disks you removed ARE contiguous (next to\n\
 each other)."                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To remove the last disk. Your last move does not necessarily have to be\n\
 one disk, however.  Example: If there are only two disks (in a row, and\n\
 contiguous) on the board and it's your turn, you should take both of them\n\
 for the win.  (The last disk was removed with your turn)."                                                                                                                                                                                                                                            ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to remove the last disk.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         (  1  2  3  4 )           : O O O O\n\
          (  5  6  7  8 )           : O O O O\n\
 LEGEND:  (  9 10 11 12 )  TOTAL:   : O O O O\n\
@@ -167,7 +166,7 @@ Computer wins. Nice try, Dan."                                                  
 #define k4InARow      8         /*  8 ways for there to be 4 in a row with a 4x4 board */
 
 int kNumberMoves       = k1InARow + k2InARow + k3InARow + k4InARow;
-int kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
+POSITION kFull3x3Board      = 1911;  /* 1 + 2 + 4 + 16 + 32 + 64 + 256 + 512 + 1024 */
 
 int gBoardColumns      = 4;     /* 3 columns on the board */
 int gBoardRows         = 4;     /* 3 rows on the board */
@@ -198,8 +197,9 @@ int FourInRow[k4InARow][4] = {  {0,1,2,3},{4,5,6,7},{8,9,10,11},{12,13,14,15},
 
 /** Function Prototypes **/
 void PositionToBlankO(POSITION thePos,BlankO *theBlankO);
-
-STRING MoveToString( MOVE );
+BOOLEAN Contiguous2(BlankO *theBlankO, int a, int b);
+BOOLEAN Contiguous3(BlankO *theBlankO, int a, int b, int c);
+BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d);
 
 /*
    0 1 2
@@ -225,11 +225,7 @@ STRING MoveToString( MOVE );
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr= &MoveToString;
-}
-
-void FreeGame()
-{
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************
@@ -287,6 +283,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case '1':
 			gInitialPosition = GetRandomNumber(gNumberOfPositions); /* random board */
 			break;
@@ -321,8 +318,7 @@ void GameSpecificMenu()
 					gInitialPosition += (int)pow(2.0,(double)i++);
 				else if(c == '-')
 					i++; /* do nothing */
-				else
-					; /* do nothing */
+				/* else do nothing */
 			}
 
 			break;
@@ -351,6 +347,7 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 **
 ************************************************************************/
 
+#ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[])
 {
 	// Anoto pen support
@@ -358,6 +355,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
 	}
 }
+#endif
 
 /************************************************************************
 **
@@ -372,10 +370,7 @@ void SetTclCGameSpecificOptions(int theOptions[])
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int i, j = 1;
 
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
@@ -396,8 +391,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
+POSITION GetInitialPosition() {
 	int initialPosition;
 	printf("Keeping in mind that X always goes first...\n");
 	printf("Please input a 9-element string of either 0,1, or 2.\n");
@@ -418,10 +412,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int i, j = 1;
 	printf("%8s's move                    : [ ", computersName);
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
@@ -453,9 +444,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	if( position == 0 )
 		return(gStandardGame ? lose : win);
 	else
@@ -480,15 +469,8 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankO *theBlankO;
-  #ifndef MEMWATCH
-	GENERIC_PTR SafeMalloc();
-  #endif
 	theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
 	PositionToBlankO(position,theBlankO);
 
@@ -537,18 +519,11 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVE theMove;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
-	BOOLEAN Contiguous2(), Contiguous3(), Contiguous4();
 	BlankO *theBlankO;
 	int i, index1, index2, index3;
-  #ifndef MEMWATCH
-	GENERIC_PTR SafeMalloc();
-  #endif
 
 	theBlankO = (BlankO *) SafeMalloc (sizeof(BlankO) * gBoardSize);
 	PositionToBlankO(position,theBlankO);
@@ -592,6 +567,8 @@ POSITION position;
 			head = CreateMovelistNode(theMove,head);
 		}
 	}
+	SafeFree((GENERIC_PTR)theBlankO);
+
 	return(head);
 }
 
@@ -614,13 +591,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		*theMove = 0;
@@ -651,9 +623,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	BOOLEAN valid = TRUE;
 	int slot[4], ret, i;
 	ret = sscanf(input,"%d %d %d %d", &slot[0],&slot[1],&slot[2],&slot[3]);
@@ -674,33 +644,13 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int slot[4], ret, i;
 	MOVE tmpMove = 0;
 	ret = sscanf(input,"%d %d %d %d", &slot[0],&slot[1],&slot[2],&slot[3]);
 	for(i=0; i<ret; i++)
 		tmpMove += g2Array[slot[i]-1];
 	return(tmpMove);
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -713,28 +663,19 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 20 );
-	STRING temp = (STRING) SafeMalloc( 20 );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	char m[40];
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	int i;
-	sprintf( temp, "[ " );
-	sprintf( m, "%s", temp);
-
-	for(i = 0; i < gBoardSize; i++) {
+	sprintf(moveStringBuffer, "[ " );
+	sprintf(m, "%s", moveStringBuffer);
+	for(int i = 0; i < gBoardSize; i++) {
 		if(theMove & g2Array[i]) {
-			sprintf( temp, "%s%d ", m, i+1);
-			sprintf( m, "%s", temp );
+			sprintf(moveStringBuffer, "%s%d ", m, i+1);
+			sprintf(m, "%s", moveStringBuffer);
 		}
 	}
-
-	sprintf( temp, "%s]", m);
-
-	SafeFree( m );
-	return temp;
+	sprintf(moveStringBuffer, "%s]", m);
 }
 
 /************************************************************************
@@ -772,10 +713,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankO(thePos,theBlankO)
-POSITION thePos;
-BlankO *theBlankO;
-{
+void PositionToBlankO(POSITION thePos, BlankO *theBlankO) {
 	int i, j = 1;
 	for(i = 0, j = 1; i < gBoardSize; i++, j*=2)
 		if(j & thePos) /* ith move */
@@ -796,9 +734,7 @@ BlankO *theBlankO;
 **
 ************************************************************************/
 
-POSITION BlankOToPosition(theBlankO)
-BlankO *theBlankO;
-{
+POSITION BlankOToPosition(BlankO *theBlankO) {
 	int i;
 	POSITION position = 0;
 
@@ -821,10 +757,7 @@ BlankO *theBlankO;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous4(theBlankO,a,b,c,d)
-BlankO theBlankO[];
-int a,b,c,d;
-{
+BOOLEAN Contiguous4(BlankO *theBlankO, int a, int b, int c, int d) {
 	return(       theBlankO[a] == o &&
 	              theBlankO[b] == o &&
 	              theBlankO[c] == o &&
@@ -844,10 +777,7 @@ int a,b,c,d;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous3(theBlankO,a,b,c)
-BlankO theBlankO[];
-int a,b,c;
-{
+BOOLEAN Contiguous3(BlankO *theBlankO, int a, int b, int c) {
 	return(       theBlankO[a] == o &&
 	              theBlankO[b] == o &&
 	              theBlankO[c] == o );
@@ -866,14 +796,9 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN Contiguous2(theBlankO,a,b)
-BlankO theBlankO[];
-int a,b;
-{
+BOOLEAN Contiguous2(BlankO *theBlankO, int a, int b) {
 	return(theBlankO[a] == o && theBlankO[b] == o );
 }
-
-STRING kDBName = "tactix";
 
 int NumberOfOptions()
 {
@@ -894,61 +819,52 @@ void setOption(int option)
 		gStandardGame = FALSE;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankO theBlankO[gBoardSize];
-	for (int i = 0; i < gBoardSize; i++) {
-		switch (board[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				theBlankO[i] = Blank;
-				break;
-			case 'O':
-				theBlankO[i] = o;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankO theBlankO[gBoardSize];
+		for (int i = 0; i < gBoardSize; i++) {
+			switch (board[i]) {
+				case '-':
+					theBlankO[i] = Blank;
+					break;
+				case 'O':
+					theBlankO[i] = o;
+					break;
+				default:
+					return NULL_POSITION;
+			}
 		}
+		return BlankOToPosition(theBlankO);
 	}
-
-	SafeFreeString(board); // Free the string.
-	return BlankOToPosition(theBlankO);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankO posArray[gBoardSize];
-	PositionToBlankO(pos, posArray);
+	PositionToBlankO(position, posArray);
 	char posString[gBoardSize + 1];
-	int i;
-	for (i = 0; i < gBoardSize; i++) {
+	for (int i = 0; i < gBoardSize; i++) {
 		posString[i] = (posArray[i] == Blank) ? '-' : 'O';
 	}
-	posString[i] = '\0';
-	return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_C, 4, 4, posString);
+	posString[gBoardSize] = '\0';
+	AutoGUIMakePositionString(0, posString, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	int lsb = -1, msb = -1;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  int lsb = -1, msb = -1;
 	for (int i = 0; i < 16; i++) {
-		if (mv & 1) {
+		if (move & 1) {
 			msb = i;
 			if (lsb == -1) lsb = i;
 		}
-		mv >>= 1;
+		move >>= 1;
 	}
 	if (msb == lsb) {
-		return UWAPI_Board_Regular2D_MakeAddString('-', lsb);
+		AutoGUIMakeMoveButtonStringA('-', lsb, 'x', autoguiMoveStringBuffer);
+		return;
 	}
 	BOOLEAN isVert = (msb - lsb > 3);
 	int which = -1, lsbi = -1, msbi = -1;
@@ -968,7 +884,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 		default: idx = (lsbi) ? 4 : 3; break;
 	}
 	int from = 16 + ((isVert) ? 48 : 0) + 2 * (6 * which + idx);
-	char *toReturn = UWAPI_Board_Regular2D_MakeMoveString(from, from + 1);
-	toReturn[0] = 'L';
-	return toReturn;
+	AutoGUIMakeMoveButtonStringL(from, from + 1, 'x', autoguiMoveStringBuffer);
 }

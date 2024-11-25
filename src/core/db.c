@@ -76,6 +76,7 @@ MEX             db_get_mex              (POSITION pos);
 void            db_put_mex              (POSITION pos, MEX theMex);
 WINBY           db_get_winby            (POSITION pos);
 void            db_put_winby            (POSITION pos, WINBY winBy);
+DRAWLEVEL       db_get_drawlevel        (POSITION pos);
 BOOLEAN         db_save_database        ();
 BOOLEAN         db_load_database        ();
 void            db_get_bulk             (POSITION* positions, VALUE* ValueArray, REMOTENESS* remotenessArray, int length);
@@ -109,6 +110,7 @@ void db_create() {
 	db_functions->put_mex = db_put_mex;
 	db_functions->get_winby = db_get_winby;
 	db_functions->put_winby = db_put_winby;
+	db_functions->get_drawlevel = db_get_drawlevel;
 	db_functions->save_database = db_save_database;
 	db_functions->load_database = db_load_database;
 	db_functions->free_db = db_free;
@@ -192,45 +194,62 @@ VALUE db_get_value(POSITION pos){
 }
 
 VALUE db_put_value(POSITION pos, VALUE data){
-	printf("DB: Cannot store value of position " POSITION_FORMAT ". The database is uninitialized.\n", pos);
+	printf("DB: Cannot store value %d of position " POSITION_FORMAT ". The database is uninitialized.\n", data, pos);
 	ExitStageRight();
 	exit(0);
 }
 
 REMOTENESS db_get_remoteness(POSITION pos){
+	(void) pos;
 	return kBadRemoteness;
 }
 
 void db_put_remoteness(POSITION pos, REMOTENESS data){
+	(void) pos;
+	(void) data;
 	return;
 }
 
 BOOLEAN db_check_visited(POSITION pos){
+	(void) pos;
 	return FALSE;
 }
 
 void db_mark_visited(POSITION pos){
+	(void) pos;
 	return;
 }
 
 void db_unmark_visited(POSITION pos){
+	(void) pos;
 	return;
 }
 
 MEX db_get_mex(POSITION pos){
+	(void) pos;
 	return kBadMexValue;
 }
 
 void db_put_mex(POSITION pos, MEX theMex){
+	(void) pos;
+	(void) theMex;
 	return;
 }
 
 WINBY db_get_winby(POSITION pos) {
+	(void) pos;
 	return 0;
 }
 
 void db_put_winby(POSITION pos, WINBY winBy) {
+	(void) pos;
+	(void) winBy;
 	return;
+}
+
+DRAWLEVEL db_get_drawlevel(POSITION pos) {
+	(void) pos;
+	return 0;
 }
 
 BOOLEAN db_save_database(){
@@ -401,7 +420,7 @@ void UnMarkAsVisited (POSITION position)
 
 void UnMarkAllAsVisited()
 {
-	int i;
+	POSITION i;
 
 	for(i = 0; i < gNumberOfPositions; i++)
 	{
@@ -413,7 +432,6 @@ void UnMarkAllAsVisited()
 
 void MexStore(POSITION position, MEX theMex)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -422,7 +440,6 @@ void MexStore(POSITION position, MEX theMex)
 
 MEX MexLoad(POSITION position)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -431,7 +448,6 @@ MEX MexLoad(POSITION position)
 
 void WinByStore(POSITION position, WINBY winBy)
 {
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
@@ -440,15 +456,15 @@ void WinByStore(POSITION position, WINBY winBy)
 
 WINBY WinByLoad(POSITION position)
 {
-	WINBY result;
-	/* do we need this?? */
 	if(gSymmetries)
 		position = gCanonicalPosition(position);
 
-	result = db_functions->get_winby(position);
-	if (result > ((1 << (MEX_BITS-1))-1))
-		result |= ~MEX_MAX;
-	return result;
+	return db_functions->get_winby(position);
+}
+
+DRAWLEVEL DrawLevelLoad(POSITION position) {
+	if (gSymmetries) position = gCanonicalPosition(position);
+	return db_functions->get_drawlevel(position);
 }
 
 BOOLEAN SaveDatabase() {

@@ -2720,7 +2720,7 @@ struct bstrList * bsplits (const_bstring str, const_bstring splitStr) {
 }
 
 #if defined (__TURBOC__) && !defined (__BORLANDC__)
-# ifndef BSTRLIB_NOVSNP
+#ifndef BSTRLIB_NOVSNP
 #  define BSTRLIB_NOVSNP
 # endif
 #endif

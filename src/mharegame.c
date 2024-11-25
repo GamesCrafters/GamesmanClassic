@@ -2,7 +2,7 @@
 **
 ** NAME:        mharegame.c
 **
-** DESCRIPTION: Hare Game.
+** DESCRIPTION: Hare Game
 **
 ** AUTHOR:      Robert Shi
 **
@@ -10,7 +10,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions; // Initialized in InitializeGame().
@@ -18,9 +17,9 @@ POSITION kBadPosition = -1;
 
 POSITION gInitialPosition; // Initialized in InitializeGame().
 
-STRING kAuthorName = "Robert Shi";
-STRING kGameName = "Hare Game";
-STRING kDBName = "haregame";
+CONST_STRING kAuthorName = "Robert Shi";
+CONST_STRING kGameName = "Hare Game";
+CONST_STRING kDBName = "haregame";
 BOOLEAN kPartizan = TRUE; // Set this to true if different sets of moves are available to each player given a position.
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = TRUE; // Game-specific menu to choose the game variant.
@@ -30,13 +29,13 @@ BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = TRUE; // Flipping the board across the x-axis gives a symmetric position.
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = ""; // Ignore for now.
-STRING kHelpTextInterface = "kHelpTextInterface goes here"; // Answer to "What do I do on MY TURN?"
-STRING kHelpOnYourTurn = "kHelpOnYourTurn goes here"; // Answer to "How do I tell the computer WHICH MOVE I want?"
-STRING kHelpStandardObjective = "kHelpStandardObjective goes here"; // Answer to "What is the %s OBJECTIVE of Hare Game?"
-STRING kHelpReverseObjective = ""; // Ignore for now. 
-STRING kHelpTieOccursWhen = "A tie never occurs."; // Should follow "A Tie occurs when..."
-STRING kHelpExample = "kHelpExample goes here"; // A string that shows an example game.
+CONST_STRING kHelpGraphicInterface = ""; // Ignore for now.
+CONST_STRING kHelpTextInterface = "kHelpTextInterface goes here"; // Answer to "What do I do on MY TURN?"
+CONST_STRING kHelpOnYourTurn = "kHelpOnYourTurn goes here"; // Answer to "How do I tell the computer WHICH MOVE I want?"
+CONST_STRING kHelpStandardObjective = "kHelpStandardObjective goes here"; // Answer to "What is the %s OBJECTIVE of Hare Game?"
+CONST_STRING kHelpReverseObjective = ""; // Ignore for now. 
+CONST_STRING kHelpTieOccursWhen = "A tie never occurs."; // Should follow "A Tie occurs when..."
+CONST_STRING kHelpExample = "kHelpExample goes here"; // A string that shows an example game.
 
 /*************************************************************************
 **
@@ -79,7 +78,6 @@ static void printBoard(int *indices, int hare_i);
 **************************************************************************/
 
 POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
 POSITION ActualNumberOfPositions(int variant);
 
 /************************************************************************
@@ -92,8 +90,8 @@ POSITION ActualNumberOfPositions(int variant);
 
 void InitializeGame() {
     gCanonicalPosition = GetCanonicalPosition;
-    gMoveToStringFunPtr = &MoveToString;
     gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
+    kUsePureDraw = TRUE;
 
     makeTriangle();
     switchVariant(currVariant);
@@ -159,6 +157,7 @@ void GameSpecificMenu() {
             break;
         case 'Q': case 'q':
             ExitStageRight();
+            break;
         case 'H': case 'h':
             HelpMenus();
             break;
@@ -229,22 +228,6 @@ POSITION DoMove(POSITION position, MOVE move) {
     hare_i = findHare(indices, hareIdx);
     POSITION ret = constructPosition(indices, hare_i, !haresTurn);
     return ret;
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-    int pos = GetMyInt();
-    return pos;
 }
 
 /************************************************************************
@@ -609,22 +592,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-    STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
-/************************************************************************
-**
 ** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -633,12 +600,10 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-    STRING m = (STRING)SafeMalloc(12);
+void MoveToString(MOVE move, char *m) {
     int destIdx, srcIdx;
     unpackMove(move, &destIdx, &srcIdx);
-    sprintf(m, "[%d %d]", srcIdx, destIdx);
-    return m;
+    snprintf(m, 12, "%d %d", srcIdx, destIdx);
 }
 
 /************************************************************************
@@ -680,75 +645,8 @@ void setOption(int option) {
 
 POSITION ActualNumberOfPositions(int variant) {
     // Ignoring for now.
+    (void)variant;
     return 0;
-}
-
-POSITION InteractStringToPosition(STRING str) {
-    enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-    int i, j = 3, n = numCells(currVariant), hare_i = 0;
-    int indices[4];
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-    for (i = 0; i < n; ++i) {
-        switch (board[i]) {
-        case '-':
-            break;
-        case 'd':
-            if (j < 0) {
-		        return INVALID_POSITION;
-            }
-            indices[j--] = i;
-            break;
-        case 'r':
-            if (j < 0) {
-		        return INVALID_POSITION;
-            }
-            indices[j] = i;
-            hare_i = j--;
-            break;
-        default:
-		    return INVALID_POSITION;
-        }
-    }
-	SafeFreeString(board); // Free the string.
-    BOOLEAN haresTurn = ((turn == UWAPI_TURN_A) && (currVariant & 0b1)) ||
-        ((turn == UWAPI_TURN_B) && (!(currVariant & 0b1)));
-    return constructPosition(indices, hare_i, haresTurn);
-}
-
-STRING InteractPositionToString(POSITION position) {
-    int indices[4];
-    int hare_i, i, j = 3, n = numCells(currVariant);
-    BOOLEAN haresTurn;
-    char *board = SafeMalloc(n + 1);
-    unpackPosition(position, indices, &hare_i, &haresTurn);
-    for (i = 0; i < n; ++i) {
-        if (indices[j] == i) {
-            board[i] = hare_i == j ? 'r' : 'd';
-            --j;
-        } else {
-            board[i] = '-';
-        }
-    }
-    board[n] = '\0';
-    enum UWAPI_Turn turn = ((currVariant & 0b1) ^ haresTurn) ? UWAPI_TURN_B : UWAPI_TURN_A;
-    STRING ret = UWAPI_Board_Regular2D_MakeBoardString(turn, n, board);
-    SafeFree(board);
-    return ret;
-}
-
-STRING InteractPositionToEndData(POSITION position) {
-    return NULL;
-}
-
-STRING InteractMoveToString(POSITION position, MOVE move) {
-    int destIdx, srcIdx;
-    unpackMove(move, &destIdx, &srcIdx);
-    return UWAPI_Board_Regular2D_MakeMoveString(srcIdx, destIdx);
 }
 
 /* Algorithm by Sufian Latif,
@@ -884,4 +782,68 @@ static void printBoard(int *indices, int hare_i) {
     for (int i = 0; i < 5; ++i) {
         printf("%s\n", board[i]);
     }
+}
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+        int i, j = 3, n = numCells(currVariant), hare_i = 0;
+        int indices[4];
+        for (i = 0; i < n; ++i) {
+            switch (board[i]) {
+            case '-':
+                break;
+            case 'd':
+                if (j < 0) {
+                    return NULL_POSITION;
+                }
+                indices[j--] = i;
+                break;
+            case 'r':
+                if (j < 0) {
+                    return NULL_POSITION;
+                }
+                indices[j] = i;
+                hare_i = j--;
+                break;
+            default:
+                return NULL_POSITION;
+            }
+        }
+        BOOLEAN haresTurn = ((turn == 1) && (currVariant & 0b1)) || ((turn == 2) && (!(currVariant & 0b1)));
+        return constructPosition(indices, hare_i, haresTurn);
+	}
+	return NULL_POSITION;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	int indices[4];
+    int hare_i, i, j = 3, n = numCells(currVariant);
+    BOOLEAN haresTurn;
+    char board[n + 1];
+    unpackPosition(position, indices, &hare_i, &haresTurn);
+    for (i = 0; i < n; ++i) {
+        if (indices[j] == i) {
+            board[i] = hare_i == j ? 'r' : 'd';
+            --j;
+        } else {
+            board[i] = '-';
+        }
+    }
+    board[n] = '\0';
+    int turn = ((currVariant & 0b1) ^ haresTurn) ? 2 : 1;
+    AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    (void) position;
+    int indices[4];
+    int hare_i;
+    BOOLEAN haresTurn;
+    unpackPosition(position, indices, &hare_i, &haresTurn);
+    int destIdx, srcIdx;
+    unpackMove(move, &destIdx, &srcIdx);
+    char sound = (haresTurn) ? 'r' : 'd';
+    AutoGUIMakeMoveButtonStringM(srcIdx, destIdx, sound, autoguiMoveStringBuffer);
 }

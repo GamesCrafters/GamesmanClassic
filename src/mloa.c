@@ -8,47 +8,6 @@
 **
 ** DATE:        Started 9/18/2006
 **
-** UPDATE HIST: 2008.05.05 Fixed getOption to start at 1 instead of 0
-**              2006.09.18 Coded InitializeGame and PrintPosition
-**                         without hashes
-**              2006.09.19 Fixed PrintPosition
-**              2006.09.25 Fixed InitializeGame and PrintPosition to work
-**                         with generic hash
-**              2006.09.26 Coded Primitive and created isConnected to help
-**                         Coded GenerateMoves and its helper functions
-**              2006.10.07 Coded DoMove and debugged all previous functions
-**                         fixed piecesInLineOfAction, got rid of board
-**                         within functions in favor of gBoard everywhere
-**                         to get rid of seg faults, fixed Primitive so that
-**                         result is not always undecided
-**              2006.10.12 Debugged Primitive and changed the way the board
-**                         is printed so it's like a chessboard.
-**              2006.10.13 Fixed Primitive to check for a tie. Fixed
-**                         MoveToString (forgot to add '\0' to the end of
-**                         strings)
-**              2006.10.16 Fixed GenerateMoves to check that the destination
-**                         square is blank before adding to list of moves.
-**              2006.10.17 Fixed GenerateMoves to check that the destination
-**                         square does not have a piece of your own color.
-**                         Fixed moveHash hardcoding 4 instead of SIDELENGTH
-**                         Wrote my own hash, unhash and turn functions since
-**                         generic_hash stuff was acting up and didn't let me
-**                         go over a 4x4 board. Fixed Primitive so it doesn't
-**                         think win means Black won.  Instead, win means the
-**                         player whose turn it is has won.
-**              2006.11.28 Added game specific menu, allowing you to resize
-**                         the board.  Added help strings and misere to
-**                         Primitive.
-**              2006.12.13 Changed PrintPosition to also display info on
-**                         whose turn it is and what piece that player is using.
-**                         Also changed to 1-based game variants.
-**              2007.2.16  Fixed primitive so it didn't try and free a null pointer
-**              2007.2.19  Added symmetries using generic symmetries
-**
-**
-**
-** LAST CHANGE: $Id: mloa.c,v 1.18 2008-05-08 06:09:42 l156steven Exp $
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -57,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -70,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Lines of Action";
-STRING kAuthorName          = "Albert Shau";
-STRING kDBName              = "loa";   /* The name to store the database under */
+CONST_STRING kGameName            = "Lines of Action";
+CONST_STRING kAuthorName          = "Albert Shau";
+CONST_STRING kDBName              = "loa";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -95,17 +49,17 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "No graphic interface yet.";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "The board is a square with columns labeled by letter and rows labeled by number. \n\
 A position is referenced with a letter first and then a number.  A move consists \n\
 of two positions: the starting position followed by the ending position.  \n\
 For example, the bottom left square of the board is a1.  If you want to move a piece \n\
 from a1 to a3, the format of the move is a1a3."                                                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, pick a piece of your color that you wish to move.  You may move \n\
 in a straight line in any direction.  This line is called a line of action. \n\
 To find the number of spaces you may move in a given line of action, count all \n\
@@ -114,7 +68,7 @@ squares in that line.  You may jump over your own pieces, but not your opponents
 You may also capture the opponents' pieces if your piece lands directly on it.  You \n\
 may not capture your own pieces."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the game is to move all your pieces into a single connected \n\
 block.  A piece is connected to another piece if it occupies one of the eight \n\
 squares directly surrounding the other peice.  If a move causes both players' \n\
@@ -132,17 +86,17 @@ illustrates a game in which X has won.\n\
      +---+---+---+---+\n\
        a   b   c   d "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The misere (reverse) objective of the game to get your opponents pieces into \n\
 a single connected block.  If the opponent only has one piece left, that counts \n\
 as a single connected block.  If a move results in both players having single \n\
 connected blocks of their own pieces, the player that just moved loses."                                                                                                                                                                                                                                                                ;
 
 // A tie occurs when is already displayed above this
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "a player cannot move on his/her turn.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "The following is an example game played on a 4x4 board. Player1 is X and Player2 is o. \n\
 \n\
 Starting Position:\n\
@@ -233,7 +187,7 @@ BOOLEAN pieceIsolated(int boardSquare);
 Direction oppositeDirection(Direction direction);
 POSITION setInitialPosition();
 int numPiecesLeft(char color);
-STRING moveUnhash(MOVE move);
+void moveUnhash(MOVE move, char *moveString);
 MOVE moveHash(STRING input);
 char* boardUnhash(POSITION pos, char* board);
 POSITION boardHash(char* board, int player);
@@ -241,15 +195,6 @@ POSITION power(POSITION base, int exponent);
 int boardHash_turn(POSITION pos);
 int goInDirection(Direction direction);
 void InitializeHelpStrings();
-
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
-STRING                  MoveToString(MOVE move);
 
 /************************************************************************
 **
@@ -411,8 +356,6 @@ Player 1 wins!"                                                                 
    kHelpExample =
    "";
  */
-	gMoveToStringFunPtr = &MoveToString;
-
 }
 
 
@@ -725,6 +668,36 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStringBuffer) {
+	moveUnhash(move, moveStringBuffer);
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+**
+** INPUTS:      MOVE move         : The move to print.
+**
+************************************************************************/
+
+void PrintMove (MOVE move)
+{
+	char str[20];
+	MoveToString(move, str);
+	printf("%s", str);
+}
 
 /************************************************************************
 **
@@ -739,44 +712,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	STRING str = MoveToString(computersMove);
+	char str[20];
+	MoveToString(computersMove, str);
 	printf("%s's move: %s", computersName, str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING moveString = moveUnhash(move);
-	return moveString;
 }
 
 
@@ -803,7 +741,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -960,28 +897,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return gInitialPosition;
-}
-
 
 /************************************************************************
 **
@@ -1356,9 +1273,8 @@ MOVE moveHash(STRING input)
 	return move;
 }
 
-STRING moveUnhash(MOVE move)
+void moveUnhash(MOVE move, char *moveString)
 {
-	STRING moveString = (STRING) SafeMalloc(5);
 	int startSquare, endSquare;
 	char letter, number;
 
@@ -1373,8 +1289,6 @@ STRING moveUnhash(MOVE move)
 	moveString[2] = letter;
 	moveString[3] = number;
 	moveString[4] = '\0';
-
-	return moveString;
 }
 
 
@@ -1398,6 +1312,7 @@ char* boardUnhash(POSITION pos, char* board)
 
 POSITION boardHash(char* board, int player)
 {
+	(void)board;
 	int i;
 	POSITION result;
 
@@ -1507,20 +1422,18 @@ POSITION power(POSITION base, int exponent)
 **
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

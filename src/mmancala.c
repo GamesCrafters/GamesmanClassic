@@ -28,9 +28,6 @@
  *  this module, because it already supports the ability to change.
  */
 
-#include <stdio.h>
-#include <ctype.h>
-#include <stdlib.h>
 #include "gamesman.h"
 
 int *array_hash (POSITION position);
@@ -48,9 +45,9 @@ BOOLEAN kGameSpecificMenu    = TRUE;
 BOOLEAN kTieIsPossible       = TRUE;
 BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
-STRING kAuthorName          = "Spencer Ray and Keith Ho";
-STRING kGameName            = "Mancala";
-STRING kDBName              = "mancala";
+CONST_STRING kAuthorName          = "Spencer Ray and Keith Ho";
+CONST_STRING kGameName            = "Mancala";
+CONST_STRING kDBName              = "mancala";
 POSITION kBadPosition         = -1;
 
 TIER BoardToTier(int* board);
@@ -61,9 +58,9 @@ TIERPOSITION NumberOfTierPositions(TIER tier);
 int* ToTierArrayBoard(int *ArrayBoard);
 int* ToArrayBoard(int *TierArrayBoard, TIER tierNum);
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the numbers next to 'P1 Bin #' or 'P2 Bin #' to choose\n\
 a bin from which to move your stones. Player 1 (P1) chooses from the top \n\
 row, and Player 2 (P2) chooses from the bottom. The brackets [ ] represent\n\
@@ -72,24 +69,24 @@ stones in that bin. The far left and far right bins are the mancalas.\n\
 The far left mancala belongs to P1 and the other to P2. You cannot move \n\
 from a mancala."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Choose one of your bins. Player 1 chooses from the top, player 2 chooses\n\
 from the bottom. This will disperse your stones counterclockwise around \n\
 the board from that bin. The bin you choose must NOT be empty, and you \n\
 CANNOT choose either mancala (the far left or right bin)."                                                                                                                                                                                                                                            ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To play until all the stones are contained in the two mancalas and no \n\
 more moves are possible. The player whose mancala contains more stones wins."                                                                                   ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To play until all the stones are contained in the two mancalas and no \n\
 more moves are possible. The player whose mancala contains fewer stones wins."                                                                                   ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "both mancalas contain an equal number of stones at the end of the game.";
 
-STRING kHelpExample = "\
+CONST_STRING kHelpExample = "\
 P2 Bin #         1       2       3		\n\
                 [4]     [4]     [4]		\n\
         [0]                             [0]	\n\
@@ -190,8 +187,6 @@ void UpdateGameSpecs();
 void BadMenuChoice();
 int rearranger_hash_init(int, int, int);
 
-STRING MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -228,9 +223,6 @@ void InitializeGame()
 	// printf("slot %d: %d\n",z,arrayBoard[z]);
 
 	SafeFree (arrayBoard);
-
-	gMoveToStringFunPtr = MoveToString;
-
 }
 
 
@@ -310,12 +302,12 @@ void SetupTierStuff() {
 
 TIERLIST* TierChildren(TIER tier)
 {
-	int i,j;
+	TIER i,j;
 	TIERLIST* list = NULL;
 	list = CreateTierlistNode(tier, list);
 
-	for(i=0; i <= numOfPieces - (tier/10000)- (tier%10000); i++) {
-		for(j=0; j <= numOfPieces - (tier/10000) - (tier%10000) - i; j++) {
+	for(i=0; i <= (TIER)numOfPieces - (tier/10000)- (tier%10000); i++) {
+		for(j=0; j <= (TIER)numOfPieces - (tier/10000) - (tier%10000) - i; j++) {
 			if(i != 0 || j!= 0)
 				list = CreateTierlistNode(tier+(10000*i)+j,list);
 		}
@@ -426,19 +418,6 @@ void UpdateGameSpecs()
 		             "gNumberOfPositions: " POSITION_FORMAT "\n", boardSize,
 		             numOfPieces, turnOffset, gNumberOfPositions);
 }
-
-/************************************************************************
-**
-** NAME:        FreeGame
-**
-** DESCRIPTION:
-**
-************************************************************************/
-
-void FreeGame()
-{
-}
-
 
 /************************************************************************
 **
@@ -604,8 +583,9 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(int theOptions [])
+void SetTclCGameSpecificOptions(int theOptions[])
 {
+	(void)theOptions;
 }
 
 
@@ -892,7 +872,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 	int startBin = mancalaL + 1;
 	int endBin = mancalaR;
 	int *arrayHashedBoard;
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 
 	arrayHashedBoard = array_hash(position);
 	t = arrayHashedBoard[turn];
@@ -1050,27 +1030,6 @@ MOVE ConvertTextInputToMove(STRING input)
 	return (newMove > mancalaR ? boardSize - newMove + mancalaR : newMove);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move that has just been carried out.  The move
-**              represents the bin # from the board configuration.
-**              Because the bins on the bottom row don't
-**              index perfectly with our board's array configuration,
-**              an extra calculation must be done for a selection on those
-**              bins.
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove)
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1081,15 +1040,11 @@ void PrintMove(MOVE theMove)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(8);
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
 	if(theMove > mancalaR) {
 		theMove = boardSize - theMove + mancalaR;
 	}
-	sprintf(move, "%d", theMove);
-	return move;
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
 
@@ -1255,11 +1210,10 @@ int *array_hash (POSITION position) {
 		char *board = (char *) SafeMalloc (rsize * sizeof(char));
 		int *result = (int *) SafeMalloc ((boardSize + 1) * sizeof (int));
 
-		if (position > turnOffset) {
+		if (position > (POSITION)turnOffset) {
 			position -= turnOffset;
 			result[turn] = 1;
 		} else result[turn] = 0;
-
 
 		rearranger_unhash (position, board); //analogous to generic hash
 
@@ -1441,8 +1395,7 @@ int rearranger_hash(char* board)
 
 BOOLEAN rearranger_unhash(int hashed, char* dest)
 {
-	int i, j, numxs, numos, temp, boardsize;
-	j = 0;
+	int i, numxs, numos, temp, boardsize;
 	boardsize = my_gHashBoardSize;
 	numxs = my_gHashMinMax[3];
 	numos = my_gHashMinMax[1];
@@ -1500,29 +1453,6 @@ int my_nCr(int n, int r)
 
 
 void* gGameSpecificTclInit = NULL;
-POSITION InteractStringToPosition(STRING board) {
-    int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
-    char *split;
-    for (i = 0; i < boardSize; i++) {
-        split = strchr(board, 's');
-        if (!split) {
-            split = strchr(board, ';');
-        }
-        *split = '\0';
-        arrayHashBoard[i] = atoi(board);
-        board = split + 1;
-    }
-    board --;
-    *board = ';';
-    POSITION pos;
-    if (GetValue(board, "turn", GetInt, &arrayHashBoard[turn]) == 0) {
-        pos = INVALID_POSITION;
-    } else {
-        pos = array_unhash(arrayHashBoard);
-    }
-    SafeFree(arrayHashBoard);
-    return pos;
-}
 
 int numDigits(int number){
     int digits = 0;
@@ -1534,8 +1464,37 @@ int numDigits(int number){
     return digits;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	int *arrayHashedBoard = array_hash(pos), i;
+POSITION StringToPosition(char *positionString) {
+	char pscopy[120];
+	memcpy(pscopy, positionString, 100);
+	char *oldpsval = positionString;
+	int *arrayHashBoard = SafeMalloc(sizeof(int) * (boardSize + 1)), i;
+    char *split;
+    for (i = 0; i < boardSize; i++) {
+        split = strchr(positionString, 's');
+        if (!split) {
+            split = strchr(positionString, ',');
+        }
+        *split = '\0';
+        arrayHashBoard[i] = atoi(positionString);
+        positionString = split + 1;
+    }
+    positionString--;
+    *positionString = ',';
+    POSITION pos;
+    if (GetValue(positionString, "turn", GetInt, &arrayHashBoard[turn]) == 0) {
+        pos = INVALID_POSITION;
+    } else {
+        pos = array_unhash(arrayHashBoard);
+    }
+    SafeFree(arrayHashBoard);
+	positionString = oldpsval;
+	memcpy(positionString, pscopy, 100);
+    return pos;
+}
+
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	int *arrayHashedBoard = array_hash(position), i;
     int digitLength = 0;
     for (i = 0; i < boardSize; i++) {
         digitLength += numDigits(arrayHashedBoard[i]);
@@ -1552,17 +1511,13 @@ STRING InteractPositionToString(POSITION pos) {
     
     *board = '\0';
     char* turnValue = (char*) SafeMalloc(numDigits(arrayHashedBoard[turn]));
-    sprintf(turnValue, "%d", arrayHashedBoard[turn]);
-    char* retString = MakeBoardString(start, "turn", turnValue, "");
-
+    snprintf(turnValue, 5, "%d", arrayHashedBoard[turn]);
+    //char* retString = MakeBoardString(start, "turn", turnValue, "");
+	snprintf(autoguiPositionStringBuffer, 120, "%s,turn=%s", start, turnValue);
     SafeFree(arrayHashedBoard);
-	return retString;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  MoveToString(move, autoguiMoveStringBuffer);
 }

@@ -1,4 +1,19 @@
-#include <stdio.h>
+/************************************************************************
+**
+** NAME:        mponghauki.c
+**
+** DESCRIPTION: Pong Hau K'i
+**
+** AUTHOR:      Kyle Zentner
+**
+**************************************************************************/
+
+/*************************************************************************
+**
+** Everything below here must be in every game file
+**
+**************************************************************************/
+
 #include "gamesman.h"
 
 #define BOARD_SIZE 5
@@ -17,8 +32,8 @@ char playerPiece[] = " XO";
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Kyle Zentner";
-STRING kGameName = "Pong Hau K'i";
+CONST_STRING kAuthorName = "Kyle Zentner";
+CONST_STRING kGameName = "Pong Hau K'i";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -27,19 +42,19 @@ BOOLEAN kLoopy = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
+CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
 
-STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
+CONST_STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -71,10 +86,6 @@ void InitializeGame()
   gInitialPosition = generic_hash_hash(start, 1);
   /* This game is the same game as Blocking and is known to be pure draw. */
   kUsePureDraw = TRUE;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -114,6 +125,7 @@ void GameSpecificMenu() {
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
+  (void)theOptions;
 }
 
 /************************************************************************
@@ -149,23 +161,8 @@ POSITION DoMove(POSITION position, MOVE move)
 
 void UndoMove(MOVE move)
 {
-  assert(0);
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-  return gInitialPosition;
+  (void)move;
+  ExitStageRightErrorString("UndoMove not implemented.");
 }
 
 /************************************************************************
@@ -179,10 +176,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
   int start = DECODE_MOVE_START(computersMove);
   int end = DECODE_MOVE_END(computersMove);
   printf("%s moved: %d, %d\n", computersName, start, end);
@@ -241,6 +235,7 @@ VALUE Primitive(POSITION position)
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   char board[BOARD_SIZE];
   generic_hash_unhash(position, board);
   printf("\n");
@@ -340,8 +335,8 @@ POSITION GetCanonicalPosition(POSITION position)
 **
 ************************************************************************/
 
-POSITION DoSymmetry(POSITION position, int symmetry)
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
+  (void)symmetry;
   return position;
 }
 
@@ -368,11 +363,7 @@ POSITION DoSymmetry(POSITION position, int symmetry)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
   USERINPUT ret = Continue;
   do {
     printf("%s's move [(u)ndo/0-4,0-4] :  ", playerName);
@@ -473,14 +464,12 @@ void PrintMove(MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *moveStringBuffer)
 {
-  char * c = malloc(MAX_MOVE_STRING_SIZE);
-  snprintf(c, MAX_MOVE_STRING_SIZE, "%u,%u", DECODE_MOVE_START(move), DECODE_MOVE_END(move));
-  return c;
+  snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%u,%u", DECODE_MOVE_START(move), DECODE_MOVE_END(move));
 }
 
-STRING kDBName = "ponghauki";
+CONST_STRING kDBName = "ponghauki";
 
 int NumberOfOptions()
 {
@@ -494,44 +483,28 @@ int getOption()
 
 void setOption(int option)
 {
+  (void)option;
 }
 
 POSITION ActualNumberOfPositions(int variant)
 {
+  (void)variant;
   return 0;
 }
 
 
-POSITION InteractStringToPosition(STRING board)
-{
-  int i, turn;
-  char board_char[BOARD_SIZE];
-  for(i = 0; i < BOARD_SIZE; i++){
-    board_char[i] = board[i];
-  }
-
-  int success = GetValue(board, "turn", GetInt, &turn);
-  if (success) {
-    return generic_hash_hash(board_char, turn);
-  } else {
-    return INVALID_POSITION;
-  }
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos)
-{
-  char board[BOARD_SIZE + 1];
-  int current_player = generic_hash_turn(pos);
-  generic_hash_unhash(pos, board);
-  return MakeBoardString(board, "turn",  StrFromI(current_player), "");
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos)
-{
-  return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv)
-{
-  return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -9,10 +9,6 @@
 **
 ** DATE:        1999-02-03
 **
-** UPDATE HIST:
-**
-**
-** Last Updated: $Id: mtttppm.c,v 1.6 2006-12-19 20:00:51 arabani Exp $
 **************************************************************************/
 
 /*************************************************************************
@@ -22,8 +18,6 @@
 **************************************************************************/
 
 #include "gamesman.h"
-#include <stdio.h>
-
 
 extern POSITION gInitialPosition;  /* The initial position of the game */
 
@@ -52,9 +46,9 @@ int gY[] = {  -1, -1, -1, 0, 0, 0, 1, 1, 1 };
 
 
 /***** Prototypes *****/
-PIXELBUFFER *CreatePixelBuffer();
-PIXELBUFFER *CreatePixelBufferAtDepth();
-COLOR GetBuffer();
+PIXELBUFFER *CreatePixelBuffer(int x, int y);
+PIXELBUFFER *CreatePixelBufferAtDepth(int depth);
+COLOR GetBuffer(PIXELBUFFER *pixbuf, int i, int j);
 
 void tttppm(int,int);
 void WritePreamblePS(FILE *,int,int);
@@ -86,9 +80,7 @@ void WriteBuffer(PIXELBUFFER *,int,int,COLOR);
 **
 ************************************************************************/
 
-void tttppm(toPS,toFile)
-int toPS, toFile;
-{
+void tttppm(int toPS, int toFile) {
 	FILE *fp;
 	char filename[80];
 	PIXELBUFFER *pixbuf;
@@ -144,8 +136,6 @@ int toPS, toFile;
 
 	if(toPS && toFile) {
 		fclose(fp);
-		int z;
-		int x;
 		const char *myFirst = "pstoedit -f plot-svg ";
 		char command[256];
 		int k;
@@ -153,18 +143,18 @@ int toPS, toFile;
 			command[k] = myFirst[k];
 		}
 		for (k = 21; k<101; k++) {
-			command[20] = " ";
+			command[20] = ' ';
 			command[k] = (char)filename[k-21];
 		}
 		for (k = 102; k<182; k++) {
-			command[101] = " ";
+			command[101] = ' ';
 			command[k+1] = (char)filename[k-102];
 		}
-		command[185] = ".";
-		command[186] = "s";
-		command[187] = "v";
-		command[188] = "g";
-		printf(command);
+		command[185] = '.';
+		command[186] = 's';
+		command[187] = 'v';
+		command[188] = 'g';
+		printf("%s", command);
 		system(command);
 	}
 
@@ -189,10 +179,7 @@ int toPS, toFile;
 **
 ************************************************************************/
 
-void WritePreamblePS(fp,scale,depth)
-FILE *fp;
-int scale,depth;
-{
+void WritePreamblePS(FILE *fp, int scale, int depth) {
 	fprintf(fp,"%%!-Adobe-1.0\n\
 \n\
 /pagewidthinches 8.5 def\n\
@@ -261,14 +248,9 @@ U %d 0 0 F\n\
 **
 ************************************************************************/
 
-void tttppmrecur(fp,pixbuf,cx,cy,pos,depth,topdowndepth,toPS)
-FILE *fp;
-PIXELBUFFER *pixbuf;
-int cx,cy,depth,topdowndepth,toPS;
-POSITION pos;
-{
-	MOVELIST *ptr, *head, *GenerateMoves();
-	POSITION theChild, DoMove();
+void tttppmrecur(FILE *fp, PIXELBUFFER *pixbuf, int cx, int cy, POSITION pos, int depth, int topdowndepth, int toPS) {
+	MOVELIST *ptr, *head;
+	POSITION theChild;
 	MOVE theMove;
 
 	/* Draw this level */
@@ -314,15 +296,9 @@ POSITION pos;
 **
 ************************************************************************/
 
-void DrawColor(fp,pixbuf,cx,cy,depth,topdowndepth,pos,toPS)
-FILE *fp;
-PIXELBUFFER *pixbuf;
-int cx,cy,depth,topdowndepth,toPS;
-POSITION pos;
-{
-	VALUE Primitive(), GetValueOfPosition();
+void DrawColor(FILE *fp, PIXELBUFFER *pixbuf, int cx, int cy, int depth, int topdowndepth, POSITION pos, int toPS) {
 	int i,j,edge,halfedge,primitivep;
-	COLOR SwapWinLoseColor(), color;
+	COLOR color;
 
 	color = SwapWinLoseColor((COLOR)GetValueOfPosition(pos),topdowndepth);
 	primitivep = (Primitive(pos) != undecided);
@@ -370,10 +346,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-COLOR SwapWinLoseColor(color,topdowndepth)
-COLOR color;
-int topdowndepth;
-{
+COLOR SwapWinLoseColor(COLOR color, int topdowndepth) {
 	if(topdowndepth != 0) { /* Don't swap colors for the first position */
 		if(color == c_lose)
 			return(c_win);
@@ -396,9 +369,7 @@ int topdowndepth;
 **
 ************************************************************************/
 
-int GetOffset(depth,topdowndepth)
-int depth,topdowndepth;
-{
+int GetOffset(int depth, int topdowndepth) {
 	return((gS[depth - topdowndepth]-1)/2);
 }
 
@@ -415,10 +386,7 @@ int depth,topdowndepth;
 **
 ************************************************************************/
 
-void PrintPPMBufferBinary(fp,pixbuf)
-FILE *fp;
-PIXELBUFFER *pixbuf;
-{
+void PrintPPMBufferBinary(FILE *fp, PIXELBUFFER *pixbuf) {
 	int i,j,ci;
 
 	fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
@@ -444,10 +412,7 @@ PIXELBUFFER *pixbuf;
 **
 ************************************************************************/
 
-void PrintPPMBufferAscii(fp,pixbuf)
-FILE *fp;
-PIXELBUFFER *pixbuf;
-{
+void PrintPPMBufferAscii(FILE *fp, PIXELBUFFER *pixbuf) {
 	int i,j,ci;
 
 	fprintf(fp,"P3\n#foo.ppm\n%d %d\n255\n",pixbuf->x,pixbuf->y);
@@ -473,9 +438,7 @@ PIXELBUFFER *pixbuf;
 **
 ************************************************************************/
 
-void PrintBuffer(pixbuf)
-PIXELBUFFER *pixbuf;
-{
+void PrintBuffer(PIXELBUFFER *pixbuf) {
 	int i,j;
 
 	for(j=0; j<pixbuf->y; j++) {
@@ -497,9 +460,7 @@ PIXELBUFFER *pixbuf;
 **
 ************************************************************************/
 
-PIXELBUFFER *CreatePixelBufferAtDepth(depth)
-int depth;
-{
+PIXELBUFFER *CreatePixelBufferAtDepth(int depth) {
 	return(CreatePixelBuffer(gS[depth],gS[depth]));
 }
 
@@ -516,12 +477,7 @@ int depth;
 **
 ************************************************************************/
 
-PIXELBUFFER *CreatePixelBuffer(x,y)
-int x,y;
-{
-  #ifndef MEMWATCH
-	GENERIC_PTR SafeMalloc();
-  #endif
+PIXELBUFFER *CreatePixelBuffer(int x, int y) {
 	PIXELBUFFER *pixbuf;
 	int i,j;
 
@@ -551,11 +507,7 @@ int x,y;
 **
 ************************************************************************/
 
-void WriteBuffer(pixbuf,i,j,color)
-PIXELBUFFER *pixbuf;
-int i,j;
-COLOR color;
-{
+void WriteBuffer(PIXELBUFFER *pixbuf, int i, int j, COLOR color) {
 	if(i >= pixbuf->x)
 		ExitStageRightErrorString("index i greater than max width in WriteBuffer");
 
@@ -578,10 +530,7 @@ COLOR color;
 **
 ************************************************************************/
 
-COLOR GetBuffer(pixbuf,i,j)
-PIXELBUFFER *pixbuf;
-int i,j;
-{
+COLOR GetBuffer(PIXELBUFFER *pixbuf, int i, int j) {
 	if(i >= pixbuf->x)
 		ExitStageRightErrorString("index i greater than max width in WriteBuffer");
 

@@ -131,7 +131,7 @@ bitlib_file_write_bytes(
 {
 	GMSTATUS status = STATUS_SUCCESS;
 
-	if(gzwrite(file, buffer, length) != length) {
+	if(gzwrite(file, buffer, length) != (int) length) {
 		status = STATUS_BAD_COMPRESSION;
 		BPDB_TRACE("bitlib_file_write_bytes()", "call to gzwrite returned an improper value", status);
 	}

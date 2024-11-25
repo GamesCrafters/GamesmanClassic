@@ -140,6 +140,7 @@ void WalkGameTree()
 
 VALUE DetermineValueBU(POSITION position)
 {
+	(void) position;
 	if(kLoopy == TRUE) {
 		printf("I am sorry, this solver only supports non-loopy games.");
 		return(undecided);

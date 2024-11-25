@@ -100,6 +100,7 @@ UINT32 SYMDB_WINBYSLOT = 0;
 UINT32 SYMDB_MEXSLOT = 0;
 UINT32 SYMDB_REMSLOT = 0;
 UINT32 SYMDB_VISITEDSLOT = 0;
+UINT32 SYMDB_DRAWLEVELSLOT = 0;
 
 //
 // graphical purposes - used to test whether a new
@@ -264,6 +265,7 @@ symdb_init(
 	new_db->put_mex = symdb_set_mex;
 	new_db->get_winby = symdb_get_winby;
 	new_db->put_winby = symdb_set_winby;
+	new_db->get_drawlevel = symdb_get_drawlevel;
 	new_db->save_database = symdb_save_database;
 	new_db->load_database = symdb_load_database;
 	new_db->allocate = symdb_allocate;
@@ -526,7 +528,11 @@ symdb_get_value(
         POSITION pos
         )
 {
-	return (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_VALUESLOT );
+	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_VALUESLOT );
+	if (val == tie && symdb_get_remoteness(pos) == (int) symdb_write_slice->maxvalue[SYMDB_REMSLOT/2] ) {
+		val = drawdraw;
+	}
+	return val;
 }
 
 REMOTENESS
@@ -535,7 +541,7 @@ symdb_get_remoteness(
         )
 {
 	REMOTENESS rem = (REMOTENESS) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_REMSLOT );
-	if(symdb_write_slice->maxvalue[SYMDB_REMSLOT/2]+1 == rem) {
+	if((REMOTENESS)(symdb_write_slice->maxvalue[SYMDB_REMSLOT/2]+1) == rem) {
 		return REMOTENESS_MAX;
 	} else {
 		return rem;
@@ -607,6 +613,14 @@ symdb_get_winby(
         )
 {
 	return (WINBY) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_WINBYSLOT );
+}
+
+WINBY
+symdb_get_drawlevel(
+        POSITION pos
+        )
+{
+	return (DRAWLEVEL) functionsMapping->get_slice_slot( (UINT64)pos, SYMDB_DRAWLEVELSLOT );
 }
 
 /*++
@@ -1761,7 +1775,7 @@ symdb_save_database()
 	}
 
 	// allocate memory for each filename
-	for(i = 0; i<slist_size(symdb_schemes); i++) {
+	for(i = 0; i<(int) slist_size(symdb_schemes); i++) {
 		outfilenames[i] = (char *) malloc( 256*sizeof(char) );
 		if(NULL == outfilenames[i]) {
 			status = STATUS_NOT_ENOUGH_MEMORY;
@@ -1865,7 +1879,7 @@ symdb_save_database()
 
 _bailout:
 
-	for(i = 0; i<slist_size(symdb_schemes); i++) {
+	for(i = 0; i<(int) slist_size(symdb_schemes); i++) {
 		SAFE_FREE(outfilenames[i]);
 	}
 

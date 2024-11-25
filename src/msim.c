@@ -9,11 +9,6 @@
 **
 ** DATE:        2002-10-29
 **
-** UPDATE HIST:
-**
-** Decided to check out how much space was wasted with the array:
-**
-** Symmetries implemented, Ilya Landa
 **************************************************************************/
 
 /*************************************************************************
@@ -22,9 +17,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];
@@ -34,8 +26,9 @@ POSITION gNumberOfPositions  = 14348907;  /* 3^15 */
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0;
 
-STRING kAuthorName          = "Dan Garcia and Sunil Ramesh et. al";
-STRING kGameName            = "SIM";
+CONST_STRING kAuthorName          = "Dan Garcia and Sunil Ramesh et. al";
+CONST_STRING kGameName            = "SIM";
+CONST_STRING kDBName = "sim";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -44,26 +37,26 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Place one of your pieces by selecting two endpoints of a line segment\n\
 that does not yet have a piece on it."                                                                                  ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Force your opponent to form a triangle of three of your opponent's pieces.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Form a triangle of three of your pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Neither player forms a triangle of three pieces of the same type.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "\n\
   (Computer should Lose in 15)  \n\
 Computer's move              : 36\n\
@@ -156,8 +149,10 @@ char *gBlankOXString[] = { "-", "O", "X" };
 int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969 };
 
 void PositionToBlankOX(POSITION thePos,BlankOX *theBlankOX);
+POSITION BlankOXToPosition(BlankOX *theBlankOX);
+BOOLEAN Triangle(BlankOX *theBlankOX, int a, int b, int c);
+BlankOX WhoseTurn(BlankOX *theBlankOX);
 
-STRING MoveToString( MOVE );
 POSITION GetCanonical (POSITION p);
 /************************************************************************
 **
@@ -167,14 +162,8 @@ POSITION GetCanonical (POSITION p);
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-	gMoveToStringFunPtr = &MoveToString;
+void InitializeGame() {
 	gCanonicalPosition = GetCanonical;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -186,8 +175,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
+void DebugMenu() {
 	char GetMyChar();
 
 	do {
@@ -200,6 +188,7 @@ void DebugMenu()
 		{
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -236,10 +225,9 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -258,54 +246,12 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
-	BlankOX theBlankOX[BOARDSIZE], WhoseTurn();
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
+	BlankOX theBlankOX[BOARDSIZE];
 
 	PositionToBlankOX(thePosition,theBlankOX);
 
 	return(thePosition + (g3Array[theMove] * (int)WhoseTurn(theBlankOX)));
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	POSITION BlankOXToPosition();
-	BlankOX theBlankOX[BOARDSIZE];
-	signed char c;
-	int i;
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
-	}
-
-	return(BlankOXToPosition(theBlankOX));
 }
 
 /************************************************************************
@@ -333,10 +279,7 @@ int gUserToInternalMove[] =
 	-1,  4,  8, 11, 13, 14
 };
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, gInternalToUserMove[computersMove]);
 }
 
@@ -363,10 +306,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow(), AllFilledIn(), Triangle();
+VALUE Primitive(POSITION position) {
 	BlankOX theBlankOX[BOARDSIZE];
 
 	PositionToBlankOX(position,theBlankOX);
@@ -464,8 +404,6 @@ void DrawMove( char** disp, int width, int height, int from, int to, char c )
 void DrawSimBoard( char** disp, int width, int height )
 {
 	int i;
-	float min = height;
-	if( width<height ) min = width;
 
 	for( i=0; i<6; i++ )
 	{
@@ -494,11 +432,7 @@ void DrawSimBoard( char** disp, int width, int height )
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i;
 	//  VALUE GetValueOfPosition();
 	BlankOX theBlankOx[BOARDSIZE];
@@ -550,11 +484,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOX theBlankOX[BOARDSIZE];
 	int i;
 
@@ -590,12 +521,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/[1-6][1-6]] :  ", playerName);
@@ -625,9 +552,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return ((input[0] <= '6' && input[0] >= '1') && (input[1] <= '6' && input[1] >= '1') && (input[0] != input[1]));
 }
 
@@ -643,29 +568,9 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	/* We get in "25", and return 7 ... etc.. */
 	return gUserToInternalMove[(input[0]-'0')*10 + (input[1]-'0')];
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -678,13 +583,9 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString(MOVE theMove, char *m) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf(m, "%d", gInternalToUserMove[theMove]);
-	return m;
+	snprintf(m, 10, "%d", gInternalToUserMove[theMove]);
 }
 
 /************************************************************************
@@ -706,23 +607,21 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX)
 {
 	int i;
 	for(i = BOARDSIZE-1; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -741,9 +640,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -766,10 +663,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-BOOLEAN Triangle(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN Triangle(BlankOX *theBlankOX, int a, int b, int c) {
 	return(       theBlankOX[a] == theBlankOX[b] &&
 	              theBlankOX[b] == theBlankOX[c] &&
 	              theBlankOX[c] != Blank );
@@ -787,9 +681,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -813,9 +705,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	int i, xcount = 0, ocount = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
@@ -823,16 +713,13 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
 	else
 		return(o);
 }
-
-
-STRING kDBName = "sim";
 
 int NumberOfOptions()
 {
@@ -983,51 +870,47 @@ POSITION GetCanonical (POSITION p){
 	return canonP;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-  STRING board;
-  if (!UWAPI_Board_Custom_ParsePositionString(str, &board)) {
-    // Failed to parse string
-    return INVALID_POSITION;
-  }
-
-  BlankOX theBlankOx[BOARDSIZE];
-  int i;
-  for(i = 0; i < BOARDSIZE; i++){
-    if(board[i] == 'o')
-      theBlankOx[i] = o;
-    else if(board[i] == 'x')
-      theBlankOx[i] = x;
-    else if(board[i] == '-')
-      theBlankOx[i] = Blank;
-  }
-
-  SafeFreeString(board); // Free the string!
-  return BlankOXToPosition(theBlankOx);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOX theBlankOx[BOARDSIZE];
+		for(int i = 0; i < BOARDSIZE; i++){
+			if (board[i] == 'o') {
+				theBlankOx[i] = o;
+			} else if(board[i] == 'x') {
+				theBlankOx[i] = x;
+			} else {
+				theBlankOx[i] = Blank;
+			}
+		}
+		return BlankOXToPosition(theBlankOx);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  BlankOX theBlankOx[BOARDSIZE];
-  PositionToBlankOX(position, theBlankOx);
-  
-  char board[BOARDSIZE + 1];
-  int i;
-  for(i = 0; i < BOARDSIZE; i++){
-    if(theBlankOx[i] == o)
-      board[i] = 'o';
-    else if(theBlankOx[i] == x)
-      board[i] = 'x';
-    else if(theBlankOx[i] == Blank)
-      board[i] = '-';
-  }
-  board[BOARDSIZE] = '\0';
-
-  return UWAPI_Board_Custom_MakePositionString(board);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BlankOX theBlankOx[BOARDSIZE];
+	PositionToBlankOX(position, theBlankOx);
+	
+	char board[BOARDSIZE + 1];
+	int count = 0;
+	for(int i = 0; i < BOARDSIZE; i++){
+		if(theBlankOx[i] == o) {
+			board[i] = 'o';
+		} else if(theBlankOx[i] == x) {
+			board[i] = 'x';
+		} else {
+			board[i] = '-';
+			count++;
+		}
+	}
+	board[BOARDSIZE] = '\0';
+	int turn = (count & 1) ? 1 : 2;
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	MoveToString(move, autoguiMoveStringBuffer);
 }

@@ -1,4 +1,3 @@
-// $Id: mabalone.c,v 1.46 2007-10-17 02:37:50 dmchan Exp $
 /************************************************************************
 **
 ** NAME:        mabalone.c
@@ -6,16 +5,6 @@
 ** DESCRIPTION: Abalone
 **
 ** AUTHOR:      Daniel Wei & Jerry Hong & Michael Mottmann & Melinda Franco
-**
-** DATE:        10/2/06 - Attempted to tierify
-**              4/6/04 - Working and all nice and pretty and stuff
-**              5/3/04 - Even better than before!
-**
-** UPDATE HIST: WHAT ONCE WAS BROKEN NOW IS FIXED
-**		8-21-06	commented out fflush and changed to use GetMyChar()/GetMyInt();
-**			dmchan
-**
-**
 **
 **************************************************************************/
 
@@ -25,25 +14,17 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
-#include <string.h>
-#include <math.h>
 
-extern STRING gValueString[];
 POSITION gNumberOfPositions  = 924;
 
 POSITION gInitialPosition    = 9;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
-STRING kGameName           = "Abalone";
-STRING kDBName             = "Abalone";
+CONST_STRING kAuthorName         = "Jerry Hong, Daniel Wei, Michael Mottmann and Melinda Franco";
+CONST_STRING kGameName           = "Abalone";
+CONST_STRING kDBName             = "Abalone";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
@@ -55,10 +36,10 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "ON YOUR TURN, use the legend to determine which pieces to move.\n\
 In a move, multiple pieces can be moved, but any one piece\n\
 can only shift one space away from where it started.\n\
@@ -76,19 +57,19 @@ TO PERFORM A PUSH, enter the first piece that pushes all the rest, followed\n\
 by the direction of the push.  TO PERFORM A SIDE-STEP, enter all the pieces to\n\
 be moved, followed by the direction of the side-step.\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Choose which piece(s) of yours to move, and in what direction.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To push as many of your opponent's pieces off the board as it takes to win";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to push as many of your pieces off the board as it takes to win.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "There is no tie, only do";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "          BOARD                 LEGEND        DIRECTIONS\n\
 \n\
        -----------        \n\
@@ -156,8 +137,6 @@ Player's move :  5 w\n\
 \n\
 Excellent! You won!"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 
-STRING MoveToString( MOVE );
-
 /*************************************************************************
 **
 ** Everything above here must be in every game file
@@ -216,12 +195,6 @@ POSITION hash(int);
 void unhash(POSITION, int*);
 void FreeHelper(struct row**);
 
-// External
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 // Internal
 int destination (int, int);
 int move_hash (int, int, int, int);
@@ -258,8 +231,6 @@ void InitializeGame()
 	if (DEBUGGING) printf("start initialize game\n");
 
 	SetupGame();
-
-	gMoveToStringFunPtr = &MoveToString;
 
 	if (DEBUGGING) printf("end initializegame\n");
 }
@@ -386,9 +357,9 @@ void changeBoard()
 
 void changeKills()
 {
-	unsigned int kills;
+	int kills;
 	printf("Enter the new number of pieces to capture:   ");
-	kills = GetMyUInt();
+	kills = GetMyInt();
 	if (PIECES - kills < 0) {
 		printf("A player can only lose as many pieces as the game starts with\n");
 		changeKills();
@@ -441,10 +412,9 @@ void changePieces()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
-
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -462,10 +432,7 @@ int theOptions[];
 **              Unhash ()
 **	        destination ()
 *************************************************************************/
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	if (DEBUGGING)
 		printf("Starting Do Move with input: %d\n", theMove);
 	int destination(int,int);
@@ -665,27 +632,6 @@ POSITION GetInitialPosition()
 
 /************************************************************************
 **
-** NAME:        PrintComputersMove*
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
-	printf("%8s's move   : ", computersName);
-	PrintMove(computersMove);
-	//SafeFree(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
 ** NAME:        Primitive
 **
 ** DESCRIPTION: Return the value of a position if it fulfills certain
@@ -703,8 +649,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive ( POSITION h )
-{
+VALUE Primitive ( POSITION h ) {
 	if (DEBUGGING) printf("prim\n");
 	BOOLEAN game_over(char[]);
 
@@ -776,20 +721,10 @@ BOOLEAN game_over(char theBoard[]){
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int whoseMove;
 	unhash(position, &whoseMove);
 	int r, spacing;
-
-	char piece;
-	if (whoseMove == 2)
-		piece = 'x';
-	else
-		piece = 'y';
 
 	//printf("trying to print in PrintPosition");
 	if (N < 4) {
@@ -1030,14 +965,10 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	if (DEBUGGING)
 		printf("generate\n");
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode(); /* In gamesman.c */
-	VALUE Primitive();
 	int slot, direction, ssdir;
 	int pusher2, pusher3, pushee1, pushee2, pushee3;
 	char whoseTurn, opponent;
@@ -1205,12 +1136,7 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 	char whoseTurn;
 	if (generic_hash_turn(thePosition) == 2) {
@@ -1253,8 +1179,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (STRING input)
-{
+BOOLEAN ValidTextInput (STRING input) {
 	int length = strlen(input), i = 0;
 
 	if((length == 4) || (length == 5)) /* one piece case */
@@ -1311,9 +1236,7 @@ BOOLEAN ValidTextInput (STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	if (DEBUGGING)
 		printf("Starting conversion\n");
 	int dir, p1, p2, p3, pushee;
@@ -1341,6 +1264,8 @@ STRING input;
 		p2 = coordinateToInt(input[3], input[4]) - 1;
 		p3 = coordinateToInt(input[6], input[7]) - 1;
 		i = 9;
+	} else {
+		return 0;
 	}
 
 	/* check direction */
@@ -1369,6 +1294,8 @@ STRING input;
 	else if(((input[i] == 'S') || (input[i] == 's')) && ((input[i+1] == 'E') || (input[i+1] == 'e')))
 	{
 		dir = 2;
+	} else {
+		return 0;
 	}
 
 	/*fill in implicit push moves*/
@@ -1389,26 +1316,7 @@ STRING input;
 	return move;
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
-}
-
-STRING MoveToString( theMove )
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(12);
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 
 	if (DEBUGGING)
 		printf("starting MoveToString w/move = %d\n", theMove);
@@ -1460,36 +1368,52 @@ MOVE theMove;
 	/*printf("slot1 = %d, slot2 = %d, slot3 = %d, direction = %d\n", slot1, slot2, slot3, direction);*/
 
 	if ((slot1 == NULLSLOT) && (slot2 == NULLSLOT)) {
-		sprintf(move, "[%c%c %s]", intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
 	}
 	else if ((slot3 == NULLSLOT) && (slot2 == NULLSLOT)) {
-		sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 	}
 	else if (slot1 == NULLSLOT) {
 		if ((slot3 - 1 ) == destination ((slot2 - 1), direction))
-			sprintf(move, "[%c%c %s]", intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
+			snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
 		else
-			sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot2), intToCoordinateY(slot2),
+			snprintf(moveStringBuffer, 15, "[%c%c %c%c %s]",intToCoordinateX(slot2), intToCoordinateY(slot2),
 			        intToCoordinateX(slot3), intToCoordinateY(slot3), dir);
 	}
 	else if (slot3 == NULLSLOT) {
 		if ((slot2 - 1) == destination ((slot1 - 1), direction))
-			sprintf(move, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+			snprintf(moveStringBuffer, 15, "[%c%c %s]", intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 		else
-			sprintf(move, "[%c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
+			snprintf(moveStringBuffer, 15, "[%c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
 			        intToCoordinateX(slot2), intToCoordinateY(slot2), dir);
 	}
 	else if ((slot2 - 1) == destination((slot1 - 1), direction)) {
-		sprintf(move, "[%c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
+		snprintf(moveStringBuffer, 15, "[%c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1), dir);
 	}
 	else {
-		sprintf(move, "[%c%c %c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
+		snprintf(moveStringBuffer, 15, "[%c%c %c%c %c%c %s]",intToCoordinateX(slot1), intToCoordinateY(slot1),
 		        intToCoordinateX(slot2), intToCoordinateY(slot2), intToCoordinateX(slot3),
 		        intToCoordinateY(slot3), dir);
 	}
 	if (DEBUGGING) printf("finished MoveToString\n");
+}
 
-	return move;
+/************************************************************************
+**
+** NAME:        PrintComputersMove*
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("%8s's move   : ", computersName);
+	char msb[30];
+	MoveToString(computersMove, msb);
+	//SafeFree(computersMove);
+	printf("%s\n", msb);
 }
 
 /************************************************************************
@@ -1503,8 +1427,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	int options = 0, n, p;
 	for (n = 2; n <= MAXN; n++) {
 		for (p = 2; p <= maxPieces(n); p++) {
@@ -1526,8 +1449,7 @@ int NumberOfOptions()
 **
 ************************************************************************/
 
-int getOption()
-{
+int getOption() {
 	int option = 1, n, p;
 	for (n = 2; n < N; n++) {
 		for (p = 2; p <= maxPieces(n); p++) {
@@ -2458,25 +2380,19 @@ STRING TierToString(TIER tier) {
 // Revision 1.25  2005/09/15 03:56:08  ogren
 // added : $, : $, changed kGameName = Abalone
 //
-POSITION InteractStringToPosition(STRING board) {
-	POSITION pos = INVALID_POSITION;
-	GetValue(board, "pos", GetUnsignedLongLong, &pos);
-	return pos;
+POSITION StringToPosition(char *positionString) {
+	POSITION position = NULL_POSITION;
+	GetValue(positionString, "pos", GetUnsignedLongLong, &position);
+	return position;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	int whoseMove;
-	unhash(pos, &whoseMove);
-	return MakeBoardString(gBoard,
-			       "turn", StrFromI(whoseMove),
-			       "pos", StrFromI(pos),
-	                       "");
+	unhash(position, &whoseMove);
+	snprintf(autoguiPositionStringBuffer, 120, "%s,turn=%lld,pos=%lld", gBoard, (long long) whoseMove, (long long) position);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  MoveToString(move, autoguiMoveStringBuffer);
 }

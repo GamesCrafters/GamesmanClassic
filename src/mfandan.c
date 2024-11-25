@@ -18,10 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-// #include "loopygasolver.h"
 
 int debug = 0;
 int printMethods = 0;
@@ -34,8 +31,8 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Gamescrafters";
-STRING kGameName           = "Fandango";
+CONST_STRING kAuthorName         = "Gamescrafters";
+CONST_STRING kGameName           = "Fandango";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -43,9 +40,9 @@ BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 
-STRING kHelpGraphicInterface ="";
+CONST_STRING kHelpGraphicInterface ="";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn use the file letter and row number to determine the piece you wish\n\
 to move, the direction and attack method. A move consists of moving a piece to an\n\
 empty adjacent spot. You can capture either by approach or withdrawal. If you move\n\
@@ -58,7 +55,7 @@ If you have made a wrong move at any point,you can type u to revert back to the 
 "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  ;
 
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Move one of your pieces in one of the eight directions by selecting the letter and row\n"
         "number,direction, and attack method. Capturing can be done by withdrawal or approach. To\n"
         "capture by approach the player must move towards the opponent piece so that it is\n"
@@ -67,18 +64,18 @@ STRING kHelpOnYourTurn =
         "opponent's piece away from the opposing piece.";
 
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture all of your opponents pieces or to leave them in a position where they have\n"
         "no more available moves.";
 
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To get all of your pieces captured.\n";
 
 
-STRING kHelpTieOccursWhen ="";
+CONST_STRING kHelpTieOccursWhen ="";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "            BOARD \n\n\
         A     B     C          DIRECTION        ACTION\n\n\
    1    O --- O --- O          NW  N  NE        N = no action \n\
@@ -281,7 +278,6 @@ int getNumOfDigit(int n);
 
 void dbg(char *);
 
-STRING MoveToString(MOVE);
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 void dbg(char* msg) {
@@ -397,12 +393,6 @@ void InitializeGame()
 
 	gInitialPosition = initialPos;
 	gMinimalPosition = initialPos;
-
-	gMoveToStringFunPtr = &MoveToString;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -448,6 +438,7 @@ void GameSpecificMenu() {
 		switch(toupper(GetMyChar())) {
 		case 'Q':
 			ExitStageRight();
+			break;
 		case 'H':
 			HelpMenus();
 			break;
@@ -483,10 +474,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -505,10 +496,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	BlankOX board[BOARDSIZE];
 	POSITION newPosition;
 	char turn = WhoseTurn(thePosition);
@@ -537,6 +525,7 @@ Coordinates CarryOutMove(BlankOX* board, char turn, MOVE theMove, BOOLEAN* captu
 	Coordinates coord;
 	Coordinates result;
 	*captured = FALSE;
+	(void)turn;
 
 	// extract the information from theMove
 	cap = 3 & theMove;
@@ -635,23 +624,6 @@ BOOLEAN GoAgain(POSITION position, MOVE theMove) {
 	}
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	return gInitialPosition;
-}
-
 /************************************************************************
 **
 ** NAME:        PrintComputersMove
@@ -663,10 +635,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	dbg("->PrintComputersMove");
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
@@ -688,9 +657,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	dbg("->Primitive");
 	BlankOX board[BOARDSIZE];
 
@@ -720,24 +687,19 @@ POSITION position;
 ************************************************************************/
 
 //shing
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	dbg("->PrintPos");
 	int x, y;
 	int displayBoardWidth = (BOARDWIDTH - 1 ) * 6 + 1;
 	int displayBoardHeight = (BOARDHEIGHT - 1) * 2 + 1;
-	int numOfDigit = 0;
-	int temp;
-	int maxX;
+	// int numOfDigit = 0;
+	// int temp;
+	// int maxX;
 	int maxY;
 	int slashFlag = 1;
-	int commentx;
 	int myBoardStartAt;
-	int myDirectionStartAt;
-	int myActionStartAt;
+	// int myDirectionStartAt;
+	// int myActionStartAt;
 	int boardIndex;
 	int rowNum = 1;
 
@@ -749,8 +711,8 @@ BOOLEAN usersTurn;
 	PositionToBlankOX(position,theBoard);
 
 	// get the maximum num of digit of the position
-	temp = BOARDWIDTH*BOARDHEIGHT;
-	numOfDigit = getNumOfDigit(temp) - 1;
+	// temp = BOARDWIDTH*BOARDHEIGHT;
+	// numOfDigit = getNumOfDigit(temp) - 1;
 
 	// the word "BOARD" starts at location:
 	myBoardStartAt = ceil((displayBoardWidth - 5)/2.0)  + 8;
@@ -758,13 +720,13 @@ BOOLEAN usersTurn;
 	// myLegendStartAt = ceil((displayBoardWidth -6)/2.0) + 8 + 8 + displayBoardWidth;
 	// the word "DIREDTION" starts at location:
 	//myDirectionStartAt = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 2;
-	myDirectionStartAt = 5 + displayBoardWidth + 8;
+	// myDirectionStartAt = 5 + displayBoardWidth + 8;
 	// the word "ACTION" starts at location:
-	myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
+	// myActionStartAt = myDirectionStartAt + 9 + 8 + 1;
 
 	// get the maximum width
 	//maxX = 8 + displayBoardWidth + 8 + displayBoardWidth + numOfDigit + 8 + 9 + 8 + 24;
-	maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
+	// maxX = 5 + displayBoardWidth + 8 + 9 + 8 + 24;
 
 	maxY = displayBoardHeight;
 
@@ -777,8 +739,6 @@ BOOLEAN usersTurn;
 		maxY = 5;
 
 	maxY = maxY + 2;
-	commentx = maxX + 1 + COMMENTSPACE;
-
 
 	/*
 	   // Display title
@@ -991,19 +951,8 @@ void space(int n) {
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
-	Coordinates IndexToCoordinates(int);
-	int CoordinatesToIndex(Coordinates);
-	int InBounds(Coordinates);
-	Coordinates Neighbor(Coordinates,Direction);
-	Direction NextDirection(Coordinates, Direction);
-	Direction OtherDirection(Direction);
-	BlankOX OtherPlayer(char current);
-	BlankOX WhoseTurn(int);
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 
 	char thisPlayer = WhoseTurn(position);
 	char otherPlayer = thisPlayer==X ? O : X;
@@ -1071,8 +1020,6 @@ POSITION position;
 							}
 							if(!forcedCapture) {
 								move = CoordinatesToIndex(pos)<<5 | intdir<<2 | 0; // cap = 0
-								printf("Adding move:\n");
-								PrintMove(move);
 								head = CreateMovelistNode(move, head);
 							}
 						} // end if can attack by withdraw
@@ -1214,14 +1161,9 @@ int CoordinatesToIndex(Coordinates pos) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	dbg("->GetAndPrintPlayersMove");
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
@@ -1247,9 +1189,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	dbg("->ValidTextInput");
 
 	char file;
@@ -1360,9 +1300,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 
 	char file;
 	int row;
@@ -1466,22 +1404,6 @@ STRING input;
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1490,10 +1412,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc( 13 );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int pos,dir,cap;
 
 	cap = 3 & theMove;
@@ -1508,14 +1427,10 @@ MOVE theMove;
 	char* direction = StringDir( dir );
 	char* capture = StringCap( cap );
 
-	sprintf( move, "[ %s %s %s ]", position, direction, capture );
-
-
+	snprintf( moveStringBuffer, 20, "[ %s %s %s ]", position, direction, capture );
 	SafeFree( position );
 	SafeFree( direction );
 	SafeFree( capture );
-
-	return move;
 }
 
 char* StringCap(int cap) {
@@ -1640,7 +1555,7 @@ BlankOX OtherPlayer(char current) {
 	return current==X ? O : X;
 }
 
-STRING kDBName = "fandan";
+CONST_STRING kDBName = "fandan";
 
 int NumberOfOptions()
 {
@@ -1830,21 +1745,18 @@ int FileRowToIndex(char file, int row) {
    // ----------------------------------------------------
  */
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv)
-{
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

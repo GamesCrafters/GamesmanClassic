@@ -18,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 2 * 43046721;  // changed later if board size changes
@@ -27,8 +26,9 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Quick Cross";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Quick Cross";
+CONST_STRING kDBName = "quickcross";
 BOOLEAN kPartizan           = FALSE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -37,33 +37,33 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "GUI not available at the moment.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine your desired action (place\n\
 horizonally (-), place vertically (|), or switch (x)) and board position\n\
 number. If at any point you have made a mistake, you can type u and hit\n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                        ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of the pieces on one of the empty board positions either\n\
 horizontally or vertically, or you switch its orientation."                                                                                   ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three or four pieces in a row, depending on the game mode, either\n\
 horizontally, vertically, or diagonally. 3/4-in-a-row WINS."                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three or four pieces in a row,\n\
 depending on the game mode, either horizontally, vertically, or diagonally.\n\
 3/4-in-a-row LOSES."                                                                                                                                                              ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "an infinite loop occurs and no player can be forced into a winning or\n\
 losing position."                                                                                                      ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         (  1  2  3  4 )           : o o o o\n\
 LEGEND:  (  5  6  7  8 )  TOTAL:   : o o o o\n\
          (  9 10 11 12 )           : o o o o \n\n\
@@ -115,8 +115,8 @@ typedef enum possibleBoards {
 	b4x4, b3x4, b3x3, b15_3, b15_4
 } Boards;
 
-Boards BOARD = b3x4;
-int BOARDSIZE = 12;
+Boards BOARD = b4x4;
+int BOARDSIZE = 16;
 
 typedef enum possibleBoardPieces {
 	Blank, H, V
@@ -130,10 +130,11 @@ int g3Array[] =          { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683,
 	                   14348907, 43046721};
 
 /** Function Prototypes **/
-void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV, BlankHV *whosTurn);
-
-STRING MoveToString(MOVE move);
-
+void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV);
+BOOLEAN AllFilledIn(BlankHV *theBlankHV);
+BOOLEAN FourInARow(BlankHV *theBlankHV, int a, int b, int c, int d);
+BOOLEAN ThreeInARow(BlankHV *theBlankHV, int a, int b, int c);
+POSITION BlankHVToPosition(BlankHV *theBlankHV);
 POSITION                ActualNumberOfPositions(int variant);
 
 /*************************************************************************
@@ -144,12 +145,7 @@ POSITION                ActualNumberOfPositions(int variant);
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -194,27 +190,27 @@ void GameSpecificMenu()
 		if (inp == '1') {
 			BOARD = b3x3;
 			BOARDSIZE = 9;
-			gNumberOfPositions = 2 * 19683; /*  3^9  */
+			gNumberOfPositions = 19683; /*  3^9  */
 		}
 		else if (inp == '2') {
 			BOARD = b3x4;
 			BOARDSIZE = 12;
-			gNumberOfPositions = 2 * 531441; /*  3^12  */
+			gNumberOfPositions = 531441; /*  3^12  */
 		}
 		else if (inp == '3') {
 			BOARD = b15_3; // basically a 4 X 4 with a corner square removed
 			BOARDSIZE = 15;
-			gNumberOfPositions = 2 * 14348907; /*  3^15  */
+			gNumberOfPositions = 14348907; /*  3^15  */
 		}
 		else if (inp == '4') {
 			BOARD = b15_4;
 			BOARDSIZE = 15;
-			gNumberOfPositions = 2 * 14348907; /*  3^15  */
+			gNumberOfPositions = 14348907; /*  3^15  */
 		}
 		else if (inp == '5') {
 			BOARD = b4x4;
 			BOARDSIZE = 16;
-			gNumberOfPositions = 2 * 43046721; /*  3^16 * turn */
+			gNumberOfPositions = 43046721; /*  3^16 * turn */
 		}
 		else if (inp == 'b' || inp == 'B')
 			;
@@ -235,10 +231,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -256,15 +252,11 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	BlankHV theBlankHV[BOARDSIZE];
-	BlankHV whosTurn;
-	int turnModifier = 0, moveModifier = 0;
+	int moveModifier = 0;
 
-	PositionToBlankHV(thePosition,theBlankHV, &whosTurn);
+	PositionToBlankHV(thePosition,theBlankHV);
 
 	if(0 <= theMove && theMove < BOARDSIZE)
 		moveModifier = g3Array[theMove] * (int)H;
@@ -283,9 +275,7 @@ MOVE theMove;
 		return(thePosition);
 	}
 
-	turnModifier = (whosTurn == V) ? POSITION_OFFSET : -POSITION_OFFSET;
-
-	return thePosition + moveModifier + turnModifier;
+	return thePosition + moveModifier;
 }
 
 
@@ -302,7 +292,6 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	POSITION BlankHVToPosition(); //hash function
 	BlankHV theBlankHV[BOARDSIZE]; //, whosTurn;
 	signed char c;
 	int i;
@@ -329,21 +318,10 @@ POSITION GetInitialPosition()
 			theBlankHV[i++] = V;
 		else if(c == 'o' || c == 'O' || c == '0')
 			theBlankHV[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
-	/*
-	   getchar();
-	   printf("\nNow, whose turn is it? [O/X] : ");
-	   scanf("%c",&c);
-	   if(c == 'x' || c == 'X')
-	   whosTurn = x;
-	   else
-	   whosTurn = o;
-	 */
-
-	return(BlankHVToPosition(theBlankHV,V));
+	return(BlankHVToPosition(theBlankHV));
 }
 
 
@@ -358,10 +336,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int squareNum;
 	char moveType;
 
@@ -371,7 +346,7 @@ STRING computersName;
 		moveType = '-';
 	else if(BOARDSIZE <= computersMove && computersMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= computersMove && computersMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
 
 	printf("%8s's move              : %c%d\n", computersName, moveType,
@@ -402,13 +377,10 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN FourInARow(), ThreeInARow(), AllFilledIn();
-	BlankHV theBlankHV[BOARDSIZE], whosTurn;
+VALUE Primitive(POSITION position) {
+	BlankHV theBlankHV[BOARDSIZE];
 
-	PositionToBlankHV(position,theBlankHV, &whosTurn);
+	PositionToBlankHV(position, theBlankHV);
 
 	/*printf(" & & & & & & &  PRIMITIVE CALLED WITH position = %d",position);*/
 
@@ -518,14 +490,10 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
-	BlankHV theBlankHV[BOARDSIZE], whosTurn;
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
+	BlankHV theBlankHV[BOARDSIZE];
 
-	PositionToBlankHV(position, theBlankHV, &whosTurn); //unhash function
+	PositionToBlankHV(position, theBlankHV); //unhash function
 
 	if (BOARD == b3x4) {
 		printf("\n         (  1  2  3  4 )           : %s %s %s %s\n",
@@ -624,16 +592,13 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
-	BlankHV theBlankHV[BOARDSIZE], whosTurn;
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
+	BlankHV theBlankHV[BOARDSIZE];
 	int i;
 
 	if (Primitive(position) == undecided) {
-		PositionToBlankHV(position,theBlankHV, &whosTurn);
+		PositionToBlankHV(position,theBlankHV);
 		for(i = 0; i < BOARDSIZE; i++) {
 			if(theBlankHV[i] == Blank) {
 				head = CreateMovelistNode(i,head);
@@ -666,13 +631,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/(-|x)(1-%d)] :  ", playerName, BOARDSIZE);
@@ -703,9 +663,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	BOOLEAN valid;
 
 	valid = ((input[0] == '-' || input[0] == '|' || input[0] == 'x' ||
@@ -730,9 +688,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	MOVE theMove;
 	int squareNum;
 
@@ -747,26 +703,10 @@ STRING input;
 		theMove = (MOVE) squareNum + BOARDSIZE;
 	else if(input[0] == 'x' || input[0] == 'X')
 		theMove = (MOVE) squareNum + 2 * BOARDSIZE;
+	else
+		theMove = -1;
 
 	return theMove;
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -779,10 +719,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 4 );
+void MoveToString (MOVE theMove, char *moveStringBuffer) {
 	int squareNum;
 	char moveType;
 
@@ -792,11 +729,9 @@ MOVE theMove;
 		moveType = '-';
 	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE)
 		moveType = '|';
-	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE)
+	else
 		moveType = 'x';
-
-	sprintf(m, "%c%d", moveType, squareNum);
-	return m;
+	sprintf(moveStringBuffer, "%c%d", moveType, squareNum);
 }
 
 /************************************************************************
@@ -818,29 +753,20 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankHV(thePos,theBlankHV, whosTurn)
-POSITION thePos;
-BlankHV *theBlankHV, *whosTurn;
-{
-	if(thePos >= POSITION_OFFSET) {
-		*whosTurn = H;
-		thePos -= POSITION_OFFSET;
-	} else
-		*whosTurn = V;
-
+void PositionToBlankHV(POSITION thePos, BlankHV *theBlankHV) {
 	int i;
 	for(i = BOARDSIZE - 1; i >= 0; i--) {
-		if(thePos >= ((int)V * g3Array[i])) {
+		if(thePos >= (POSITION)(V * g3Array[i])) {
 			theBlankHV[i] = V;
-			thePos -= (int)V * g3Array[i];
+			thePos -= V * g3Array[i];
 		}
-		else if(thePos >= ((int)H * g3Array[i])) {
+		else if(thePos >= (POSITION)(H * g3Array[i])) {
 			theBlankHV[i] = H;
-			thePos -= (int)H * g3Array[i];
+			thePos -= H * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankHV[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankHV");
@@ -859,17 +785,12 @@ BlankHV *theBlankHV, *whosTurn;
 **
 ************************************************************************/
 
-POSITION BlankHVToPosition(theBlankHV, whosTurn)
-BlankHV *theBlankHV, whosTurn;
-{
+POSITION BlankHVToPosition(BlankHV *theBlankHV) {
 	int i;
 	POSITION position = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
 		position += g3Array[i] * (int)theBlankHV[i]; /* was (int)position... */
-
-	if(whosTurn == H)
-		position += POSITION_OFFSET; /* account for whos turn it is */
 
 	return(position);
 }
@@ -888,10 +809,7 @@ BlankHV *theBlankHV, whosTurn;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankHV,a,b,c)
-BlankHV theBlankHV[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankHV *theBlankHV, int a, int b, int c) {
 	return(theBlankHV[a] == theBlankHV[b] &&
 	       theBlankHV[b] == theBlankHV[c] &&
 	       theBlankHV[c] != Blank );
@@ -911,10 +829,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN FourInARow(theBlankHV,a,b,c,d)
-BlankHV theBlankHV[];
-int a,b,c,d;
-{
+BOOLEAN FourInARow(BlankHV *theBlankHV, int a, int b, int c, int d) {
 	return(theBlankHV[a] == theBlankHV[b] &&
 	       theBlankHV[b] == theBlankHV[c] &&
 	       theBlankHV[c] == theBlankHV[d] &&
@@ -935,9 +850,7 @@ int a,b,c,d;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankHV)
-BlankHV theBlankHV[];
-{
+BOOLEAN AllFilledIn(BlankHV *theBlankHV) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -946,8 +859,6 @@ BlankHV theBlankHV[];
 
 	return(answer);
 }
-
-STRING kDBName = "quickcross";
 
 int NumberOfOptions()
 {
@@ -1010,145 +921,70 @@ POSITION ActualNumberOfPositions(int variant) {
 	}
 }
 
-// POSITION InteractStringToPosition(STRING board) {
-// 	// FIXME: this is just a stub
-// 	return atoi(board); //converts string to integer, if the characters are valid integers.
-// }
-
-// STRING InteractPositionToString(POSITION pos) {
-// 	// FIXME: this is just a stub
-// 	return "Implement Me";
-// }
-
-//sample input (this is a UWAPI position string): R_A_4_4_----hh-v--v-vv---h
-//R: indicates that you are using an AutoGui
-//A: Who's turn (A or B)
-//4: Old/ Not necessary. Could be 0, 0. Used to represent number of slots on a rectangular board.
-
-POSITION InteractStringToPosition(STRING board) {
-	enum UWAPI_Turn turn;
-	//enum: a way to initialize a constant, where only specific sequences are 'H', 'V', or Blank.
-	
-	unsigned int num_rows, num_columns; // Unused
-	STRING charBoard;
-	// STRING board;
-	//The ParsePositionString does is: 
-	//take pointers for the board and 
-	//goes through the positon string to initialize the turn value.
-	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &charBoard)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankHV enumBoard[BOARDSIZE];
-	for (int i = 0; i < BOARDSIZE; i++) {
-		switch (charBoard[i]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				enumBoard[i] = Blank;
-				break;
-			case 'h':
-				enumBoard[i] = H;
-				break;
-			case 'v':
-				enumBoard[i] = V;
-				break;
-
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankHV enumBoard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case '-':
+					enumBoard[i] = Blank;
+					break;
+				case 'h':
+					enumBoard[i] = H;
+					break;
+				case 'v':
+					enumBoard[i] = V;
+					break;
+				default:
+					return NULL_POSITION;
+					break;
+			}
 		}
+		return BlankHVToPosition(enumBoard);
 	}
-
-	BlankHV whosTurn;
-	if (turn == UWAPI_TURN_A) {
-		whosTurn = V;
-	} else {
-		whosTurn = H;
-	}
-
-	SafeFreeString(charBoard); // Free the string: (Removing Garbage Memory)
-
-	return BlankHVToPosition(enumBoard, whosTurn);
+	return NULL_POSITION;
 }
 
-
-STRING InteractPositionToString(POSITION pos) { 
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	//takes in a position hash 'pos'. pos is an integer
 	BlankHV enumBoard[BOARDSIZE]; //creating a board array of enums (Blank, H, V)
-	BlankHV whosTurn; 
 
-	PositionToBlankHV(pos, enumBoard, &whosTurn); //Unhash function from position hash to board array. 
-	//passing board into this function measn that our unhashing results will be stored in board now.
-	//passing &whosTurn: & gives the address to the whosTurn variable, which is essentially a pointer to the whosTurn Variable.
-	char charBoard[BOARDSIZE +1]; 
-	//new Board is a new character array for the board, which will store charcaters and not enums.
-	// It is of length Boardsize +1 as it has a space for a null termninator.
-	// A null terminator is helpful to indicate that the string has ended. 
-	// It is a consideration made for C that doesn't have a way to procure the length of the string.
-	// for example, in C  (because it is not an OOP language) we do not have a way to find out the length of the array. We have to know the length beforehand.
-
+	PositionToBlankHV(position, enumBoard);
+	char board[BOARDSIZE + 1]; 
 	for (int i = 0; i < BOARDSIZE; i++) {
-	//We currently have an array of enums, but we would like to have an array of characters instead.
-			switch (enumBoard[i]) {
-				default:
-					fprintf(stderr, "Error: Unexpected position\n");
-					break;
-				case Blank:
-					charBoard[i] = '-';
-					break;
-				case H:
-					charBoard[i] = 'h';
-					break;
-				case V:
-					charBoard[i] = 'v';
-					break;
-
-			}
+		switch (enumBoard[i]) {
+			case H:
+				board[i] = 'h';
+				break;
+			case V:
+				board[i] = 'v';
+				break;
+			default:
+				board[i] = '-';
+				break;
+		}
 	}
-		charBoard[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
-
-		enum UWAPI_Turn turn = (whosTurn == V) ? UWAPI_TURN_A : UWAPI_TURN_B;
-
-		/* The boardstring length (everything that follows "R_A_0_0_") is 16. */ 
-		return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, charBoard); //this function puts the R_A_0_0 in front of our string
+	board[BOARDSIZE] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(0, board, autoguiPositionStringBuffer);
 }
 
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-//UWAPI format: A_(some character)_(some positon)
-//A (Add): Move token. There are 2 types. Default and Custom
-// A Default Move (Just a circle) and 
-// A (Custom Move) is an SVG specifying the shape of the token (L-game).
-
-//M (Moving): Arrow
-
-//L (Line): Line type move. Like Tac Tix.
-
-// pos: a number you have to unhash"
-STRING InteractMoveToString(POSITION pos, MOVE theMove) 
-{
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void)position;
 	int squareNum;
-	if(0 <= theMove && theMove < BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
+	if (0 <= move && move < BOARDSIZE){
+		squareNum = move % BOARDSIZE;
 		int left = squareNum + 16;
 		int right = squareNum + 32;
-		return UWAPI_Board_Regular2D_MakeLineString(left, right);
-	}
-		
-	else if(BOARDSIZE <= theMove && theMove < 2 * BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
+		AutoGUIMakeMoveButtonStringL(left, right, 'y', autoguiMoveStringBuffer);
+	} else if (BOARDSIZE <= move && move < 2 * BOARDSIZE) {
+		squareNum = move % BOARDSIZE;
 		int top = squareNum + 32 + 16;
 		int bottom = squareNum + 32 + 32;
-		return UWAPI_Board_Regular2D_MakeLineString(top, bottom);
+		AutoGUIMakeMoveButtonStringL(top, bottom, 'y', autoguiMoveStringBuffer);
+	} else if (2 * BOARDSIZE <= move && move < 3 * BOARDSIZE) {
+		squareNum = move % BOARDSIZE;
+		AutoGUIMakeMoveButtonStringA('r', squareNum, 'x', autoguiMoveStringBuffer);
 	}
-		
-	else if(2 * BOARDSIZE <= theMove && theMove < 3 * BOARDSIZE){
-		squareNum = theMove % BOARDSIZE;
-		return UWAPI_Board_Regular2D_MakeAddString('r', squareNum);
-
-	}
-	return MoveToString(theMove);
-
 }

@@ -1,8 +1,4 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "gamesman.h"
-
 
 void stringsandwich( char* A, char* B, char* C );
 void APPEND(char* C, char c);
@@ -54,7 +50,7 @@ Player Winner( Node* theBoard, int nodecount );
 
 POSITION EncodeBoard( Node* theBoard, long NodeCount );
 Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos );
-long GetTotalCombinations( Node* theBoard, int NodeCount );
+POSITION GetTotalCombinations( Node* theBoard, int NodeCount );
 
 
 /*for a 3x3 board, it's 5 possible in the corners, 7 in the edges and 9 in the middle * 2 possible WhoseTurn's*/
@@ -66,10 +62,10 @@ POSITION gNumberOfPositions  = 27011250;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    = 0;
 
-STRING kAuthorName         = "Peterson Tretheway";
-STRING kGameName           = "Critical Mass";
+CONST_STRING kAuthorName         = "Peterson Tretheway";
+CONST_STRING kGameName           = "Critical Mass";
 BOOLEAN kPartizan           = TRUE;
-BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = FALSE;
@@ -77,10 +73,10 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Nothing yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Players alternate turns placing pieces in one of the squares that do not \n\
 contain the opponent's piece. When the box is filled, as shown by the counter \n\
 next to the player's piece, the slot explodes. One piece remains in the \n\
@@ -88,23 +84,21 @@ original spot, while the others  are distributed to each adjacent square. \n\
 If the spot is occupied by the opponent, their piece is removed and replaced \n\
 by your piece."                                                                                                                                                                                                                                                                                                                                                                                                                   ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select the desired spot to place your piece by using the legend. A counter \n\
 next to your piece keeps track of how many of your pieces are in the spot. "                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To occupy the whole board.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the first player to completely remove all his or her pieces.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "A tie is not possible";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "It's not rocket science.";
-
-STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -187,12 +181,6 @@ void InitializeGame()
 	gNumberOfPositions*=2;
 
 	free( theBoard );
-
-	gMoveToStringFunPtr = &MoveToString;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -204,53 +192,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-#if 0
-
-	/*I don't know what this is for so I'm commenting it out.*/
-	char GetMyChar();
-
-	do {
-		printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-
-		printf("\tc)\tWrite PPM to s(C)reen\n");
-		printf("\ti)\tWrite PPM to f(I)le\n");
-		printf("\ts)\tWrite Postscript to (S)creen\n");
-		printf("\tf)\tWrite Postscript to (F)ile\n");
-		printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-		printf("\n\nSelect an option: ");
-
-		switch(GetMyChar()) {
-		case 'Q': case 'q':
-			ExitStageRight();
-		case 'H': case 'h':
-			HelpMenus();
-			break;
-		case 'C': case 'c': /* Write PPM to s(C)reen */
-			tttppm(0,0);
-			break;
-		case 'I': case 'i': /* Write PPM to f(I)le */
-			tttppm(0,1);
-			break;
-		case 'S': case 's': /* Write Postscript to (S)creen */
-			tttppm(1,0);
-			break;
-		case 'F': case 'f': /* Write Postscript to (F)ile */
-			tttppm(1,1);
-			break;
-		case 'B': case 'b':
-			return;
-		default:
-			BadMenuChoice();
-			HitAnyKeyToContinue();
-			break;
-		}
-	} while(TRUE);
-
-
-  #endif
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -317,9 +259,7 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int *theOptions) {
 	if( theOptions[0] ) //2x2
 	{
 		gBoardWidth = 2; gBoardHeight = 2;
@@ -362,14 +302,11 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	POSITION realPosition=0;
 	POSITION outPosition=0;
 	Player WhoseTurnItIs = 1;
-	long totalcombos = 0;
+	POSITION totalcombos = 0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -413,25 +350,6 @@ MOVE theMove;
 	return outPosition;
 }
 
-
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	return((POSITION)0);
-}
-
 /************************************************************************
 **
 ** NAME:        PrintComputersMove
@@ -443,10 +361,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
@@ -474,13 +389,11 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	VALUE outValue;
 	Player theWinner;
 	Player WhoseTurnItIs = 0;
-	long totalcombos=0;
+	POSITION totalcombos=0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -553,11 +466,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char theBuffer[1000];
 	char theInst[1000];
 	char theSand[1000];
@@ -598,7 +507,7 @@ BOOLEAN usersTurn;
 	}
 
 	stringsandwich( theInst, theBuffer, theSand );
-	printf( theSand );
+	printf("%s", theSand);
 
 	printf( "\n\n" );
 	printf( "%s", (char*)GetPrediction(position,playerName,usersTurn) );
@@ -622,15 +531,12 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	int i;
 	Player WhoseTurnItIs=0;
 	POSITION realPosition;
-	long totalcombos=0;
+	POSITION totalcombos=0;
 	static int lastboardsize = 0;
 	static Node* theBoard = NULL;
 
@@ -695,14 +601,8 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
-
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 
@@ -735,9 +635,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return(input[0] <= '9' && input[0] >= '1');
 }
 
@@ -753,26 +651,8 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) input[0] - '1'); /* user input is 1-9, our rep. is 0-8 */
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
 }
 
 /************************************************************************
@@ -785,15 +665,9 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(3);
-
+void MoveToString (MOVE move, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf( move, "%d", theMove+1 );
-
-	return move;
+	sprintf( moveStringBuffer, "%d", move + 1 );
 }
 
 
@@ -845,9 +719,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -855,52 +727,6 @@ BlankOX *theBlankOX;
 		position += g3Array[i] * (int)theBlankOX[i]; /* was (int)position... */
 
 	return(position);
-}
-
-/************************************************************************
-**
-** NAME:        ThreeInARow
-**
-** DESCRIPTION: Return TRUE iff there are three-in-a-row.
-**
-** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
-**              int a,b,c                     : The 3 positions to check.
-**
-** OUTPUTS:     (BOOLEAN) TRUE iff there are three-in-a-row.
-**
-************************************************************************/
-
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
-	return(theBlankOX[a] == theBlankOX[b] &&
-	       theBlankOX[b] == theBlankOX[c] &&
-	       theBlankOX[c] != Blank );
-}
-
-/************************************************************************
-**
-** NAME:        AllFilledIn
-**
-** DESCRIPTION: Return TRUE iff all the blanks are filled in.
-**
-** INPUTS:      BlankOX theBlankOX[BOARDSIZE] : The BlankOX array.
-**
-** OUTPUTS:     (BOOLEAN) TRUE iff all the blanks are filled in.
-**
-************************************************************************/
-
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
-	BOOLEAN answer = TRUE;
-	int i;
-
-	for(i = 0; i < BOARDSIZE; i++)
-		answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
-
-	return(answer);
 }
 
 /************************************************************************
@@ -917,9 +743,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	int i, xcount = 0, ocount = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
@@ -927,7 +751,7 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
@@ -940,8 +764,7 @@ BlankOX *theBlankOX;
 
 
 
-void InitNode( Node* this )
-{
+void InitNode( Node* this ) {
 	int i;
 
 	this->neighborcount = 0;
@@ -955,17 +778,15 @@ void InitNode( Node* this )
 }
 
 
-Node* NewNode(void)
-{
+Node* NewNode(void) {
 	return (Node*)(malloc(sizeof( Node )));
 }
 
 
-void PrintNodes( Node* theNodes, int NodeCount )
-{
-	int i;
+void PrintNodes( Node* theNodes, int NodeCount ) {
+	(void)theNodes;
 
-	for( i=0; i<NodeCount; i++ )
+	for( int i=0; i<NodeCount; i++ )
 	{
 		// what happened to this printf?
 	}
@@ -973,16 +794,14 @@ void PrintNodes( Node* theNodes, int NodeCount )
 
 
 
-void AddPiece( Node* this, Player thePlayer )
-{
+void AddPiece( Node* this, Player thePlayer ) {
 	this->piececount++;
 	this->Owner=thePlayer;
 }
 
 
 
-void  AddPieceToQueue( Node* this, Player thePlayer )
-{
+void  AddPieceToQueue( Node* this, Player thePlayer ) {
 	this->queue++;
 	this->queueOwner=thePlayer;
 }
@@ -990,8 +809,7 @@ void  AddPieceToQueue( Node* this, Player thePlayer )
 
 
 
-bool Burst( Node* this )
-{
+bool Burst( Node* this ) {
 	bool retval=false;
 	int i=0;
 
@@ -1013,8 +831,7 @@ bool Burst( Node* this )
 }
 
 
-bool TransferQueue( Node* this )
-{
+bool TransferQueue( Node* this ) {
 	if( this->queue )
 	{
 		this->piececount+=this->queue;
@@ -1030,8 +847,7 @@ bool TransferQueue( Node* this )
 }
 
 
-bool AddNeighbor( Node* theNode, Node* NewNeighbor )
-{
+bool AddNeighbor( Node* theNode, Node* NewNeighbor ) {
 	if( theNode->neighborcount<kMaxNeighbors )
 	{
 		theNode->Neighbors[theNode->neighborcount] = (struct Node*)NewNeighbor;
@@ -1046,8 +862,7 @@ bool AddNeighbor( Node* theNode, Node* NewNeighbor )
 
 
 
-void ConnectBoardWithDiag( Node* theNodes, int Rows, int Columns )
-{
+void ConnectBoardWithDiag( Node* theNodes, int Rows, int Columns ) {
 	int x,y;
 	int litx, lity;
 
@@ -1066,8 +881,7 @@ void ConnectBoardWithDiag( Node* theNodes, int Rows, int Columns )
 }
 
 
-void ConnectBoardCardinal( Node* theNodes, int Rows, int Columns )
-{
+void ConnectBoardCardinal( Node* theNodes, int Rows, int Columns ) {
 	int x,y;
 	int litx, lity;
 
@@ -1093,8 +907,7 @@ void ConnectBoardCardinal( Node* theNodes, int Rows, int Columns )
 
 
 
-void InitBoard( Node* theBoard, int Size )
-{
+void InitBoard( Node* theBoard, int Size ) {
 	int i;
 	for( i=0; i<Size; i++)
 	{
@@ -1104,8 +917,7 @@ void InitBoard( Node* theBoard, int Size )
 
 
 
-void PrintBoard( Node* theBoard, int Rows, int Columns )
-{
+void PrintBoard( Node* theBoard, int Rows, int Columns ) {
 	int x,y;
 	char c;
 
@@ -1123,8 +935,7 @@ void PrintBoard( Node* theBoard, int Rows, int Columns )
 }
 
 
-void SprintBoard( char* theBuffer, Node* theBoard, int Rows, int Columns )
-{
+void SprintBoard( char* theBuffer, Node* theBoard, int Rows, int Columns ) {
 	int x,y;
 	int sl;
 	char c;
@@ -1149,10 +960,9 @@ void SprintBoard( char* theBuffer, Node* theBoard, int Rows, int Columns )
 
 
 
-char GetPlayerCharacter( Player i )
-{
+char GetPlayerCharacter( Player i ) {
 	char CharArray[] = {' ','x','o'};
-	if( i<sizeof( CharArray ) && i>=0 )
+	if( i<(int)sizeof( CharArray ) && i>=0 )
 		return CharArray[i];
 	else
 		return ' ';
@@ -1160,8 +970,7 @@ char GetPlayerCharacter( Player i )
 
 
 
-void UpdateBoard( Node* theBoard, int nodecount )
-{
+void UpdateBoard( Node* theBoard, int nodecount ) {
 	int i;
 	for( i=0; i<nodecount; i++ )
 	{
@@ -1173,8 +982,7 @@ void UpdateBoard( Node* theBoard, int nodecount )
 
 
 
-bool BurstBoardIfNeeded( Node* theBoard, int nodecount )
-{
+bool BurstBoardIfNeeded( Node* theBoard, int nodecount ) {
 	bool retval=false;
 	int i;
 
@@ -1199,8 +1007,7 @@ bool BurstBoardIfNeeded( Node* theBoard, int nodecount )
 
 
 /*simply checks whether anyone occupies the whole board*/
-Player Winner( Node* theBoard, int nodecount )
-{
+Player Winner( Node* theBoard, int nodecount ) {
 	Player retval=0;
 	int i;
 
@@ -1219,14 +1026,12 @@ Player Winner( Node* theBoard, int nodecount )
 
 
 
-void APPEND(char* C, char c)
-{
+void APPEND(char* C, char c) {
 	C[strlen(C)+1]=0; C[strlen(C)]=(c);
 }
 
 
-void stringsandwich( char* A, char* B, char* C )
-{
+void stringsandwich( char* A, char* B, char* C ) {
 	int a=0, b=0;
 
 	while( A[a] != 0 && B[b]!=0 )
@@ -1253,15 +1058,10 @@ void stringsandwich( char* A, char* B, char* C )
 	}
 }
 
+POSITION GetTotalCombinations( Node* theBoard, int NodeCount ) {
+	POSITION counter = 1;
 
-
-long GetTotalCombinations( Node* theBoard, int NodeCount )
-{
-	long counter;
-	long i;
-
-	counter = 1;
-	for( i=0; i<NodeCount; i++ )
+	for (int i=0; i<NodeCount; i++ )
 	{
 		counter*=( theBoard[i].neighborcount )*2+1;
 	}
@@ -1269,13 +1069,7 @@ long GetTotalCombinations( Node* theBoard, int NodeCount )
 	return counter;
 }
 
-
-
-
-
-
-POSITION EncodeBoard( Node* theBoard, long NodeCount )
-{
+POSITION EncodeBoard( Node* theBoard, long NodeCount ) {
 	long i = 0;
 	POSITION counter = 0;
 	unsigned long runningproduct = 1;
@@ -1355,7 +1149,7 @@ Player DecodeBoard( Node* theBoard, long NodeCount, POSITION inPos )
 }
 
 
-STRING kDBName = "cmass";
+CONST_STRING kDBName = "cmass";
 
 int NumberOfOptions()
 {
@@ -1381,20 +1175,18 @@ void setOption(int option)
 	gBoardHeight = option/(2*(MAX_WIDTH-MIN_WIDTH+1))%(MAX_HEIGHT-MIN_HEIGHT+1);
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

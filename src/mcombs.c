@@ -1,7 +1,4 @@
-#include <stdio.h>
-#include <ctype.h>
 #include "gamesman.h"
-#include <math.h>
 
 /*******************************************************************************
 *
@@ -45,21 +42,20 @@ BOOLEAN kGameSpecificMenu      = TRUE;
 BOOLEAN kTieIsPossible         = FALSE;
 BOOLEAN kLoopy                 = FALSE;
 BOOLEAN kDebugDetermineValue   = FALSE;
-STRING kGameName              = "Combinations";
+CONST_STRING kGameName              = "Combinations";
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit   = NULL;
 
-STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
-STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
-STRING kHelpOnYourTurn        = "Help on your turn";
-STRING kHelpStandardObjective = "help standard objective";
-STRING kHelpReverseObjective  = "reverse objective";
-STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
-STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
-STRING kAuthorName            = "Nicholas Herson";
+CONST_STRING kHelpGraphicInterface  = "Help Graphic Interface: Fill in later";
+CONST_STRING kHelpTextInterface     = "Help Text Interface: Fill in later";
+CONST_STRING kHelpOnYourTurn        = "Help on your turn";
+CONST_STRING kHelpStandardObjective = "help standard objective";
+CONST_STRING kHelpReverseObjective  = "reverse objective";
+CONST_STRING kHelpTieOccursWhen     = "A tie is not possible in this game";
+CONST_STRING kHelpExample           = "some really long thing<-Actually play a game,then copy/paste";
+CONST_STRING kAuthorName            = "Nicholas Herson";
 
 static int isLinearCombination(POSITION, int, int);
-STRING MoveToString(MOVE);
 
 void InitializeGame()
 {
@@ -70,14 +66,8 @@ void InitializeGame()
 	// gInitialPosition = ((1<<(rows*3)) - 1) * 2;
 	gMinimalPosition = gInitialPosition;
 
-	gMoveToStringFunPtr = &MoveToString;
 	//gGetSEvalCustomFnPtr = &getSEvalCustomFnPtr;
 	//gCustomTraits = CUSTOM_TRAITS;
-}
-
-// Not sure what this is supposed to do
-void FreeGame()
-{
 }
 
 // Probably not going to implement this
@@ -122,6 +112,7 @@ void GameSpecificMenu()
 // Probably don't need to write this
 void SetTclCGameSpecificOptions(int theOptions [])
 {
+  (void)theOptions;
 }
 
 // just a nice maxing function
@@ -167,11 +158,6 @@ POSITION DoMove(POSITION thePosition, MOVE theMove)
 	return thePosition;
 }
 
-POSITION GetInitialPosition()
-{
-	return gInitialPosition;
-}
-
 // Print out a computer's move
 void PrintComputersMove(MOVE computersMove, STRING computersName)
 {
@@ -194,6 +180,7 @@ VALUE Primitive(POSITION position)
 // Print out a visual representation of the position
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+  (void)usersTurn;
   printf("TURN: %s\n", playerName);
   printf("UNAVAILABLE NUMBERS: ");
   int mask = 1;
@@ -220,7 +207,7 @@ MOVELIST *GenerateMoves(POSITION position)
 {
 	// Here, use head = CreateMovelistNode(move,head) ;
 	// then return head when done
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	int i = 1;
   unsigned long long mask = 1;
 	if(Primitive(position) == undecided)
@@ -284,9 +271,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE* theMove, STRING pla
 
 BOOLEAN ValidTextInput(STRING input)
 {
-	int i;
-	for(i = 0; i < strlen(input); i++)
-		if(!isdigit(input[i]))
+	for (size_t i = 0; i < strlen(input); i++)
+		if (!isdigit(input[i]))
 			return FALSE;
 	return TRUE;
 }
@@ -298,22 +284,11 @@ MOVE ConvertTextInputToMove(STRING input)
 	return ret;
 }
 
-void PrintMove(MOVE theMove)
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(4);
-	sprintf(move, "%d", theMove);
-	return move;
-}
-
-STRING kDBName = "combinations";
+CONST_STRING kDBName = "combinations";
 
 int NumberOfOptions()
 {
@@ -335,20 +310,18 @@ void setOption(int option)
 	//upper = option/2%(MAX_ROWS-MIN_ROWS+1)+MIN_ROWS;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-  return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

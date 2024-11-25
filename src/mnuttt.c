@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mnuttt.c
@@ -13,50 +5,6 @@
 ** DESCRIPTION: Nu Tic-Tac-Toe
 **
 ** AUTHOR:      Guy Boo, Ming (Evan) Huang
-**
-** DATE:        Initial editing started on 2/5/05.
-**              Ending date: unknown yet
-**
-** UPDATE HIST: legend: [+]: feature/new stuff,
-**                      [-]: bug fixes
-**                      [*]: comments
-**
-**              2/5/05: [+] initial commit, some game-specific consts,
-**                          global variables for directions, IntitializeGame(),
-**                          PrintPosition(), DoMove(), primitive(),
-**                          printComputersMove (), Hash/unhash for moves,
-**                          and other helpers.
-**                      [*] we may need to consult Garcia to see of our board
-**                          is too big.  see the note in gNumberOfPositions
-**                          global variables for directions,
-**                          IntitializeGame(), PrintPosition(), DoMove(),
-**                          primitive(), printComputersMove (), Hash/unhash for
-**                          moves, and other helpers.
-**              2/6/05: [-] fixed some hardcoded constants, Position(), Row(),
-**                          Column() now operates on an arbitrarily sized
-**                          board.  Easy job for getAndPrintUserInput().
-**              2/7/05: [+] Added validTextMove(), convertTextInputToMove()
-**                      [*] Game should be playable by now. Added rules to
-**                          Makefile.  GenerateMoves () is next.
-**              2/8/05: [+] GenerateMove () complete, borrowing Guys's code.
-**              2/9/05: [*] Corrected some indexing and pointer problems.
-**                      [+] Implemented GetAndPrintPlayersMove correctly and
-**                          hotwired GetInitialPosition
-**              2/11/05 [*] Guy: added function prototypes so it compiles on
-**                          my backwards compiler, and revised getOptions so it
-**                          returns stuff that makes sense.  hope i didn't
-**                          break it!
-**              2/14/05 [-] Merged changes from Guy's code, as instructed.
-**                          Various abstraction fixes, more prototypes, new
-**                          func setGameParameters()
-**              2/15/05 [+] Added diagonal movement and redefined input formats
-**                          for it.  GenerateMoves() takes care of it.
-**                          variants of the game now include variable board,
-**                          variable number of pieces in a line for victory,
-**                          misere play, and diagonal moves.
-**              2/23/05 [-] Cosmetic fixes to conform to conventions by other
-**                          games.
-**		3/7/05  [-] fixed up printing and move parsing.
 **
 **************************************************************************/
 
@@ -83,12 +31,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -96,9 +39,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Nu Tic-Tac-Toe";
-STRING kAuthorName          = "Guy Boo and Ming (Evan) Huang";
-STRING kDBName              = "nuttt";   /* The name of the stored database */
+CONST_STRING kGameName            = "Nu Tic-Tac-Toe";
+CONST_STRING kAuthorName          = "Guy Boo and Ming (Evan) Huang";
+CONST_STRING kDBName              = "nuttt";   /* The name of the stored database */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -121,9 +64,9 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings that span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
+CONST_STRING kHelpGraphicInterface = ""; /* kSupportsGraphics == FALSE */
 void*  gGameSpecificTclInit = NULL;
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "On your turn, enter the location of the piece you'd like to move\n\
 and the direction you wish to move it. Enter your move in the format\n\
 <column><row> <direction> where 'direction' is one of the eight cardinal\n\
@@ -131,22 +74,22 @@ points.  For example, to move a piece from a1 up one square, enter 'a1 N'.\n\
 the diagonal directions NW, NE, SW, and SE will not be accepted unless\n\
 diagonal moves are legal in the current game."                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, you slide one of your pieces in one of the directions available.\n\
 You should type: <column number><row number> <direction>, where direction\n\
 is a cardinal direction."                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Get any three of your pieces to form a horizontal, diagonal, or vertical\n\
 line."                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Force your opponent to arrange three pieces in a horizontal, diagonal,\n\
 or vertical line."                                                                                   ;
 
-STRING kHelpTieOccursWhen = "";   /* kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* kTieIsPossible == FALSE */
 
-STRING kHelpExample = "coming soon!";
+CONST_STRING kHelpExample = "coming soon!";
 
 
 /*************************************************************************
@@ -210,10 +153,6 @@ int dir_increments[NUM_OF_DIRS][2] = {
 *************************************************************************/
 
 /* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
 extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
 extern POSITION         generic_hash_hash(char *board, int player);
 extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
@@ -226,7 +165,6 @@ VALUE                   Primitive (POSITION position);
 void                    PrintPosition(POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    printBoard(char board[]);
 void                    PrintComputersMove(MOVE computersMove, STRING computersName);
-void                    PrintMove(MOVE move);
 USERINPUT               GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN                 ValidTextInput(STRING input);
 MOVE                    ConvertTextInputToMove(STRING input);
@@ -250,8 +188,6 @@ void                    initializePiecesArray(int p_a[]);
 void                    initializeBoard(char board[]);
 POSITION                getCanonicalPosition(POSITION p);
 
-STRING                  MoveToString(MOVE);
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -273,8 +209,6 @@ void InitializeGame ()
 	gNumberOfPositions = generic_hash_init (BOARD_SIZE, init_pieces, NULL, 0);
 	gInitialPosition = generic_hash_hash(board, PLAYER1_TURN);
 	gCanonicalPosition = getCanonicalPosition;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -464,6 +398,7 @@ VALUE Primitive (POSITION position)
 
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	char board[BOARD_SIZE];
 
 	generic_hash_unhash (position, board);
@@ -514,24 +449,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 	        directions[direction]);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -542,16 +459,11 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
+void MoveToString(MOVE theMove, char *moveStringBuffer)
 {
-	STRING move = (STRING) SafeMalloc(5);
 	int position = Unhasher_Index(theMove);
 	int direction = Unhasher_Direction(theMove);
-
-	sprintf (move, "[%c%d %s]", Column (position)+ROW_START, BOARD_ROWS-Row (position), \
-	         directions[direction]);
-	return move;
+	snprintf(moveStringBuffer, 10, "%c%d %s", Column (position)+ROW_START, BOARD_ROWS-Row (position), directions[direction]);
 }
 
 
@@ -578,7 +490,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 	char player_char = (generic_hash_turn(position) == PLAYER1_TURN) ? PLAYER1_PIECE : PLAYER2_PIECE;
 
 	for (;; ) {
@@ -690,11 +601,10 @@ MOVE ConvertTextInputToMove (STRING input)
 void GameSpecificMenu ()
 {
 	BOOLEAN tryagain = TRUE;
-	STRING miserelabel, dialabel;
+	STRING dialabel;
 	char c;
 	int i;
 	while (tryagain) {
-		miserelabel = (MISERE) ? "ON" : "OFF";
 		dialabel = (CAN_MOVE_DIAGONALLY) ? "ALLOWED" : "DISALLOWED";
 		printf("\nHere is where you set game options.\n\n");
 		printf("\tr)\tset the number of (R)ows, currently %d\n", BOARD_ROWS);
@@ -762,7 +672,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1035,26 +945,49 @@ POSITION getCanonicalPosition (POSITION p) {
 	}
 
 	for (x = 0; x < 4; x++) {
-		y = generic_hash_hash(boards[x], player);
-		if (y < p) p = y;
+		POSITION h = generic_hash_hash(boards[x], player);
+		if (h < p) p = h;
 	}
 	return p;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		char realBoard[BOARD_SIZE];
+		for (int i = 0; i < BOARD_SIZE; i++) {
+			if (board[i] == '-') {
+				realBoard[i] = EMPTY_PIECE;
+			} else {
+				realBoard[i] = board[i];
+			}
+		}
+		return generic_hash_hash(realBoard, turn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	int bs = BOARD_SIZE;
+	char board[bs + 1];
+	generic_hash_unhash(position, board);
+	for (int i = 0; i < bs; i++) {
+		if (board[i] == EMPTY_PIECE) {
+			board[i] = '-';
+		}
+	}
+	board[BOARD_SIZE] = '\0';
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	int from = Unhasher_Index(move);
+	int row = Row(from);
+	int col = Column(from);
+	int direction = Unhasher_Direction(move);
+	int to = Index(row + dir_increments[direction][0], \
+	                         col + dir_increments[direction][1]);
+  	AutoGUIMakeMoveButtonStringM(from, to, 'x', autoguiMoveStringBuffer);
 }

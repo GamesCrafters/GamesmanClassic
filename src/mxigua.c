@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        xigua.c
@@ -16,60 +8,6 @@
 **
 ** DATE:        1.27.05 - ????
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**              -- 1.27.05 -- Created file and started adding in game info. -JK
-**		-- 1.30.05 -- Added to displayasciitable.
-**                            Filled in most of PrintPosition.
-**                            Still need code to unhash.  -JK
-**		-- 2.9.05 -- Filled in code for the following functions:
-**                           - NumberOfOptions()
-**			     - getOption()
-**                           - setOption()
-**              -- 2.23.05 -- Fixed Initialize game (set gNumberOfPositions and gInitialPosition)
-**                            Filled in DoMove and GenerateMoves();
-**                            Actually allocated space for the board in PrintPosition
-**              -- 3.01.05 -- Added in wrapped hash functions
-**			      Wrote Primitive()
-**                            Changed functions to reflect the new hash functions
-**			      Get a floating point exception now though when trying to go into the debug
-**			      menu.
-**			      Also cannot represent more than 6 empty spaces...maybe something to do with
-**		              my new hash functions. Need the symmetries.
-**              -- 3.01.05 -- Switched to SafeMalloc and SafeFree
-**                            Made #define NUM_HASHED_WRAPPER_BITS to hold '5' for use in hash wrapper
-**                            Filled in GenerateMoves to be more selective (use isValidMove()) (incomplete)
-**                             - uses adjacency information implemented for DoMove
-**                             - uses isSurrounded
-**                            DoMove now captures stones; requires helpers
-**                             - isSurrounded
-**                             - removeStones
-**                             - adjacency information initialized in InitializeGame
-**                            Note: solving algorithm does not account for "pass" ability - plays out all outcomes to unquestionable end (unlike game of Go between humans) to enable this, use Chinese rules for Go territory counting
-**	        -- 3.06.05 -- Fixed compile time errors.
-**	                      Created a game specific menu, (currently only changes boardsize)
-**			      Created smaller board sizes (5 board, have functions for 9, 13, 17)
-**              -- 3.07.05 -- Created more boards (9, 13, and 17)
-**			      Wrote ValidTextInput() and ConvertTextInputToMove()
-**			            PrintComputersMove(), PrintMove(), getmovechar(),
-**				    GetAndPrintPlayersMove()
-**
-**              -- 3.08.05 -- Filled in adjacency info for new boards
-**                            Fixed Primitive() to 1) comply with win condition
-**                                                 2) count "territory" not actually filled with stones
-**                            Filled in isValidMove() (still incomplete)
-**	        -- 3.08.05 -- Fixed compile time errors.
-**			      Wrote GetInitialPosition()
-**              -- 3.09.05 -- Finally completed isValidMove()
-**		-- 3.9.05 -- Fixed problem with ocount and scount not being initialized in isValidMove()
-**		-- 4.5.05 -- fixed issues with the prediction not being displayed
-**			     made the debug menu look like the other menus
-**			     fixed a floating point exception bug in the hash piece array (introduced by me).
-**            -- 04.14.05 -- Added symmetries
-**                           changed most function declarations to old C-style
-**                           few minuteia such as SafeMallocs, other debugging
-**
-**		-- 8.19.06	commented out fflush and added in GetMyInt()
-**				seg fault in intialize game, someone fix
 **************************************************************************/
 
 
@@ -79,14 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
-/* didn't see hash.h included in gamesman.h */
-#include "hash.h"
 
 /*************************************************************************
 **
@@ -98,9 +29,9 @@ char EMPTYSPACE ='-';
 char PLAYER1 = 'X';
 char PLAYER2 = 'O';
 
-STRING kGameName            = "XiGua";   /* The name of your game */
-STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
-STRING kDBName              = "xigua";   /* The name to store the database under */
+CONST_STRING kGameName            = "XiGua";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joshua Kocher, Daniel Honegger, Gerardo Snyder";   /* Your name(s) */
+CONST_STRING kDBName              = "xigua";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -119,25 +50,25 @@ POSITION kBadPosition         = -1; /* A position that will never be used */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Selecting a move is done by picking a letter corresponding with a square on the board. The board displayed will list the key to base your selection from (Note: not all spots on the board will be possible at any given time).";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Pick a spot listed in the list of valid moves. Your piece will be placed there and either that will be it or a capture move will be made. A capture move is made when a player has blocked all exit points for a piece. Exit moves are denoted by an edge in the board.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective of the game is to be the player with the most pieces on the board when the last piece is placed.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "The objective of the game is to be the player with the least number of pieces of the board when the last piece is placed.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when both players have the same number of pieces on the board when the last piece is placed.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Legend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       �\n Prediction: (Computer should Lose in 8)\n\nComputer's move         : 5\nLegend:    1         Current:      �\n          /|\\        Player1: X   /|\\\n         2-3-4       Player2: *  �-�-�\n          \\|/                     \\|/\n           5                       X\n Prediction: (Player should Win in 7)\n\n  Player's move [(undo)/(4,3,2,1)] : {3}\n";
 
 
@@ -184,18 +115,11 @@ adjacency *adjacent;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 void* gGameSpecificTclInit = NULL;
 
 /* Internal */
-void displayasciiboard(char *, char *);
-int NumberOfOptions();
-int getOption();
+int NumberOfOptions(void);
+int getOption(void);
 void setOption(int);
 char *emptyboard(char *);
 POSITION hash(char *,int, int);
@@ -205,15 +129,13 @@ int getplayer(POSITION);
 int getturnnumber(POSITION);
 int countboard(char *,char);
 char *getprediction(char *);
-BOOLEAN isValidMove(char *, MOVE, char);      /* helper for GenerateMoves */
+BOOLEAN isValidMove(MOVE, char);      /* helper for GenerateMoves */
 VALUE countWinner(POSITION);              /* helper for Primitive */
 BOOLEAN isSurrounded(char *, MOVE, char, BOOLEAN *);  /* helper for DoMove, isValidMove */
-void zeroChecked(); /* helper for InitializeGame, isSurrounded, isTerritory */
+void zeroChecked(void); /* helper for InitializeGame, isSurrounded, isTerritory */
 BOOLEAN isTerritory(char *, MOVE, char, BOOLEAN *);  /* helper for Primitive */
 void removeStones(char *, MOVE, char, BOOLEAN *); /* helper for DoMove */
 char getmovechar(MOVE);
-
-STRING MoveToString( MOVE );
 
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
@@ -246,7 +168,7 @@ POSITION GetCanonicalPosition(POSITION position);
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame (void)
 {
 	/* need to change this to reflect the board size */
 	maxsize=5+4*boardsize;
@@ -652,13 +574,9 @@ void InitializeGame ()
 		printf("We should never get here inside InitializeGame while creating the adjacency table information\n");
 		break;
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
-char * emptyboard(board)
-char *board;
-{
+char * emptyboard(char *board) {
 	int i;
 
 	board = (char *) SafeMalloc(sizeof(char) * maxsize);
@@ -708,7 +626,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	/* wow, talk about making something foolproof for having students coding games */
 	board=unhashboard(position,board);
 	for(i=0; i<maxsize; i++) {
-		if(isValidMove(board, (MOVE) i, piece)) {
+		if(isValidMove((MOVE) i, piece)) {
 			moves = CreateMovelistNode((MOVE)i,moves);
 		}
 	}
@@ -717,7 +635,7 @@ MOVELIST *GenerateMoves (POSITION position)
 }
 
 /* Generate Moves helper function isValidMove */
-BOOLEAN isValidMove(char *bd, MOVE mv, char p) {
+BOOLEAN isValidMove(MOVE mv, char p) {
 	if(board[mv] != EMPTYSPACE)
 		return FALSE;
 
@@ -817,17 +735,13 @@ POSITION DoMove (POSITION position, MOVE move)
 	return position;
 }
 
-void zeroChecked() {
+void zeroChecked(void) {
 	int i;
 	for(i = 0; i < maxsize; i++)
 		checked[i] = FALSE;
 }
 
-BOOLEAN isSurrounded(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isSurrounded(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != p)
 		return (board[move] == EMPTYSPACE) ? FALSE : TRUE;
@@ -845,11 +759,7 @@ BOOLEAN *check;
 	}
 }
 
-void removeStones(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+void removeStones(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	int i;
 	if(board[move] == p) {
@@ -887,9 +797,7 @@ BOOLEAN *check;
 **
 ************************************************************************/
 
-VALUE Primitive (position)
-POSITION position;
-{
+VALUE Primitive (POSITION position) {
 	int player,turn;
 	int p1c, p2c;
 	int i;
@@ -911,7 +819,7 @@ POSITION position;
 	}
 
 	for(i = 0; i < maxsize && noValidMoves; i++)
-		if(isValidMove(board, (MOVE) i, piece))
+		if(isValidMove((MOVE) i, piece))
 			noValidMoves = FALSE;
 
 	/* if we've ran out of pieces or there are no more valid spaces on the board */
@@ -959,11 +867,7 @@ POSITION position;
 }
 
 /* helper function to count empty indices surrounded by one player as territory for that player */
-BOOLEAN isTerritory(board, move, p, check)
-char *board;
-MOVE move;
-char p;
-BOOLEAN *check;
+BOOLEAN isTerritory(char *board, MOVE move, char p, BOOLEAN *check)
 {
 	if(board[move] != EMPTYSPACE)
 		return (board[move] == p);
@@ -997,10 +901,7 @@ BOOLEAN *check;
 **
 *************************************************************************/
 
-void display5board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display5board(char *pos, char *prediction) {
 	printf("Legend:    1         Current:      %c\n",pos[0]);
 	printf("          /|\\        Player1: X   /|\\\n");
 	printf("         2-3-4       Player2: *  %c-%c-%c\n",pos[1],pos[2],pos[3]);
@@ -1008,10 +909,7 @@ char *prediction;
 	printf("           5                       %c\n",pos[4]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
-void display9board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display9board(char *pos, char *prediction) {
 	printf("Legend:   1      2        Current:      %c      %c\n",pos[0],pos[1]);
 	printf("         /|\\    /|        Player1: X   /|\\    /|\n");
 	printf("        3-4-5--6-7        Player2: *  %c-%c-%c--%c-%c\n",pos[2],pos[3],pos[4],pos[5],pos[6]);
@@ -1019,10 +917,7 @@ char *prediction;
 	printf("          8      9                      %c      %c\n",pos[7],pos[8]);
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
-void display13board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display13board(char *pos, char *prediction) {
 	printf("Legend:   1      2      3   Current:    %c      %c      %c\n",pos[0],pos[1],pos[2]);
 	printf("          |\\    /|\\    /|   Player1: X  |\\    /|\\    /|\n");
 	printf("          4-5--6-7-8--9-B   Player2: *  %c-%c--%c-%c-%c--%c-%c\n",pos[3],pos[4],pos[5],pos[6],pos[7],pos[8],pos[9]);
@@ -1031,10 +926,7 @@ char *prediction;
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
-void display17board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display17board(char *pos, char *prediction) {
 	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
 	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
 	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -1047,10 +939,7 @@ char *prediction;
 	if(prediction) printf(" Prediction: %s\n\n",prediction);
 }
 
-void display21board(pos, prediction)
-char *pos;
-char *prediction;
-{
+void display21board(char *pos, char *prediction) {
 	printf("Legend:    /1-2-3\\     Current:        /%c-%c-%c\\\n",pos[0],pos[1],pos[2]);
 	printf("          /  \\|/  \\    Player1: X     /  \\|/  \\\n");
 	printf("         /    4    \\   Player2: *    /    %c    \\\n",pos[3]);
@@ -1068,9 +957,7 @@ char *prediction;
 
 }
 
-char *getprediction(pred)
-char *pred;
-{
+char *getprediction(char *pred) {
 	int i=0;
 	/* code to initialize it to blank values until a later time */
 	for(; i<16; i++) pred[i]=(char)32; /* fill with spaces */
@@ -1093,11 +980,7 @@ char *pred;
 **
 ************************************************************************/
 
-void PrintPosition (position, playersName, usersTurn)
-POSITION position;
-STRING playersName;
-BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	/* just a doodle of the gameboard
 	 * - Josh
 	 *              /0-0-0\
@@ -1160,10 +1043,7 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-void PrintComputersMove (computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	char move=0;
 	if(computersMove>-1 && computersMove < 9) {
 		move=49+computersMove;
@@ -1210,26 +1090,6 @@ STRING computersName;
 	printf("%s's move		: %c\n",computersName,move);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-
-void PrintMove (move)
-MOVE move;
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1240,19 +1100,12 @@ MOVE move;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 2 );
+void MoveToString(MOVE theMove, char *m) {
 	char movechar=getmovechar(theMove);
-
 	sprintf( m, "%c",movechar);
-	return m;
 }
 
-char getmovechar(move)
-MOVE move;
-{
+char getmovechar(MOVE move) {
 	char movechar=0;
 	if(move>-1 && move < 9) {
 		movechar=49+move;
@@ -1320,13 +1173,8 @@ MOVE move;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (position, move, playersName)
-POSITION position;
-MOVE *move;
-STRING playersName;
-{
+USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName) {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	MOVELIST *moves;
 	MOVE thisMove;
@@ -1387,9 +1235,7 @@ STRING playersName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	switch(toupper(input[0])) {
 	case '1':
 	case '2':
@@ -1432,9 +1278,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	switch(toupper(input[0])) {
 	case 'B':
 		return (MOVE)9;
@@ -1485,7 +1329,7 @@ STRING input;
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
+void GameSpecificMenu (void)
 {
 	char choice;
 	int boardsizechoice;
@@ -1563,10 +1407,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1583,8 +1426,7 @@ int options[];
 **
 ************************************************************************/
 
-POSITION GetInitialPosition ()
-{
+POSITION GetInitialPosition(void) {
 	char *moves;
 	char in;
 	char *prediction="";
@@ -1664,7 +1506,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
+int NumberOfOptions (void)
 {
 	int curoptions=getOption();
 	int numberOfOptions;
@@ -1692,7 +1534,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
+int getOption (void)
 {
 	/**
 	** Options:
@@ -1716,9 +1558,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (option)
-int option;
-{
+void setOption(int option) {
 	rulesvariant=option/30;
 	option-=(rulesvariant*30);
 	handicapping=option/15;
@@ -1742,7 +1582,7 @@ int option;
 **
 ************************************************************************/
 
-void DebugMenu ()
+void DebugMenu (void)
 {
 	printf("DEBUG MENU\n\n\n");
 }
@@ -1769,11 +1609,7 @@ void DebugMenu ()
 ** shifts that left 5 bits and encodes the turn number
 **
 **************************************************************************/
-POSITION hash(board, player, turn)
-char *board;
-int player;
-int turn;
-{
+POSITION hash(char *board, int player, int turn) {
 	POSITION ret;
 
 	/* do the generic hash */
@@ -1792,10 +1628,7 @@ int turn;
 **
 ***************************************************************************/
 
-char *unhashboard(hashed, board)
-POSITION hashed;
-char *board;
-{
+char *unhashboard(POSITION hashed, char *board) {
 	hashed=hashed>>NUM_HASH_WRAPPER_BITS; /* get rid of the turn encoding */
 	/* better have a non null board */
 	return generic_hash_unhash(hashed, board);
@@ -1809,7 +1642,9 @@ char *board;
 ***************************************************************************/
 
 int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg)) {
-	return (generic_hash_init(boardsize, pieces_array, NULL, 0) << NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
+	(void)vcfg_function_ptr;
+	return (generic_hash_init(boardsize, pieces_array, NULL, 0)
+		<< NUM_HASH_WRAPPER_BITS);    /* initialize the hash */
 }
 
 /***************************************************************************
@@ -1820,9 +1655,7 @@ int hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* c
 **
 *****************************************************************************/
 
-int getplayer(hashed)
-POSITION hashed;
-{
+int getplayer(POSITION hashed) {
 	hashed = hashed>>NUM_HASH_WRAPPER_BITS;
 	return generic_hash_turn(hashed);
 }
@@ -1834,9 +1667,7 @@ POSITION hashed;
 **
 *****************************************************************************/
 
-int getturnnumber(hashed)
-POSITION hashed;
-{
+int getturnnumber(POSITION hashed) {
 	return hashed&31;
 }
 
@@ -1847,10 +1678,7 @@ POSITION hashed;
 **
 ***********/
 
-int countboard(board, tocount)
-char *board;
-char tocount;
-{
+int countboard(char *board, char tocount) {
 	int counter=0,i=0;
 	for(; i<maxsize; i++)
 		if(board[i]==tocount)
@@ -1862,39 +1690,6 @@ char tocount;
 /**************************************************/
 /**************** SYMMETRY FUN BEGIN **************/
 /**************************************************/
-
-/************************************************************************
-**
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION DoSymmetry();
-	POSITION newPosition, theCanonicalPosition;
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
-}
 
 /************************************************************************
 **
@@ -1911,10 +1706,7 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	int i;
 	int player = getplayer(position);
 	int turn = getturnnumber(position);
@@ -1930,25 +1722,52 @@ int symmetry;
 	return(hash(symmboard, player, turn));
 }
 
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
+}
+
 /**************************************************/
 /**************** SYMMETRY FUN END ****************/
 /**************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv)
-{
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

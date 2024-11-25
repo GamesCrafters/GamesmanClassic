@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mwuzhi.c
@@ -16,22 +8,6 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST:
-**              2004-10-5  Added GenerateMoves with all its helpers
-**              2004-10-12 Added Help Strings, Defines, Global Variables
-**                         Started Initialize Game
-**              2004-10-18 Added Print Position, Print Move, Print Computer's Move, Primitive,
-**                         Added another helper to Moves: GetArrayNum given xycoords.
-**              2004-10-19 Added DoMove to this template
-**              2004-11-2  Set kPartizan to TRUE, modified help strings so they are not all on one line. Moves are now formatted as [1 d]
-**                         rather than [1 down] Added a sample game to the help string.
-**              2004-11-26 Added diagonal variation in generatemoves
-**              2004-12-5  Finished implementation of diagonals and game specific menu
-**              2004-12-19 Added in primitive that you lose if no moves left. Also tells the player what color they
-**                         when printing the board.
-**              2005-3-3   Added missing prototypes
-**              2005-3-25  Added SetOptions and GetOptions to work with Diagonals
-**		2006-8-21  changed to GetMyInt() dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -40,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
-
 
 /*************************************************************************
 **
@@ -54,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Wu Zhi";   /* The name of your game */
-STRING kAuthorName          = "Dan Yan and Diana Fang";   /* Your name(s) */
-STRING kDBName              = "wuzhi";   /* The name to store the database under */
+CONST_STRING kGameName            = "Wu Zhi";   /* The name of your game */
+CONST_STRING kAuthorName          = "Dan Yan and Diana Fang";   /* Your name(s) */
+CONST_STRING kDBName              = "wuzhi";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,22 +46,22 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, pick a piece that you want to move and then move it.  You \n\
 can only move up, down, left, or right.  Diagonals are only allowed if \n\
 you set up that option."                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, pick a piece that you want to move. Look at the key to the \n\
 right of the board to determine the number of the position of the piece you \n\
 want to move.  Then choose the direction you want to move your piece (up, \n\
 down, left, right...you can also refer to the compass, shown above the board).\n\
 A sample move would be '1 u'(which means 1 up). "                                                                                                                                                                                                                                                                                                                                      ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Capture all but one of your opponent's pieces to win. You can also win \n\
 if your opponent does not have any more moves possible. Capturing takes \n\
 place when you move your piece into a specific configuration.  The \n\
@@ -151,13 +121,13 @@ the white piece is not adjacent to the black piece:\n\
  |    |    |    |    |\n\
 ( )--( )--( )--( )--( )\n"                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Try to lose all but one of your pieces.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when ...";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Player Player 1's turn \n\
         (u)p            \n\
           |             \n\
@@ -295,16 +265,6 @@ BOOLEAN diagonals = FALSE;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-
 /* not external */
 MOVE EncodeMove(int dir, int x, int y);
 int GetDirection (MOVE theMove);
@@ -321,8 +281,6 @@ BOOLEAN canmoveupleft(int arraynum);
 BOOLEAN canmovedownright(int arraynum);
 BOOLEAN canmovedownleft(int arraynum);
 BOOLEAN canmoveupright(int arraynum);
-
-STRING MoveToString( MOVE );
 
 /************************************************************************
 **
@@ -359,8 +317,6 @@ void InitializeGame ()
 	gBoard[gBoardlength] = '\0';
 	gInitialPosition = generic_hash_hash(gBoard, 1);
 	/* printf("This is the initialPosition:%d", gInitialPosition); */
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -447,7 +403,7 @@ POSITION DoMove (POSITION position, MOVE move)
 	int dir = GetDirection(move);
 	int x0 = GetXCoord(move);
 	int y0 = GetYCoord(move);
-	int x1, y1;
+	int x1 = 0, y1 = 0;
 
 	char* board = (char*)generic_hash_unhash(position, gBoard);
 	int player = generic_hash_turn(position);
@@ -862,43 +818,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%8s's move   : ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -909,12 +828,9 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 8 );
+void MoveToString(MOVE theMove, char *m) {
 	int xcoord, ycoord, dir, Arraynum;
-	STRING direction;
+	STRING direction = NULL;
 	xcoord = GetXCoord(theMove);
 	ycoord = GetYCoord(theMove);
 	dir = GetDirection(theMove);
@@ -937,7 +853,26 @@ MOVE theMove;
 	else if (dir == DOWNLEFT)
 		direction = "dl";
 	sprintf( m, "[%d %s]", Arraynum + 1, direction);
-	return m;
+}
+
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+	printf("%8s's move   : ", computersName);
+	char msb[20];
+	MoveToString(computersMove, msb);
+	printf("%s", msb);
+	printf("\n");
 }
 
 
@@ -964,7 +899,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -1058,7 +992,7 @@ MOVE ConvertTextInputToMove (STRING input)
 	int location = atoi(input);
 	location--;
 
-	int dir;
+	int dir = 0;
 	if (0 == strcmp(direction,"u")) {
 		dir = UP;
 	} else if (0 == strcmp(direction,"r")) {
@@ -1175,7 +1109,7 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1409,21 +1343,18 @@ BOOLEAN canmovedownright(int arraynum)
 	return (canmovedown(arraynum+1) && canmoveright(arraynum+gBoardwidth));
 }
 
-
-
-POSITION InteractStringToPosition(STRING board) {
-	return -1;
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

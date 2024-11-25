@@ -4,39 +4,11 @@
 **
 ** DESCRIPTION: Lite-3
 **
-** AUTHORS:      Alex Perelman
+** AUTHORS:     Alex Perelman
 **              Babak Hamadani
 **              Kehan Chen
 **
 ** DATE:        11/16/22
-**
-** UPDATE HIST:
-**   3/1/02 - First Changes:
-**        BlankOX to BlankOOOXXX
-**        PositionToBlankOOOXXX()
-**        BlankOOOXXXToPosition()
-**        BOARDSIZE = 10 (first element is whoseTurn()
-**        ThreeInARow()
-**        Primitive() - got rid of AllFilledIn (impossible)
-**        LOOPY = TRUE
-**        Got rid of WhoseTurn()
-**        In StaticEvaluator - instead of WhoseTurn() - blankOOOXXX[0]
-**
-**   3/4/02 - More Changes
-**        Fixed bug in PositionToBlankOOOXXX (when a piece is 0)
-**
-**   3/5/02 - More Changes
-**        Wrote DoMove: 0 - x's turn, 1 - o's turn
-**        Changed calls to WhoseTurn() to BlankOOOXXX[0]
-**        Changed ConvertTextInputToMove and PrintMove, Move is now 1-9
-**        WOOHOO!! 17 \/\/3|2|<$!!!
-**
-**   11/16/22 - More Changes
-**        Fixed bug in Surround
-**        InteractStringToPosition()
-**        InteractPositionToString()
-**        InteractMoveToString()
-**        MoveToSlots()
 **
 **************************************************************************/
 
@@ -46,7 +18,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 2097152;  /* 2^21 */
@@ -55,8 +26,9 @@ POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 POSITION kBadPosition           = -1;
 
-STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
-STRING kGameName           = "Lite-3";
+CONST_STRING kAuthorName         = "Alex Perelmen and Babak Hamadani";
+CONST_STRING kGameName           = "Lite-3";
+CONST_STRING kDBName = "lite3";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -65,25 +37,25 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized.";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Help strings not initialized.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "Help strings not initialized.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized.";
 
 /*************************************************************************
@@ -107,11 +79,6 @@ typedef enum players {
 	x, o
 } PLAYER_TURN;
 
-/*commented out for 4pieces
-   typedef enum possibleBoardPieces {
-   Blank, o1, o2, o3, o4, x1, x2, x3, x4
-   } BlankOOOXXX; */
-
 typedef enum possibleBoardPieces {
 	Blank, o1, o2, o3, x1, x2, x3
 } BlankOOOXXX;
@@ -125,9 +92,6 @@ typedef enum possibleGameObjectives {
 } GameObjective;
 
 GameObjective gGameObjective = THREE_IN_A_ROW; //by default
-
-//for a 4piece game
-//int      gNumPieces          = 3;
 
 char *gBlankOOOXXXString[] = { "-", "O", "O", "O", "X", "X", "X"};
 char *gBlankOOOXXXStringWithShow[] = { "-", "a", "b", "c", "1", "2", "3"};
@@ -165,11 +129,12 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 /** Function Prototypes **/
 void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX);
+POSITION BlankOOOXXXToPosition(BlankOOOXXX *theBlankOOOXXX);
+BOOLEAN ThreeInARow(BlankOOOXXX *theBlankOOOXXX, int a, int b, int c);
+VALUE Surround(BlankOOOXXX *theBlankOOOXXX, PLAYER_TURN whoseTurn);
 
 /** Changing Variants **/
 void InitializeHelpStrings();
-
-STRING MoveToString(MOVE);
 
 /************************************************************************
 **
@@ -179,17 +144,8 @@ STRING MoveToString(MOVE);
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-
+void InitializeGame() {
 	InitializeHelpStrings();
-
-	gMoveToStringFunPtr = &MoveToString;
-
-}
-
-void FreeGame()
-{
 }
 
 // Set up the help strings based on the variant being played
@@ -280,9 +236,7 @@ Computer wins. Nice try, Dan."                                                  
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -294,8 +248,7 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu()
-{
+void GameSpecificMenu() {
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
 
@@ -319,6 +272,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 
 		case '1':
 			gGameObjective = THREE_IN_A_ROW;
@@ -355,11 +309,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
-	//gGameObjective = ((BOOLEAN) theOptions[0] == TRUE) ? THREE_IN_A_ROW : SURROUND ;
-
+void SetTclCGameSpecificOptions(int *theOptions) {
 	if(theOptions[0] == 0)
 		gGameObjective = THREE_IN_A_ROW;
 	else if(theOptions[0] == 1)
@@ -384,10 +334,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int pieces = thePosition >> 1;
 
 	int piece_o3 = pieces % 10;
@@ -421,19 +368,11 @@ MOVE theMove;
 		{
 			piece_x3 = theMove;
 		}
-		//else if(gNumPieces == 4 && piece_x4 == 0) //playing a 4piece game and fourth not placed
-		//{
-		//  piece_x4 = theMove;
-		//}
 		else //all three in place, shift x2->x1, x3->x2, x3 = theMove or x4 (depending on 4piece game or not)
 		{
 			piece_x1 = piece_x2;
 			piece_x2 = piece_x3;
 			piece_x3 = theMove;
-
-			//commented out for 4pieces
-			//piece_x3 = (gNumPieces == 4) ? piece_x4 : theMove;
-			//piece_x4 = (gNumPieces == 4) ? theMove : 0;
 		}
 	}
 	else //o's turn
@@ -450,34 +389,15 @@ MOVE theMove;
 		{
 			piece_o3 = theMove;
 		}
-		//else if(gNumPieces == 4 && piece_o4 == 0) //playing a 4piece game and fourth not placed
-		//{
-		//  piece_o4 = theMove;
-		//}
 		else //all three in place, shift o2->o1, o3->o2, o3 = theMove
 		{
 			piece_o1 = piece_o2;
 			piece_o2 = piece_o3;
 			piece_o3 = theMove;
-
-			//commented out for 4pieces
-			//piece_o3 = (gNumPieces == 4) ? piece_o4 : theMove;
-			//piece_o4 = (gNumPieces == 4) ? theMove : 0;
 		}
 	}
 
 	pieces = 0; //reset hashed position
-
-	//commented out for 4piece game
-	/*pieces += piece_x1 * 10000000;
-	   pieces += piece_x2 * 1000000;
-	   pieces += piece_x3 * 100000;
-	   pieces += piece_x4 * 10000;
-	   pieces += piece_o1 * 1000;
-	   pieces += piece_o2 * 100;
-	   pieces += piece_o3 * 10;
-	   pieces += piece_o4;*/
-
 	pieces += piece_x1 * 100000;
 	pieces += piece_x2 * 10000;
 	pieces += piece_x3 * 1000;
@@ -495,47 +415,6 @@ MOVE theMove;
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	POSITION BlankOOOXXXToPosition();
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	theBlankOOOXXX[0] = x;
-	i = 1;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOOOXXX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOOOXXX[i++] = o;
-		else if(c == '-')
-			theBlankOOOXXX[i++] = Blank;
-		else
-			;
-	}
-
-	return(BlankOOOXXXToPosition(theBlankOOOXXX));
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -545,10 +424,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove);
 }
 
@@ -575,11 +451,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN ThreeInARow();
-	VALUE Surround();
+VALUE Primitive(POSITION position) {
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 	PLAYER_TURN whoseTurn = position & 1;
 
@@ -632,13 +504,8 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-
 	PositionToBlankOOOXXX(position,theBlankOOOXXX);
 
 	if(gShowMoveSuccession)
@@ -693,11 +560,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
 	int i;
 
@@ -716,45 +580,6 @@ POSITION position;
 
 /************************************************************************
 **
-** NAME:        GetAndPrintPlayersMove
-**
-** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
-**              If so, return Undo or Abort and don't change theMove.
-**              Otherwise get the new theMove and fill the pointer up.
-**
-** INPUTS:      POSITION *thePosition : The position the user is at.
-**              MOVE *theMove         : The move to fill with user's move.
-**              STRING playerName     : The name of the player whose turn it is
-**
-** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
-**
-** CALLS:       ValidMove(MOVE, POSITION)
-**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
-**
-************************************************************************/
-
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleTextInput();
-
-	do {
-		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
-
-		ret = HandleTextInput(thePosition, theMove, playerName);
-		if(ret != Continue)
-			return(ret);
-
-	}
-	while (TRUE);
-	return(Continue); /* this is never reached, but lint is now happy */
-}
-
-/************************************************************************
-**
 ** NAME:        HandleTextInput
 **
 ** DESCRIPTION: Dispatch on the command the user types.
@@ -767,13 +592,8 @@ STRING playerName;
 **
 ************************************************************************/
 
-USERINPUT HandleTextInput(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	MOVE ConvertTextInputToMove(), tmpMove;
-	BOOLEAN ValidTextInput();
+USERINPUT HandleTextInput(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	MOVE tmpMove;
 	char tmpAns[2], input[MAXINPUTLENGTH];
 
 	GetMyStr(input,MAXINPUTLENGTH);
@@ -793,6 +613,7 @@ STRING playerName;
 		switch(input[0]) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'u': case 'U':
 			return(Undo);
 		case 'a': case 'A':
@@ -834,6 +655,40 @@ STRING playerName;
 
 /************************************************************************
 **
+** NAME:        GetAndPrintPlayersMove
+**
+** DESCRIPTION: This finds out if the player wanted an undo or abort or not.
+**              If so, return Undo or Abort and don't change theMove.
+**              Otherwise get the new theMove and fill the pointer up.
+**
+** INPUTS:      POSITION *thePosition : The position the user is at.
+**              MOVE *theMove         : The move to fill with user's move.
+**              STRING playerName     : The name of the player whose turn it is
+**
+** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
+**
+** CALLS:       ValidMove(MOVE, POSITION)
+**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+**
+************************************************************************/
+
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
+
+	do {
+		printf("%8s's move [(u)ndo/1-9] :  ", playerName);
+
+		ret = HandleTextInput(thePosition, theMove, playerName);
+		if(ret != Continue)
+			return(ret);
+
+	}
+	while (TRUE);
+	return(Continue); /* this is never reached, but lint is now happy */
+}
+
+/************************************************************************
+**
 ** NAME:        ValidTextInput
 **
 ** DESCRIPTION: Return TRUE iff the string input is of the right 'form'.
@@ -849,9 +704,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return((input[0] <= '9' && input[0] >= '1'));
 }
 
@@ -867,28 +720,8 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) input[0] - '0'); /* user input is 1-9, our rep. is 0-8 */
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -901,14 +734,9 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(2);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	sprintf(move, "%d", theMove);
-	return move;
+	snprintf(moveStringBuffer, 5, "%d", theMove);
 }
 
 /************************************************************************
@@ -930,37 +758,11 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX)
-{
+void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX) {
 	int i;
 	int pieces = thePos >> 1;
 
 	int whoseTurn = (thePos & 1);
-
-	//commented out for 4piece game
-	/*int piece_o4 = pieces % 10;
-	   int piece_o3 = (pieces % 100) / 10;
-	   int piece_o2 = (pieces % 1000) / 100;
-	   int piece_o1 = (pieces % 10000) / 1000;
-	   int piece_x4 = (pieces % 100000) / 10000;
-	   int piece_x3 = (pieces % 1000000) / 100000;
-	   int piece_x2 = (pieces % 10000000) / 1000000;
-	   int piece_x1 = (pieces % 100000000) / 10000000;
-
-	   for(i=0; i < BOARDSIZE; i++)
-	   {
-	   theBlankOOOXXX[i] = 0;
-	   }
-
-	   theBlankOOOXXX[piece_o4] = o4;
-	   theBlankOOOXXX[piece_o3] = o3;
-	   theBlankOOOXXX[piece_o2] = o2;
-	   theBlankOOOXXX[piece_o1] = o1;
-
-	   theBlankOOOXXX[piece_x4] = x4;
-	   theBlankOOOXXX[piece_x3] = x3;
-	   theBlankOOOXXX[piece_x2] = x2;
-	   theBlankOOOXXX[piece_x1] = x1;*/
 
 	int piece_o3 = pieces % 10;
 	int piece_o2 = (pieces % 100) / 10;
@@ -998,9 +800,7 @@ void PositionToBlankOOOXXX(POSITION thePos, BlankOOOXXX *theBlankOOOXXX)
 **
 ************************************************************************/
 
-POSITION BlankOOOXXXToPosition(theBlankOOOXXX)
-BlankOOOXXX *theBlankOOOXXX;
-{
+POSITION BlankOOOXXXToPosition(BlankOOOXXX *theBlankOOOXXX) {
 	int i, result, whoseTurn;
 	int powTen[] = {0, 100, 10, 1, 100000, 10000, 1000};
 	POSITION position = 0;
@@ -1029,10 +829,7 @@ BlankOOOXXX *theBlankOOOXXX;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankOOOXXX,a,b,c)
-BlankOOOXXX theBlankOOOXXX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankOOOXXX *theBlankOOOXXX, int a, int b, int c) {
 	return (theBlankOOOXXX[a] >= x1 &&
 	        theBlankOOOXXX[b] >= x1 &&
 	        theBlankOOOXXX[c] >= x1)     ||
@@ -1057,10 +854,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-VALUE Surround(theBlankOOOXXX, whoseTurn)
-BlankOOOXXX theBlankOOOXXX[];
-PLAYER_TURN whoseTurn;
-{
+VALUE Surround(BlankOOOXXX *theBlankOOOXXX, PLAYER_TURN whoseTurn) {
 	char* opponentPiece;
 	char* middlePiece = gBlankOOOXXXString[theBlankOOOXXX[5]]; //is middle piece Blank, X or O?
 
@@ -1125,10 +919,7 @@ PLAYER_TURN whoseTurn;
 **
 ************************************************************************/
 
-void MoveToSlots(theMove, toSlot)
-MOVE theMove;
-SLOT *toSlot;
-{
+void MoveToSlots(MOVE theMove, SLOT *toSlot) {
 	*toSlot   = theMove % (BOARDSIZE+1);
 }
 
@@ -1144,21 +935,15 @@ SLOT *toSlot;
 **
 ************************************************************************/
 
-int WhoseTurn(thePosition)
-POSITION thePosition;
-{
+int WhoseTurn(POSITION thePosition) {
 	return (thePosition & 1);
 }
 
-STRING kDBName = "lite3";
-
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return 6;
 }
 
-int getOption()
-{
+int getOption() {
 	int ret;
 
 	if(gGameObjective == THREE_IN_A_ROW) ret = 1;
@@ -1168,8 +953,7 @@ int getOption()
 	return ret;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
 	gStandardGame = (option < 4);
 	option %= 3;
 	if(option == 0) gGameObjective = BOTH;
@@ -1179,53 +963,49 @@ void setOption(int option)
 	InitializeHelpStrings();
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	if (!UWAPI_Board_Regular2D_ParsePositionString(board, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
-	}
-
-	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	theBlankOOOXXX[0] = turn == UWAPI_TURN_B? o : x;
-	for (int i = 1; i < BOARDSIZE; i++) {
-		switch (board[i-1]) {
-			default:
-				fprintf(stderr, "Error: Unexpected char in position\n");
-				break;
-			case '-':
-				theBlankOOOXXX[i] = Blank;
-				break;
-			case 'a':
-				theBlankOOOXXX[i] = o1;
-				break;
-			case 'b':
-				theBlankOOOXXX[i] = o2;
-				break;
-			case 'c':
-				theBlankOOOXXX[i] = o3;
-				break;
-			case '1':
-				theBlankOOOXXX[i] = x1;
-				break;
-			case '2':
-				theBlankOOOXXX[i] = x2;
-				break;
-			case '3':
-				theBlankOOOXXX[i] = x3;
-				break;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
+		theBlankOOOXXX[0] = (BlankOOOXXX)(turn == 2 ? o : x);
+		for (int i = 1; i < BOARDSIZE; i++) {
+			switch (board[i-1]) {
+				default:
+					fprintf(stderr, "Error: Unexpected char in position\n");
+					break;
+				case '-':
+					theBlankOOOXXX[i] = Blank;
+					break;
+				case 'a':
+					theBlankOOOXXX[i] = o1;
+					break;
+				case 'b':
+					theBlankOOOXXX[i] = o2;
+					break;
+				case 'c':
+					theBlankOOOXXX[i] = o3;
+					break;
+				case '1':
+					theBlankOOOXXX[i] = x1;
+					break;
+				case '2':
+					theBlankOOOXXX[i] = x2;
+					break;
+				case '3':
+					theBlankOOOXXX[i] = x3;
+					break;
+			}
 		}
+		return BlankOOOXXXToPosition(theBlankOOOXXX);
 	}
-
-	SafeFreeString(board); // Free the string.
-	return BlankOOOXXXToPosition(theBlankOOOXXX);
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	BlankOOOXXX theBlankOOOXXX[BOARDSIZE];
-	PositionToBlankOOOXXX(pos, theBlankOOOXXX);
-	enum UWAPI_Turn turn = (!WhoseTurn(pos)) ? UWAPI_TURN_A : UWAPI_TURN_B;
+	PositionToBlankOOOXXX(position, theBlankOOOXXX);
+	int turn = (!WhoseTurn(position)) ? 1 : 2;
 
 	char board[BOARDSIZE];
 	for (int i = 0; i < BOARDSIZE-1; i++) {
@@ -1257,18 +1037,12 @@ STRING InteractPositionToString(POSITION pos) {
 		}
 	}
 	board[BOARDSIZE-1] = '\0'; // Make sure to null-terminate your board.
-
-	/* The boardstring length (everything that follows "R_A_0_0_") is 16. */
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 16, board);
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-BOOLEAN arrowMoves = FALSE;
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	SLOT toSlot;
-	MoveToSlots(mv, &toSlot);
-	return UWAPI_Board_Regular2D_MakeAddString('-', toSlot - 1);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+ 	SLOT toSlot;
+	MoveToSlots(move, &toSlot);
+	AutoGUIMakeMoveButtonStringA('h', toSlot - 1, 'x', autoguiMoveStringBuffer);
 }

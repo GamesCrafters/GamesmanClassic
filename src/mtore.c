@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mtore.c
@@ -16,17 +8,6 @@
 **
 ** DATE:        2004-9-28 Started Module.
 **
-** UPDATE HIST: 2006-5-22	 Fixed getoption() and setoption()
-**				2005-3-3     Added missing prototypes
-**              2004-10-26   Changed PrintPosition to include layout of board
-**                           Wrote GetinitialPosition
-**              2004-10-22   Error still in ValidTextInput
-**              2004-10-21   Fixed GenerateMoves, Primitive
-**              2004-10-10   Wrote ConvertTextInputToMove
-**                           Wrote PrintMove, and ValidTextInput
-**              2004-10-4    Wrote GenerateMoves, and Primative
-**              2004-9-28    Started Module. Print Position, Do Move, Hash Stuff.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -35,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -48,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Mu Torere";   /* The name of your game */
-STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
-STRING kDBName              = "tore";   /* The name to store the database under */
+CONST_STRING kGameName            = "Mu Torere";   /* The name of your game */
+CONST_STRING kAuthorName          = "Joe Jing, Jeff Chou, Jingfan Xia";   /* Your name(s) */
+CONST_STRING kDBName              = "tore";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = FALSE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -71,26 +47,26 @@ void* gGameSpecificTclInit    = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Type in from what position you want to move.  For example, if you want to move to 3, type in '3'.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Any piece may move into the middle as long as the middle space is empty and the moving piece is adjacent to an opponent's piece.  Any piece may move to any free adjacent side position.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "The objective is to trap your opponent so he has no possible moves left.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Objective is to obtain a position in which you have no more moves";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie will never occur";
 
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "   Board         Key \n\
   o  |  o      2  |  4\n\
    \\ | /        \\ | /\n\
@@ -309,19 +285,7 @@ char gBoard[9];
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int pieces_array[], int (*vcfg_function_ptr)(int* cfg), int player);
-extern POSITION         generic_hash_hash(char *board, int player);
-extern char            *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-
 POSITION getCanonicalPosition(POSITION position);
-
-STRING MoveToString( MOVE );
 
 /************************************************************************
 **
@@ -357,8 +321,6 @@ void InitializeGame ()
 	gInitialPosition = generic_hash_hash(gBoard, 1);
 
 	gCanonicalPosition = getCanonicalPosition;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -582,26 +544,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName)
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-
-{
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -612,13 +554,9 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE move)
+void MoveToString (MOVE move, char *m)
 {
-	STRING m = (STRING) SafeMalloc( 5 );
-
-	sprintf( m, "%d", move);
-
-	return m;
+	snprintf( m, 10, "%d", move);
 }
 
 
@@ -645,7 +583,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -751,65 +688,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-/*  Copied from mttt.c
- */
-POSITION GetInitialPosition ()
-{
-	// POSITION BlankOXToPosition();
-	//BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	//signed char c;
-	//int i, goodInputs = 0;
-
-
-	//printf("\n\n\t----- Get Initial Position -----\n");
-	//printf("\n\tPlease input the position to begin with.\n");
-	//printf("\tNote that it should be in the following format:\n\n");
-	//printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	//i = 0;
-	//getchar();
-	//while(i < BOARDSIZE && (c = getchar()) != EOF) {
-	//if(c == 'x' || c == 'X')
-	//  theBlankOX[i++] = x;
-	//else if(c == 'o' || c == 'O' || c == '0')
-	//  theBlankOX[i++] = o;
-	//else if(c == '-')
-	//  theBlankOX[i++] = Blank;
-	//else
-	//  ;   /* do nothing */
-	//}
-
-	/*
-	   getchar();
-	   printf("\nNow, whose turn is it? [O/X] : ");
-	   scanf("%c",&c);
-	   if(c == 'x' || c == 'X')
-	   whosTurn = x;
-	   else
-	   whosTurn = o;
-	 */
-
-	//return(BlankOXToPosition(theBlankOX,whosTurn));
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -822,8 +702,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
+int NumberOfOptions () {
 	return 2;
 }
 
@@ -840,8 +719,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
+int getOption () {
 	if (gStandardGame) {
 		return 2;
 	} else {
@@ -861,8 +739,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
+void setOption (int option) {
 	if (option == 1) {
 		gStandardGame = 0;
 	} else if (option == 2) {
@@ -870,7 +747,6 @@ void setOption (int option)
 	} else {
 		BadElse("setOption");
 	}
-
 }
 
 
@@ -887,10 +763,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
-{
-
-}
+void DebugMenu() {}
 
 
 /************************************************************************
@@ -904,7 +777,7 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-POSITION getCanonicalPosition (POSITION position) {
+POSITION getCanonicalPosition(POSITION position) {
 
 	char board[9], invertedBoard[9], reversedSideBoard[9], temp;
 	POSITION minPosHash = position, newHash = 0;
@@ -971,40 +844,42 @@ POSITION getCanonicalPosition (POSITION position) {
 	return minPosHash;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns; // Unused
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(str, &turn, &num_rows, &num_columns, &board)) {
-		// Failed to parse string
-		return INVALID_POSITION;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		char copy[9];
+		for (int i = 0; i < 9; i++) {
+			if (board[i] == '-') {
+				copy[i] = '_';
+			} else {
+				copy[i] = board[i];
+			}
+		}
+		return generic_hash_hash(copy, turn);
 	}
-	for (int i = 0; i < 9; i++) if (board[i] == '-') board[i] = '_';
-	POSITION toReturn = generic_hash_hash(board, (turn == UWAPI_TURN_A) ? 1 : 2);
-	SafeFreeString(board); // Free the string.
-	return toReturn;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char board[10];
-	generic_hash_unhash(pos, board);
-	for (int i = 0; i < 9; i++) if (board[i] == '_') board[i] = '-';
-	board[9] = '\0'; // Make sure to null-terminate your board.
-	enum UWAPI_Turn turn = (generic_hash_turn(pos) == 1) ? UWAPI_TURN_A : UWAPI_TURN_B;
-	return UWAPI_Board_Regular2D_MakeBoardString(turn, 9, board);
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	char board[9];
-	generic_hash_unhash(pos, board);
+	generic_hash_unhash(position, board);
 	for (int i = 0; i < 9; i++) {
 		if (board[i] == '_') {
-			return UWAPI_Board_Regular2D_MakeMoveString(mv, i);
+			board[i] = '-';
 		}
 	}
-	return NULL;
+	board[9] = '\0'; // Make sure to null-terminate your board.
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	char board[9];
+	generic_hash_unhash(position, board);
+	for (int i = 0; i < 9; i++) {
+		if (board[i] == '_') {
+			AutoGUIMakeMoveButtonStringM(move, i, 'x', autoguiMoveStringBuffer);
+			break;
+		}
+	}
 }

@@ -47,14 +47,8 @@
 ** Everything below here must be in every game file
 **
 **************************************************************************/
-#include <stdio.h>
+
 #include "gamesman.h"
-/* 10/12 Isaac: this is new */
-#include <math.h>
-#include <ctype.h>
-#include <stdlib.h>
-#include <string.h>
-/* end new include */
 
 POSITION gNumberOfPositions  = 3932160; //99614720;  /* (20 * 19 * 2^18) */ //203954088 from InitDatabases
 
@@ -62,9 +56,9 @@ POSITION gInitialPosition    = 16778208; //Blank with pieces in the corners for 
 POSITION gMinimalPosition    = 16778208;
 POSITION kBadPosition        = -1; /* This can never be the rep. of a position */
 
-STRING kAuthorName         = "Dave Le, Isaac Greenbride, and Mike Jurka";
-STRING kGameName           = "Joust";
-STRING kDBName             = "joust";
+CONST_STRING kAuthorName         = "Dave Le, Isaac Greenbride, and Mike Jurka";
+CONST_STRING kGameName           = "Joust";
+CONST_STRING kDBName             = "joust";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = TRUE;
 BOOLEAN kSupportsSymmetries = TRUE;
@@ -77,28 +71,28 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Two players control a single knight chess piece. Players alternate turns\n\
 moving their piece in an L shaped movement on the board. Once the player\n\
 has moved from space, the square that was previously occupied is considered\n\
 to be burned. No piece may occupy the square again."                                                                                                                                                                                                                                                ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Move your knight piece to any open spot that is not burned.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To force your opponent into a position where he cannot move.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be in a spot where you cannot move your piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : - - -\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : - - - \n\
          ( 7 8 9 )           : - - - \n\n\
@@ -144,9 +138,9 @@ Computer wins. Nice try, Dan."                                                  
 **
 **************************************************************************/
 #define MAXBOARDSIZE 20
-unsigned int BOARDSIZE  =   16;          /* ROWSIZE x COLUMNSIZE board. */
-unsigned int ROWSIZE    =   4;           /* Rows on the board. */
-unsigned int COLUMNSIZE =   4;           /* Columns on the board. */
+int BOARDSIZE  =   16;          /* ROWSIZE x COLUMNSIZE board. */
+int ROWSIZE    =   4;           /* Rows on the board. */
+int COLUMNSIZE =   4;           /* Columns on the board. */
 unsigned int BITSIZE    =   4;           /* The number of bits needed to
                                           * store the largest square number
                                           * on the board. EX: For a 20
@@ -177,7 +171,7 @@ BOOLEAN CanKnightMove(BlankBurntOX*, int, int);
 BOOLEAN CanRookMove(BlankBurntOX*, int, int);
 BOOLEAN CanBishopMove(BlankBurntOX*, int, int);
 
-
+POSITION GetInitialPosition(void);
 
 /* pulls the current piece location from the position */
 unsigned int GetPFromPosition(POSITION);
@@ -202,16 +196,14 @@ void ChangeOrder();
 
 /* Possible move and helpers */
 BOOLEAN PossibleMove(int, POSITION, BlankBurntOX[]);
-BOOLEAN PossibleRook(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleKnight(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleBishop(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleKing(int, int, int, int, int, BlankBurntOX[]);
-BOOLEAN PossibleQueen(int, int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleRook(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKnight(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleBishop(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleKing(int, int, int, int, BlankBurntOX[]);
+BOOLEAN PossibleQueen(int, int, int, int, BlankBurntOX[]);
 
 /* Possible burn and helpers */
 BOOLEAN PieceBurn(int, POSITION, BlankBurntOX[]);
-
-STRING MoveToString(MOVE);
 
 char *gBlankBurntOXString[] = { "-", "*", "O", "X" };
 STRING kBBExplanation =
@@ -255,13 +247,11 @@ Piecetype OBurn = knight;
 **
 ************************************************************************/
 
-void InitializeGame()
-{
+void InitializeGame() {
+	gSymmetries = TRUE;
 	gInitialPosition = GenerateNewInitial();
 	gMinimalPosition = gInitialPosition;
 	gNumberOfPositions = BOARDSIZE*(BOARDSIZE-1)*pow(2,BOARDSIZE-2)*2; /* xpos * ypos * burned spaces * whoseturn */
-
-	gMoveToStringFunPtr = &MoveToString;
 
 	/*Symmetry code (Messy)*/
 	gCanonicalPosition = GetCanonicalPosition;
@@ -332,8 +322,7 @@ void InitializeGame()
 **
 ************************************************************************/
 
-void ProcessSymmetries(int numsymmetries, int* rotation, int* reflection)
-{
+void ProcessSymmetries(int numsymmetries, int* rotation, int* reflection) {
 	int i, j, temp;
 	for(i = 0; i < BOARDSIZE; i++) {
 		temp = i;
@@ -356,11 +345,7 @@ void ProcessSymmetries(int numsymmetries, int* rotation, int* reflection)
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-}
-
-
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -421,17 +406,47 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /* 11/4 Isaac: Mask off the position's turn bit that has been preserved
  * up till now, then put in the opposite of the current turn bit */
-POSITION ChangeTurn(POSITION thePos){
+POSITION ChangeTurn(POSITION thePos) {
 	return thePos ^ 1; /* xor */
 }
+
+/************************************************************************
+**
+** NAME:        DoSymmetry
+**
+** DESCRIPTION: Perform the symmetry operation specified by the input
+**              on the position specified by the input and return the
+**              new position, even if it's the same as the input.
+**
+** INPUTS:      POSITION position : The position to branch the symmetry from.
+**              int      symmetry : The number of the symmetry operation.
+**
+** OUTPUTS:     POSITION, The position after the symmetry operation.
+**
+************************************************************************/
+
+POSITION DoSymmetry(POSITION position, int symmetry) {
+	int i;
+	BlankBurntOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
+
+	PositionToBlankBurntOX(position,theBlankOx);
+	PositionToBlankBurntOX(position,symmBlankOx); /* Make copy */
+
+	/* Copy from the symmetry matrix */
+
+	for(i = 0; i < BOARDSIZE; i++)
+		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
+
+	return(BlankBurntOXToPosition(symmBlankOx, WhoseTurn(position)));
+}
+
 /************************************************************************
 **
 ** NAME:        GetCanonicalPosition
@@ -446,10 +461,8 @@ POSITION ChangeTurn(POSITION thePos){
 **
 ************************************************************************/
 
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
 	int i, NUMSYMMETRIES;
 
 	theCanonicalPosition = position;
@@ -471,40 +484,6 @@ POSITION position;
 
 /************************************************************************
 **
-** NAME:        DoSymmetry
-**
-** DESCRIPTION: Perform the symmetry operation specified by the input
-**              on the position specified by the input and return the
-**              new position, even if it's the same as the input.
-**
-** INPUTS:      POSITION position : The position to branch the symmetry from.
-**              int      symmetry : The number of the symmetry operation.
-**
-** OUTPUTS:     POSITION, The position after the symmetry operation.
-**
-************************************************************************/
-
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
-	int i;
-	BlankBurntOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
-	POSITION BlankBurntOXToPosition();
-
-	PositionToBlankBurntOX(position,theBlankOx);
-	PositionToBlankBurntOX(position,symmBlankOx); /* Make copy */
-
-	/* Copy from the symmetry matrix */
-
-	for(i = 0; i < BOARDSIZE; i++)
-		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
-
-	return(BlankBurntOXToPosition(symmBlankOx, WhoseTurn(position)));
-}
-
-/************************************************************************
-**
 ** NAME:        DoMove
 **
 ** DESCRIPTION: Apply the move to the position.
@@ -522,10 +501,7 @@ int symmetry;
 /* Dave: 10/20.  theMove contains the move (1-20) in the last 5 bits,
  * and the square to be burnt in the first 5 bits. */
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	/*Dave: Assumes piece move is in the last 5 bits of theMove,
 	 * and the burnt spot is in the first 5 bits. */
 	MOVE extractedMove = ExtractMove(theMove);     //Mask off all but 5 move bits
@@ -570,9 +546,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
-	POSITION BlankBurntOXToPosition();
+POSITION GetInitialPosition() {
 	BlankBurntOX theBlankBurntOX[BOARDSIZE], whosTurn;
 	signed char c;
 	int i, xCount = 0, oCount = 0;
@@ -601,8 +575,7 @@ POSITION GetInitialPosition()
 			theBlankBurntOX[i++] = Blank;
 		else if(c == '*')
 			theBlankBurntOX[i++] = Burnt;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	getchar();
@@ -627,9 +600,7 @@ POSITION GetInitialPosition()
 ** INPUTS:      MOVE theMove
 **
 ************************************************************************/
-int ExtractMove(theMove)
-MOVE theMove;
-{
+int ExtractMove(MOVE theMove) {
 	return (theMove >> BITSIZE);
 }
 
@@ -642,9 +613,7 @@ MOVE theMove;
 ** INPUTS:      MOVE theMove
 **
 ************************************************************************/
-int ExtractBurn(theMove)
-MOVE theMove;
-{
+int ExtractBurn(MOVE theMove) {
 	return (theMove & BITSIZEMASK);
 }
 
@@ -657,10 +626,7 @@ MOVE theMove;
 ** INPUTS:      int theMove, int theBurn
 **
 ************************************************************************/
-MOVE EncodeTheMove(theMove, theBurn)
-MOVE theMove;
-MOVE theBurn;
-{
+MOVE EncodeTheMove(MOVE theMove, MOVE theBurn) {
 	return (theBurn | (theMove << BITSIZE));
 }
 
@@ -677,11 +643,7 @@ MOVE theBurn;
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
-
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d  %2d\n", computersName, ExtractMove(computersMove) + 1, ExtractBurn(computersMove) + 1); //Dave: added 11114
 }
 
@@ -708,9 +670,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 
 	if (kPrintDebug)
 		printf("\nPrimitive called"); // for debugging
@@ -751,15 +711,10 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i, j, spot;
 	//  VALUE GetValueOfPosition();
 	BlankBurntOX theBlankBurntOX[BOARDSIZE];
-	BlankBurntOX WhoseTurn();
 
 	PositionToBlankBurntOX(position, theBlankBurntOX);
 
@@ -832,19 +787,10 @@ BOOLEAN usersTurn;
 *
 *******************/
 
-BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
-{
+BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[]) {
 	int playerPos;
-	int rp;
-	int cp;
-	int rd;
-	int cd;
-	int i;
-	int j;
+	int rp, cp, rd, cd, i, j;
 	Piecetype thePiece;
-
-	BlankBurntOX  WhoseTurn();
-
 
 	playerPos = GetPFromPosition(thePos);
 
@@ -887,19 +833,19 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
 	{
 		switch (thePiece) {
 		case knight:
-			return(PossibleKnight(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKnight(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case queen:
-			return(PossibleQueen(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleQueen(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case rook:
-			return(PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case bishop:
-			return(PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleBishop(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case king:
-			return(PossibleKing(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKing(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		default:
 			BadElse("Error in PossibleMove\n");
@@ -920,9 +866,7 @@ BOOLEAN PossibleMove(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[
         <-||->
     3            4
  */
-BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[])
-{
-
+BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]) {
 	if (kPrintDebug)
 		printf(" PossibleBishop: rd=%d cd=%d|", rd, cd);
 
@@ -1114,7 +1058,7 @@ BOOLEAN PossibleBishop(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX 
         <-||->
     3            4
  */
-BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]) {
 
 	if (kPrintDebug)
 		printf(" PossibleRook: rd=%d cd=%d|", rd, cd);
@@ -1247,7 +1191,7 @@ BOOLEAN PossibleRook(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX th
 
 /* Knight jumps over occupied squares so only the destination
  * matters, the King only moves one square, so the same is true */
-BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]){
 	int r1 = rp - 2;
 	int r2 = rp - 1;
 	int r3 = rp + 1;
@@ -1288,7 +1232,7 @@ BOOLEAN PossibleKnight(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX 
    r3   f    g   h
 
  */
-BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[]){
+BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[]){
 
 	int r1 = rp + 1;
 	int r3 = rp - 1;
@@ -1316,10 +1260,10 @@ BOOLEAN PossibleKing(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX th
 
 /* Oh no, not more Possibilities....
  * Haha, fooled ya! We can cheat and use old stuff here! Nyaaa Nyaaa.. */
-BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX theBlankBurntOX[])
+BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, BlankBurntOX theBlankBurntOX[])
 {
-	return (PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX) ||
-	        PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+	return (PossibleBishop(rp, cp, rd, cd, theBlankBurntOX) ||
+	        PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 	/* Notice that PossibleBishop and Rook return false when the move
 	 * is not of their type */
 }
@@ -1336,11 +1280,8 @@ BOOLEAN PossibleQueen(int rp, int cp, int rd, int cd, int thePos, BlankBurntOX t
 /* Note, burn AFTER move is implemented merely by passing Possible burn
 * i (the proposed move), along with piecePos (its current position). */
 BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, POSITION Pos, BlankBurntOX theBlankBurntOX[]){
-	int piecePos;
 	MOVE aMove;
-
-	piecePos = GetPFromPosition(Pos);
-
+	(void)GetPFromPosition(Pos);
 	switch(burnType) {
 
 /* burn old position (it MUST be open) */
@@ -1383,19 +1324,9 @@ BOOLEAN PossibleBurn(unsigned int pPos, unsigned int mPos, unsigned int bPos, PO
 }
 
 
-BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
-{
-	int playerPos;
-	int rp;
-	int cp;
-	int rd;
-	int cd;
-	int i;
-	int j;
+BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[]) {
+	int playerPos, rp, cp, rd, cd, i, j;
 	Piecetype theBurn;
-
-	BlankBurntOX  WhoseTurn();
-
 
 	playerPos = GetPFromPosition(thePos);
 
@@ -1438,19 +1369,19 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
 	{
 		switch (theBurn) {
 		case knight:
-			return(PossibleKnight(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKnight(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case queen:
-			return(PossibleQueen(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleQueen(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case rook:
-			return(PossibleRook(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleRook(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case bishop:
-			return(PossibleBishop(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleBishop(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		case king:
-			return(PossibleKing(rp, cp, rd, cd, thePos, theBlankBurntOX));
+			return(PossibleKing(rp, cp, rd, cd, theBlankBurntOX));
 			break;
 		default:
 			BadElse("Error in PossibleMove\n");
@@ -1479,9 +1410,7 @@ BOOLEAN PieceBurn(int theDest, POSITION thePos, BlankBurntOX theBlankBurntOX[])
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
 
 	int i;
@@ -1554,11 +1483,7 @@ POSITION position;
 /* 10/19 altered print string... we've got some small problems ahead
  * (2-part move..)
  */
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 
 	do {
@@ -1597,9 +1522,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	int move=-1, burn=-1;
 
 	if (burnType==0) {
@@ -1624,9 +1547,7 @@ STRING input;
 **
 ************************************************************************/
 /* Isaac: 10/18 */
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int move, burn;
 
 	if (burnType==0) {
@@ -1640,23 +1561,6 @@ STRING input;
 /* This version has the first move input as the first 5 bits. */
 	return (EncodeTheMove(move-1, burn-1));
 }
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING m = MoveToString( theMove );
-	printf( "%s", m );
-	SafeFree( m );
-}
 
 /************************************************************************
 **
@@ -1668,11 +1572,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING moveStr = (STRING) SafeMalloc(8);
-
+void MoveToString(MOVE theMove, char *moveStr) {
 	int burn;
 	int move;
 	burn = ExtractBurn(theMove);
@@ -1680,13 +1580,11 @@ MOVE theMove;
 
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	if (burnType==0) {
-		sprintf(moveStr, "[%d]", move + 1);
+		sprintf(moveStr, "%d", move + 1);
 	}
 	else {
-		sprintf(moveStr, "[%d %d]", move + 1, burn + 1);
+		sprintf(moveStr, "%d %d", move + 1, burn + 1);
 	}
-
-	return moveStr;
 }
 
 int NumberOfOptions() {
@@ -1713,7 +1611,7 @@ int getOption() {
 
 	for (i=1; i<=MAXBOARDSIZE && !done; i++) {
 		for (j=1; j<=MAXBOARDSIZE && !done; j++) {
-			if (i==ROWSIZE && j==COLUMNSIZE)
+			if (j==ROWSIZE && i==COLUMNSIZE)
 				done = TRUE;
 			else if (i*j<=MAXBOARDSIZE && i<=j)
 				boardOption++;
@@ -1740,6 +1638,7 @@ int getOption() {
 	}
 	else {
 		BadElse("NumberOfOptions");
+		return -1;
 	}
 
 	option += burnOption;
@@ -1806,8 +1705,14 @@ void setOption(int option) {
 		for (j=1; j<=MAXBOARDSIZE && !done; j++) {
 			if (i*j<=MAXBOARDSIZE && i<=j) {
 				if (option==0) {
-					ROWSIZE = i;
-					COLUMNSIZE = j;
+					ROWSIZE = j;
+					COLUMNSIZE = i;
+					BOARDSIZE = ROWSIZE * COLUMNSIZE;
+					if (BOARDSIZE <= 16) {
+						BITSIZE = 4;
+					} else {
+						BITSIZE = 5;
+					}
 					done = TRUE;
 				}
 				else {
@@ -1816,6 +1721,7 @@ void setOption(int option) {
 			}
 		}
 	}
+	InitializeGame();
 }
 
 /************************************************************************
@@ -1834,9 +1740,7 @@ void setOption(int option) {
 ** INPUT:      POSITION thePos    : the position input.
 **
 ***********************************************************************/
-unsigned int GetXFromPosition(thePos)
-POSITION thePos;
-{
+unsigned int GetXFromPosition(POSITION thePos) {
 	return (thePos >> (BOARDSIZE-2+1)) % BOARDSIZE;
 }
 
@@ -1849,9 +1753,7 @@ POSITION thePos;
 ** INPUT:      POSITION thePos    : the position input.
 **
 ***********************************************************************/
-unsigned int GetOFromPosition(thePos)
-POSITION thePos;
-{
+unsigned int GetOFromPosition(POSITION thePos) {
 	POSITION xPos, rawPos, rawOPos;
 	rawPos = (thePos >> (BOARDSIZE-2+1));
 	xPos = (rawPos % BOARDSIZE);
@@ -1908,10 +1810,7 @@ unsigned int GetPFromPosition (POSITION position){
  * square is occupied or not
  * (0-1). */
 
-void PositionToBlankBurntOX(thePos,theBlankBurntOX)
-POSITION thePos;
-BlankBurntOX *theBlankBurntOX;
-{
+void PositionToBlankBurntOX(POSITION thePos, BlankBurntOX *theBlankBurntOX) {
 	int i;
 	int emptyCount = 0;
 
@@ -1952,15 +1851,12 @@ BlankBurntOX *theBlankBurntOX;
  * what is in each square.  From this, return a hashed number
  * unique to the board configuration stored in an int data type. */
 
-POSITION BlankBurntOXToPosition(theBlankBurntOX, whoseTurn)
-BlankBurntOX *theBlankBurntOX, whoseTurn;
-{
+POSITION BlankBurntOXToPosition(BlankBurntOX *theBlankBurntOX, BlankBurntOX whoseTurn) {
 	POSITION position = 0;
-	unsigned int i;
 	int emptycount = 0;
 	BOOLEAN foundX = FALSE;
 	// Set occupied spots, and x,o locations.
-	for(i = 0; i < BOARDSIZE; i++)
+	for(int i = 0; i < BOARDSIZE; i++)
 	{
 		if((int)theBlankBurntOX[i] == x)
 		{
@@ -2011,9 +1907,7 @@ BlankBurntOX *theBlankBurntOX, whoseTurn;
 **
 ************************************************************************/
 // Dave: Modified 10/7
-BlankBurntOX WhoseTurn(thePosition)
-POSITION thePosition;
-{
+BlankBurntOX WhoseTurn(POSITION thePosition) {
 	if((thePosition & 1) == 0) {
 		return(x);
 	} /* In our game, x always goes first */
@@ -2031,8 +1925,7 @@ POSITION thePosition;
 *   For use with Primitive.
 **************************************************/
 
-BOOLEAN CanMove(POSITION position)
-{
+BOOLEAN CanMove(POSITION position) {
 	int i;
 	int j;
 	int piecePos;
@@ -2231,28 +2124,32 @@ void PieceMessage(POSITION thePos, BOOLEAN DisplayPieceType){
  * this takes either case of K, Q, R, B, or N
  * and changes thePiece to match the choice.*/
 void ChangeThePiece(char input){
-	Piecetype thePiece;
+	/* Robert Shi: Commenting the entire function
+	   out as it does not appear to do anything. */
+	(void)input;
 
-	switch(input) {
-	case 'k': case 'K':
-		thePiece = king;
-		break;
-	case 'q': case 'Q':
-		thePiece = queen;
-		break;
-	case 'r': case 'R':
-		thePiece = rook;
-		break;
-	case 'b': case 'B':
-		thePiece = bishop;
-		break;
-	case 'n': case 'N':
-		thePiece = knight;
-		break;
-	default:
-		thePiece = knight;
-		break;
-	};
+	// Piecetype thePiece;
+
+	// switch(input) {
+	// case 'k': case 'K':
+	// 	thePiece = king;
+	// 	break;
+	// case 'q': case 'Q':
+	// 	thePiece = queen;
+	// 	break;
+	// case 'r': case 'R':
+	// 	thePiece = rook;
+	// 	break;
+	// case 'b': case 'B':
+	// 	thePiece = bishop;
+	// 	break;
+	// case 'n': case 'N':
+	// 	thePiece = knight;
+	// 	break;
+	// default:
+	// 	thePiece = knight;
+	// 	break;
+	// };
 }
 
 /************************************************************************
@@ -2271,19 +2168,17 @@ void ChangeThePiece(char input){
 
 void ChangePiece(POSITION thePos){
 
-	Piecetype thePiece, theBurn;
+	Piecetype thePiece;
 
 	if(WhoseTurn(thePos) == x)
 	{
 		printf("X ");
 		thePiece = Xtype;
-		theBurn = XBurn;
 	}
 	else
 	{
 		printf("O ");
 		thePiece = Otype;
-		theBurn = OBurn;
 	}
 
 	printf("moves like a ");
@@ -2370,7 +2265,7 @@ int GenerateNewInitial(){
 	{
 		for(j=0; j < COLUMNSIZE; j++)
 		{
-			NewInitial[i*ROWSIZE + j] = Blank;
+			NewInitial[i*COLUMNSIZE + j] = Blank;
 		}
 	}
 
@@ -2445,20 +2340,62 @@ void ChangeBoardSize(){
 	InitializeGame();
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		BlankBurntOX whoseTurn = turn == 1 ? x : o;
+		BlankBurntOX realBoard[BOARDSIZE];
+		for (int i = 0; i < BOARDSIZE; i++) {
+			switch (board[i]) {
+				case 'X':
+					realBoard[i] = x;
+					break;
+				case 'O':
+					realBoard[i] = o;
+					break;
+				case 'B':
+					realBoard[i] = Burnt;
+					break;
+				default:
+					realBoard[i] = Blank;
+					break;
+			}
+		}
+		return BlankBurntOXToPosition(realBoard, whoseTurn);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	BlankBurntOX board[BOARDSIZE];
+	PositionToBlankBurntOX(position, board);
+	int turn = WhoseTurn(position) == x ? 1 : 2;
+
+	char str[BOARDSIZE + 1];
+	for (int i = 0; i < BOARDSIZE; i++) {
+		switch (board[i]) {
+			case x:
+				str[i] = 'X';
+				break;
+			case o:
+				str[i] = 'O';
+				break;
+			case Blank:
+				str[i] = '-';
+				break;
+			default:
+				str[i] = 'B';
+				break;
+		}
+	}
+	str[BOARDSIZE] = '\0';
+	AutoGUIMakePositionString(turn, str, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	(void) position;
+  	MOVE extractedMove = ExtractMove(move);
+  	MOVE oldSpot = GetPFromPosition(position);
+	AutoGUIMakeMoveButtonStringM(oldSpot, extractedMove, 'x', autoguiMoveStringBuffer);
 }

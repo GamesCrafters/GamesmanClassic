@@ -4,13 +4,9 @@
 **
 ** DESCRIPTION: 3Dot
 **
-** AUTHOR:      Attila Gyulassy, Matthew Yu, Cameron Cheung
+** AUTHOR:      Attila Gyulassy, Cameron Cheung
 **
 ** DATE:        02/02/02
-**
-** UPDATE HIST:
-**   02-02-02  started by copying and modifying tictactoe
-**	 04-04-28  Name Chang
 **
 **************************************************************************/
 
@@ -83,10 +79,7 @@
 ** Everything below here must be in every game file
 **
 **************************************************************************/
-//#define debugdomove
-//#define debugmovelist 1
-//#define x 1
-//#define funcname 1
+
 #include <stdio.h>
 #include "gamesman.h"
 
@@ -96,8 +89,8 @@ POSITION gInitialPosition    =  0x001009BD;
 POSITION gMinimalPosition = 0x001009BD;
 POSITION kBadPosition = -1;
 
-STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
-STRING kGameName           = "3Spot";
+CONST_STRING kAuthorName         = "Attila Gyulassy, Matthew Yu, Cameron Cheung";
+CONST_STRING kGameName           = "3Spot";
 
 //?
 BOOLEAN kPartizan           = TRUE;
@@ -108,15 +101,15 @@ BOOLEAN kLoopy              = TRUE;
 
 //?
 BOOLEAN kDebugDetermineValue = FALSE;
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Umm, i'm not sure what you want to hear here, so\n\
 i'm not going to tell you anything... =)\n"                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "It is your turn: you need to input a valid move:\n\
 VALID MOVES: a valid move is a pair of a pair of a \n\
 number(1-8) and a letter indicating the orientation\n\
@@ -132,18 +125,17 @@ You must change the position of your piece, and the\n\
 the white piece. You earn points by covering up the\n\
 squares with \'o\'s.\n "                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               ;
 
-STRING kHelpStandardObjective ="PlayerX wins if:\n\
+CONST_STRING kHelpStandardObjective ="PlayerX wins if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY >= PlayerY's minimum score. \n\n\
 PlayerX loses if:\n\
 PlayerX >= PlayerX's winning score AND\n\
 PlayerY < PlayerY's minimum score.\n";
 
-STRING kHelpReverseObjective ="";
-STRING kHelpTieOccursWhen ="";
-STRING kHelpExample = "";
-
-STRING MoveToString(MOVE);
+CONST_STRING kHelpReverseObjective ="";
+CONST_STRING kHelpTieOccursWhen ="";
+CONST_STRING kHelpExample = "";
+CONST_STRING kDBName = "3spot";
 
 /*************************************************************************
 **
@@ -192,9 +184,7 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 /*********************************************
 ** get the red piece's position on the board *
 *********************************************/
-int GetRedPosition(thePosition)
-POSITION thePosition;
-{
+int GetRedPosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x00000f00;
 	temp = temp >> 8;
@@ -204,10 +194,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the red piece     **
 *********************************************/
-int SetRedPosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetRedPosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xfffff0ff;
 	thePosition = thePosition | (place << 8);
 	return thePosition;
@@ -216,9 +203,7 @@ int place;
 /*********************************************
 ** get the wht piece's position on the board *
 *********************************************/
-int GetWhitePosition(thePosition)
-POSITION thePosition;
-{
+int GetWhitePosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x000000f0;
 	temp = temp >> 4;
@@ -228,10 +213,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the wht piece     **
 *********************************************/
-int SetWhitePosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetWhitePosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xffffff0f;
 	thePosition = thePosition | (place << 4);
 	return thePosition;
@@ -240,9 +222,7 @@ int place;
 /*********************************************
 ** get the blu piece's position on the board *
 *********************************************/
-int GetBluePosition(thePosition)
-POSITION thePosition;
-{
+int GetBluePosition(POSITION thePosition) {
 	int temp = thePosition;
 	temp = temp & 0x0000000F;
 	return temp;
@@ -251,10 +231,7 @@ POSITION thePosition;
 /*********************************************
 ** set a new position for the wht piece     **
 *********************************************/
-int SetBluePosition(thePosition, place)
-POSITION thePosition;
-int place;
-{
+int SetBluePosition(POSITION thePosition, int place) {
 	thePosition = thePosition & 0xfffffff0;
 	thePosition = thePosition | place;
 	return thePosition;
@@ -263,9 +240,7 @@ int place;
 /*
  * get the score of player 1
  */
-int GetPlayer1Score(thePosition)
-POSITION thePosition;
-{
+int GetPlayer1Score(POSITION thePosition) {
 	int temp = 0;
 	temp = thePosition  & 0x000F0000;
 	temp = temp >> 16;
@@ -275,30 +250,19 @@ POSITION thePosition;
 /*
  * get the score of player 2
  */
-int GetPlayer2Score(thePosition)
-POSITION thePosition;
-{
+int GetPlayer2Score(POSITION thePosition) {
 	int temp = 0;
 	temp = thePosition  & 0x0000F000;
 	temp = temp >> 12;
-	//printf("the score returned is %x\n", temp);
 	return temp;
 }
 
 /*
  * get whose turn it is, 1 for player1 , 0 for p2
  */
-int GetWhoseTurn(POSITION thePosition){
-#ifdef x
-	printf("player%d's turn\n",(thePosition >> 20) + 1);
-#endif
+int GetWhoseTurn(POSITION thePosition) {
 	return (thePosition >> 20) & 1;
 }
-
-/*
- *
-   char *gBlankDRWBString[] = { ".", "o", "R", "W", "B" };
- */
 
 /************************************************************************
 **
@@ -308,14 +272,8 @@ int GetWhoseTurn(POSITION thePosition){
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-	gMoveToStringFunPtr = &MoveToString;
+void InitializeGame() {
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -327,13 +285,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-#ifdef funcname
-	printf("Func call: DebugMenu\n");
-#endif
-
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -346,12 +298,7 @@ void DebugMenu()
 ************************************************************************/
 
 void GameSpecificMenu() {
-#ifdef funcname
-	printf("Func call: GameSpecificMenu\n");
-#endif
-
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -372,6 +319,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -380,9 +328,6 @@ void GameSpecificMenu() {
 			break;
 		case 'S': case 's':
 			SetTargetScoresMenu();
-			break;
-		case '1':
-			gInitialPosition = GetInitialPosition();
 			break;
 		case 'R': case 'r':
 			invertedScoring  = !invertedScoring;
@@ -411,9 +356,6 @@ void GameSpecificMenu() {
 
 /// 2nd menu ///
 void SetTargetScoresMenu() {
-#ifdef funcname
-	printf("Func call: GameSpecificMenu\n");
-#endif
 
 	printf("\n\t----- Game-specific options for %s -----\n", kGameName);
 	printf("\n\t--------- Score Selection Menu ---------\n\n");
@@ -524,9 +466,8 @@ void SetDotPositionMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -542,124 +483,44 @@ int theOptions[];
 **
 ************************************************************************/
 
-// I want to change whoseturn to take a POSITION as an input and keep
-// track of things like that -- since whose turn it is is part of the
-// information kept in a position
-
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	int score = 0;
-	int temp = 0;
-#ifdef funcname
-	printf("Func call: DoMove(0x%x, 0x%x)\n", thePosition, theMove);
-#endif
 
 	if (GetWhoseTurn(thePosition)) {
-		//it is player 1's turn
-		temp = GetRedPosition(thePosition);
+		// It is player 1's turn (red)
 		score = GetPlayer1Score(thePosition);
 		score += pointsEarned[(theMove >> 4) - 2];
-		if ((theMove & 0x0000000F) == 0) {
-			//            printf("this should nt happen\n");
-			thePosition = thePosition & 0xFFF0F0FF;
+		if (theMove & 0xF) {
+			// Neutral piece will be moved.
+			// Zero out P1's score, P1's piece location,
+			// AND the neutral piece location.
+			thePosition &= 0xFFF0F00F;
 		} else {
-			thePosition = thePosition & 0xFFF0F00F;
+			// Neutral piece will not be moved.
+			// Zero out P1's score and P1's piece location only.
+			thePosition &= 0xFFF0F0FF;
 		}
-		thePosition = thePosition | (score << 16);
-		thePosition = thePosition | (theMove << 4);
-		thePosition = thePosition ^ 0x00100000;
-#ifdef debugdomove
-		printf("1DID MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-		return thePosition;
+		thePosition |= (score << 16);  // Set P1's score bits
+		thePosition |= (theMove << 4); // Set P1 and neutral piece location bits
 	} else {
-		//it is player 2's turn
+		// It is player 2's turn (blue)
 		score = GetPlayer2Score(thePosition);
-
-#ifdef debugdomove
-		printf("2DID0 MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-		temp = GetBluePosition(thePosition);
-		if ((theMove & 0x0000000F) == 0) {
-			//  printf("this should nt happen\n");
-			thePosition = thePosition & 0xFFFF0FF0;
-		} else {
-			thePosition = thePosition & 0xFFFF0F00;
-		}
-
-
-#ifdef debugdomove
-		printf("2DID1 MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-
 		score += pointsEarned[(theMove >> 4) - 2];
-#ifdef debugdomove
-		printf("2DID2 MOVE: %x NEW POS: %x SCORE: %x\n", theMove, thePosition, score);
-#endif
-		thePosition = thePosition | (score << 12);
-
-#ifdef debugdomove
-		printf("2DID3 MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-		temp = (theMove & 0x0000000F) << 4;
-		thePosition = (thePosition | temp) | (theMove >> 4);
-
-#ifdef debugdomove
-		printf("2DID4 MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-		thePosition = thePosition ^ 0x00100000;
-
-#ifdef debugdomove
-		printf("2DID5 MOVE: %x NEW POS: %x\n", theMove, thePosition);
-#endif
-
-		return thePosition;
+		if (theMove & 0xF) {
+			// Neutral piece is being moved.
+			// Zero out P2's score, P2's piece location,
+			// AND the neutral piece location.
+			thePosition &= 0xFFFF0F00;
+			thePosition |= ((theMove & 0xF) << 4); // Set neutral piece location bits
+		} else {
+			// Neutral piece is not being moved.
+			// Zero out P2's score and P2's piece location only.
+			thePosition &= 0xFFFF0FF0;
+		}
+		thePosition |= (score << 12);  // Set P2's score bits
+		thePosition |= (theMove >> 4); // Set P2 piece location bits
 	}
-	return 0;
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-#ifdef funcname
-	printf("Func call: GetInitialPosition()\n");
-#endif
-	return 0x001009BD;
-}
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely format the computers move.
-**
-** INPUTS:      MOVE   *computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
-#ifdef funcname
-	printf("Func call: PrintComputersMove(0x%x, %s)\n", computersMove, computersName);
-#endif
-	printf("In his infinite wisdom, %8s's move = ",computersName);
-	PrintMove(computersMove);
-	printf("\n");
+	return thePosition ^ 0x00100000; // Turn bit flipped
 }
 
 /************************************************************************
@@ -685,110 +546,65 @@ STRING computersName;
 **
 ************************************************************************/
 
-//erroneous since there can exist a primitive winning condition
-VALUE Primitive(position)
-POSITION position;
-{
-	//normal scoring
-#ifdef funcname
-	printf("Func call: Primitive(0x%x)\n", position);
-#endif
-#ifdef x
-	printf("Primitive evaluated: 0x%x\n",position);
-#endif
-
+VALUE Primitive(POSITION position) {
+	int P1Score = GetPlayer1Score(position);
+	int P2Score = GetPlayer2Score(position);
 	if (invertedScoring == 0) {
 		if (GetWhoseTurn(position) == 0) {
-			//if it is player2's turn and player1 has more than the min
-			//then it is a lose
-			if (GetPlayer2Score(position) >= winScore1 &&
-			    GetPlayer1Score(position) >= winScore2) {
-				//printf("Func call: Primitive(0x%x) = lose\n", position);
+			// Player 2's Turn
+			if (P2Score >= winScore1 && P1Score >= winScore2) {
 				return (gStandardGame ? win : lose);
 			}
-			if (GetPlayer2Score(position) >= winScore2 &&
-			    GetPlayer1Score(position) >= winScore1) {
-				//printf("Func call: Primitive(0x%x) = lose\n", position);
+			if (P2Score >= winScore2 && P1Score >= winScore1) {
 				return (gStandardGame ? lose : win);
 			}
-
-			if (GetPlayer2Score(position) >= winScore1 &&
-			    GetPlayer1Score(position) < winScore2) {
+			if (P2Score >= winScore1 && P1Score < winScore2) {
 				return (gStandardGame ? lose : win);
 			}
-			if (GetPlayer2Score(position) < winScore2 &&
-			    GetPlayer1Score(position) >= winScore1) {
+			if (P2Score < winScore2 && P1Score >= winScore1) {
 				return (gStandardGame ? win : lose);
 			}
-
 		} else {
-
-
-			//if it is player2's turn and player1 has more than the min
-			//then it is a lose
-			if (GetPlayer1Score(position) >= winScore1 &&
-			    GetPlayer2Score(position) >= winScore2) {
-				//printf("Func call: Primitive(0x%x) = lose\n", position);
-				return (gStandardGame ? win : lose); /////////////////////////win
+			// Player 1's Turn
+			if (P1Score >= winScore1 && P2Score >= winScore2) {
+				return (gStandardGame ? win : lose);
 			}
-			if (GetPlayer1Score(position) >= winScore2 &&
-			    GetPlayer2Score(position) >= winScore1) {
-				//printf("Func call: Primitive(0x%x) = lose\n", position);
-				return (gStandardGame ? lose : win); /////////////////////////win
-			}
-
-			if (GetPlayer1Score(position) >= winScore1 &&
-			    GetPlayer2Score(position) < winScore2) {
+			if (P1Score >= winScore2 && P2Score >= winScore1) {
 				return (gStandardGame ? lose : win);
 			}
-			if (GetPlayer1Score(position) < winScore2 &&
-			    GetPlayer2Score(position) >= winScore1) {
+			if (P1Score >= winScore1 && P2Score < winScore2) {
+				return (gStandardGame ? lose : win);
+			}
+			if (P1Score < winScore2 && P2Score >= winScore1) {
 				return (gStandardGame ? win : lose);
 			}
 		}
-	}
-	//inverted scoring
-	else if (invertedScoring == 1) {
+	} else if (invertedScoring == 1) {
 		if (GetWhoseTurn(position) == 0) {
-			//if it is player2's turn and player2 has more than the max
-			//and player1 has less than the min, it is a lose
-			if (GetPlayer2Score(position) >= winScore1 &&
-			    GetPlayer1Score(position) < winScore2) {
+			// Player 2's Turn
+			if (P2Score >= winScore1 && P1Score < winScore2) {
 				return (gStandardGame ? win : lose);
 			}
-			//if it is player2's turn and player1 has more than the max
-			//and player2 has less than the min, it is a win
-			if (GetPlayer1Score(position) >= winScore1 &&
-			    GetPlayer2Score(position) < winScore2) {
+			if (P1Score >= winScore1 && P2Score < winScore2) {
 				return (gStandardGame ? lose : win);
 			}
-			if (GetPlayer2Score(position) >= winScore2 &&
-			    GetPlayer1Score(position) >= winScore1) {
+			if (P2Score >= winScore2 && P1Score >= winScore1) {
 				return (gStandardGame ? lose : win);
 			}
-
 		} else {
-			//if it is player1's turn and player1 has more than the max
-			//and player2 has less than the min, it is a lose
-			if (GetPlayer1Score(position) >= winScore1 &&
-			    GetPlayer2Score(position) < winScore2) {
+			// Player 1's Turn
+			if (P1Score >= winScore1 && P2Score < winScore2) {
 				return (gStandardGame ? win : lose);
 			}
-			//if it is player1's turn and player2 has more than the max
-			//and player1 has less than the min, it is a win
-			if (GetPlayer2Score(position) >= winScore1 &&
-			    GetPlayer1Score(position) < winScore2) {
+			if (P2Score >= winScore1 && P1Score < winScore2) {
 				return (gStandardGame ? lose : win);
 			}
-			if (GetPlayer1Score(position) >= winScore2 &&
-			    GetPlayer2Score(position) >= winScore1) {
+			if (P1Score >= winScore2 && P2Score >= winScore1) {
 				return (gStandardGame ? lose : win);
 			}
 		}
 	}
-	//printf("Func call: Primitive(0x%x) = undecided\n", position);
 	return undecided;
-
 }
 
 
@@ -825,15 +641,8 @@ char GetInitChar(int i, int j){
 	}
 }
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
-#ifdef funcname
-	printf("Func call: PrintPosition(0x%x, %s, &d)\n", position, playerName, usersTurn);
-#endif
 	ClearTheBoard();
 	theBoard[pieceToBoard(GetRedPosition(position),0)] = 'R';
 	theBoard[pieceToBoard(GetRedPosition(position),1)] = 'R';
@@ -870,7 +679,7 @@ BOOLEAN usersTurn;
 	return;
 }
 
-void ClearTheBoard(){
+void ClearTheBoard() {
 	int i;
 	for (i = 0; i < 9; i++) {
 		theBoard[i] = theInitialBoard[i];
@@ -894,37 +703,32 @@ void ClearTheBoard(){
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	//////////////////////////////////////////////////
 	//         DECLARE VARIABLES                    //
 	//////////////////////////////////////////////////
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	VALUE Primitive();
+	MOVELIST *head = NULL;
 	int theBoard[] = {0,0,0,0,0,0,0,0,0};
 	int i, j, k, otherPlayerPos = 0, whitePos = 0, myPos = 0;
 	int myNewPos = 0;
 	int whiteNewPos = 0;
 	int newMove = 0;
-
-#ifdef funcname
-	printf("Func call: GenerateMoves(0x%x)\n", position);
-#endif
+	int myScore = 0;
+	BOOLEAN isMoveToPrimitive = FALSE;
 
 	//////////////////////////////////////////////////
 	//          INITIALIZE THE VARIABLES            //
 	//////////////////////////////////////////////////
 	if (Primitive(position) == undecided) {
-		if (!GetWhoseTurn(position)) {
+		if (!GetWhoseTurn(position)) { // It is blue's turn
 			// printf("it is blue's turn\n");
 			myPos = GetBluePosition(position);
 			otherPlayerPos = GetRedPosition(position);
-		}
-		else {
-			//printf("it is red's turn\n");
+			myScore = GetPlayer2Score(position);
+		} else { // It is red's turn
 			myPos = GetRedPosition(position);
 			otherPlayerPos = GetBluePosition(position);
+			myScore = GetPlayer1Score(position);
 		}
 		whitePos = GetWhitePosition(position);
 
@@ -939,18 +743,6 @@ POSITION position;
 		theBoard[pieceToBoard(whitePos, 1)] = 2;
 		theBoard[pieceToBoard(myPos, 0)] = 3;
 		theBoard[pieceToBoard(myPos, 1)] = 3;
-#ifdef debugmovelist
-		printf("%d%d%d\n%d%d%d\n%d%d%d\n\n",
-		       theBoard[0],
-		       theBoard[1],
-		       theBoard[2],
-		       theBoard[3],
-		       theBoard[4],
-		       theBoard[5],
-		       theBoard[6],
-		       theBoard[7],
-		       theBoard[8]);
-#endif
 
 		//////////////////////////////////////////////////
 		//  TRY ALL MOVES WITH BOTH PIECES HORIZONTAL   //
@@ -977,25 +769,25 @@ POSITION position;
 					theBoard[j] = 3;
 					theBoard[j + 1] = 3;
 
-					//
-					if (noMoveWhite) head = CreateMovelistNode(myNewPos << 4, head);
-					//
+					isMoveToPrimitive = (myScore + pointsEarned[myNewPos - 2]) >= winScore1;
+					if (noMoveWhite || isMoveToPrimitive) {
+						head = CreateMovelistNode(myNewPos << 4, head);
+					}
 
 					//////////////////////////////////////////////////
 					//   PLACE 2ND PIECE HORIZONTALLY IF POSSIBLE   //
 					//////////////////////////////////////////////////
-					for (k = 0; k <= 8; k++) {
-						if(!(k == 2 || k == 5 || k == 8)) {
-							if ((theBoard[k] == 0 &&
-							     (theBoard[k + 1] == 0 || theBoard[k + 1] == 2)) ||
-							    (theBoard[k] == 2 &&
-							     theBoard[k + 1] == 0)) {
-								whiteNewPos = boardToPos(k,'h');
-								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE1: %x\n", newMove);
-#endif
-								head = CreateMovelistNode(newMove, head);
+					if (!isMoveToPrimitive) {
+						for (k = 0; k <= 8; k++) {
+							if(!(k == 2 || k == 5 || k == 8)) {
+								if ((theBoard[k] == 0 &&
+									(theBoard[k + 1] == 0 || theBoard[k + 1] == 2)) ||
+									(theBoard[k] == 2 &&
+									theBoard[k + 1] == 0)) {
+									whiteNewPos = boardToPos(k,'h');
+									newMove = (myNewPos << 4) | whiteNewPos;
+									head = CreateMovelistNode(newMove, head);
+								}
 							}
 						}
 					}
@@ -1029,25 +821,24 @@ POSITION position;
 					theBoard[j] = 3;
 					theBoard[j + 1] = 3;
 
-					//
-					if (noMoveWhite) head = CreateMovelistNode(myNewPos << 4, head);
-					//
+					isMoveToPrimitive = (myScore + pointsEarned[myNewPos - 2]) >= winScore1;
+					// No need to add move without neutral piece movement because
+					// that was already done in the previous major loop
 
 					//////////////////////////////////////////////////
 					//   PLACE 2ND PIECE VERTICALLY IF POSSIBLE     //
 					//////////////////////////////////////////////////
-					for (k = 0; k <= 8; k++) {
-						if(!(k == 6 || k == 7 || k == 8)) {
-							if ((theBoard[k] == 0 &&
-							     (theBoard[k + 3] == 0 || theBoard[k + 3] == 2)) ||
-							    (theBoard[k] == 2 &&
-							     theBoard[k + 3] == 0)) {
-								whiteNewPos = boardToPos(k,'v');
-								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE2a: %x, %d\n", newMove, theBoard[k]);
-#endif
-								head = CreateMovelistNode(newMove, head);
+					if (!isMoveToPrimitive) {
+						for (k = 0; k <= 8; k++) {
+							if(!(k == 6 || k == 7 || k == 8)) {
+								if ((theBoard[k] == 0 &&
+									(theBoard[k + 3] == 0 || theBoard[k + 3] == 2)) ||
+									(theBoard[k] == 2 &&
+									theBoard[k + 3] == 0)) {
+									whiteNewPos = boardToPos(k,'v');
+									newMove = (myNewPos << 4) | whiteNewPos;
+									head = CreateMovelistNode(newMove, head);
+								}
 							}
 						}
 					}
@@ -1083,26 +874,25 @@ POSITION position;
 					theBoard[j] = 3;
 					theBoard[j + 3] = 3;
 
-					//
-					if (noMoveWhite) head = CreateMovelistNode(myNewPos << 4, head);
-					//
-
+					isMoveToPrimitive = (myScore + pointsEarned[myNewPos - 2]) >= winScore1;
+					if (noMoveWhite || isMoveToPrimitive) {
+						head = CreateMovelistNode(myNewPos << 4, head);
+					}
 
 					//////////////////////////////////////////////////
 					// PLACE THE 2ND PIECE HORIZONTALLY IF POSSIBLE //
 					//////////////////////////////////////////////////
-					for (k = 0; k <= 8; k++) {
-						if(!(k == 2 || k == 5 || k == 8)) {
-							if ((theBoard[k] == 0 &&
-							     (theBoard[k + 1] == 0 || theBoard[k + 1] == 2)) ||
-							    (theBoard[k] == 2 &&
-							     theBoard[k + 1] == 0)) {
-								whiteNewPos = boardToPos(k,'h');
-								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE3: %x\n", newMove);
-#endif
-								head = CreateMovelistNode(newMove, head);
+					if (!isMoveToPrimitive) {
+						for (k = 0; k <= 8; k++) {
+							if(!(k == 2 || k == 5 || k == 8)) {
+								if ((theBoard[k] == 0 &&
+									(theBoard[k + 1] == 0 || theBoard[k + 1] == 2)) ||
+									(theBoard[k] == 2 &&
+									theBoard[k + 1] == 0)) {
+									whiteNewPos = boardToPos(k,'h');
+									newMove = (myNewPos << 4) | whiteNewPos;
+									head = CreateMovelistNode(newMove, head);
+								}
 							}
 						}
 					}
@@ -1137,26 +927,24 @@ POSITION position;
 					theBoard[j] = 3;
 					theBoard[j + 3] = 3;
 
-					//
-					if (noMoveWhite) head = CreateMovelistNode(myNewPos << 4, head);
-					//
-
+					isMoveToPrimitive = (myScore + pointsEarned[myNewPos - 2]) >= winScore1;
+					// No need to add move without neutral piece movement because
+					// that was already done in the previous major loop
 
 					//////////////////////////////////////////////////
 					// PLACE THE 2ND PIECE VERTICALLY  IF  POSSIBLE //
 					//////////////////////////////////////////////////
-					for (k = 0; k <= 8; k++) {
-						if(!(k == 6 || k == 7 || k == 8)) {
-							if ((theBoard[k] == 0 &&
-							     (theBoard[k + 3] == 0 || theBoard[k + 3] == 2)) ||
-							    (theBoard[k] == 2 &&
-							     theBoard[k + 3] == 0)) {
-								whiteNewPos = boardToPos(k,'v');
-								newMove = (myNewPos << 4) | whiteNewPos;
-#ifdef debugmovelist
-								printf("CREATING NEW MOVELISTNODE4: %x\n", newMove);
-#endif
-								head = CreateMovelistNode(newMove, head);
+					if (!isMoveToPrimitive) {
+						for (k = 0; k <= 8; k++) {
+							if(!(k == 6 || k == 7 || k == 8)) {
+								if ((theBoard[k] == 0 &&
+									(theBoard[k + 3] == 0 || theBoard[k + 3] == 2)) ||
+									(theBoard[k] == 2 &&
+									theBoard[k + 3] == 0)) {
+									whiteNewPos = boardToPos(k,'v');
+									newMove = (myNewPos << 4) | whiteNewPos;
+									head = CreateMovelistNode(newMove, head);
+								}
 							}
 						}
 					}
@@ -1165,13 +953,8 @@ POSITION position;
 				}
 			}
 		}
-#ifdef debugmovelist
-		printf("GENERATE MOVELIST RETURNED\n");
-#endif
-		return(head);
-	} else {
-		return(NULL);
 	}
+	return head;
 }
 
 //return the num 0-8 that corresponds to the part of the piece starting
@@ -1224,26 +1007,14 @@ int boardToPos(int pos, char orientation){
 **              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
 **
 ************************************************************************/
-
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
-
-	do {
-		printf("%8s's move [(u)ndo/(1-8)(v|h) (1-8)(v|h) ] :", playerName);
-
-		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-		if(ret != Continue)
-			return(ret);
-
-	}
-	while (TRUE);
-	return(Continue); /* this is never reached, but lint is now happy */
-	return 0;
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
+    USERINPUT ret;
+    do {
+        printf("%8s's move [(u)ndo/(1-8)(v|h) (1-8)(v|h) ] :", playerName);
+        ret = HandleDefaultTextInput(position, move, playerName);
+        if (ret != Continue) return ret;
+    } while (TRUE);
+    return (Continue); /* this is never reached, but lint is now happy */
 }
 
 /************************************************************************
@@ -1263,9 +1034,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	return
 	        ((input[0] <= '8' && input[0] >= '1') &&
 	         (input[1] <= 'v' || input[1] >= 'h') &&
@@ -1288,7 +1057,7 @@ STRING input;
 **
 ************************************************************************/
 
-int ctoi (char c){
+int ctoi(char c) {
 	switch (c) {
 	case '1': return 0;
 	case '2': return 1;
@@ -1305,24 +1074,25 @@ int ctoi (char c){
 	return -1;
 }
 
-STRING MoveToString( theMove )
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(8);
-	if( (theMove & 0x0F) == 0 ) {
-		sprintf( move, "(%c%c)", moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2] );
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	if (move & 0x200) { // Placing Colored Piece Part-Move
+		move ^= 0x200;
+		snprintf(moveStringBuffer, 12, "%c%c", moveToTextInt[(move >> 4) - 2], moveToTextOri[(move >> 4) - 2]);
+	} else if (move & 0x100) { // Placing Neutral Piece Part-Move
+		move ^= 0x100;
+		snprintf(moveStringBuffer, 12, "%c%c", moveToTextInt[(move & 0xF) - 2], moveToTextOri[(move & 0xF) - 2]);
 	} else {
-		sprintf( move, "(%c%c %c%c)",
-		         moveToTextInt[(theMove >> 4) -2], moveToTextOri[(theMove >> 4) -2],
-		         moveToTextInt[(theMove & 0x0F) -2], moveToTextOri[(theMove & 0x0F) -2] );
+		if (move & 0xF) {
+			snprintf(moveStringBuffer, 12, "%c%c %c%c",
+					moveToTextInt[(move >> 4) - 2], moveToTextOri[(move >> 4) - 2],
+					moveToTextInt[(move & 0xF) - 2], moveToTextOri[(move & 0xF) - 2]);
+		} else {
+			snprintf(moveStringBuffer, 12, "%c%c", moveToTextInt[(move >> 4) - 2], moveToTextOri[(move >> 4) - 2]);
+		}
 	}
-
-	return move;
 }
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	MOVE temp;
 	temp = boardToPos(ctoi(input[0]), input[1]);
 	temp = temp << 4;
@@ -1330,7 +1100,6 @@ STRING input;
 	    input[3] <= '9') {
 		temp = temp | boardToPos(ctoi(input[3]), input[4]);
 	}
-	//  printf("converted moves is %x\n", temp);
 	return temp;
 }
 
@@ -1344,22 +1113,34 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf( "%s", MoveToString(theMove) );
+void PrintMove(MOVE theMove) {
+	char moveString[12];
+	MoveToString(theMove, moveString);
+	printf( "%s", moveString );
 }
 
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely format the computers move.
+**
+** INPUTS:      MOVE   *computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
 
-STRING kDBName = "3dot";
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	printf("In his infinite wisdom, %8s's move = ",computersName);
+	PrintMove(computersMove);
+	printf("\n");
+}
 
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return 2*2*2*(MAX_SCORE-MIN_SCORE+1)*(MAX_SCORE-MIN_SCORE+1);
 }
 
-int getOption()
-{
+int getOption() {
 	int option = 1;
 	if(gStandardGame) option += 1;
 	if(invertedScoring) option += 1*2;
@@ -1369,8 +1150,7 @@ int getOption()
 	return option;
 }
 
-void setOption(int option)
-{
+void setOption(int option) {
 	option -= 1;
 	gStandardGame = option%2==1;
 	invertedScoring = option/2%2==1;
@@ -1379,137 +1159,134 @@ void setOption(int option)
 	winScore2 = option/(2*2*2*MAX_SCORE)%(MAX_SCORE-MIN_SCORE+1)+MIN_SCORE;
 }
 
-STRING initial3SpotInteractString = "R_A_6_5_-------------------------00-00";
-int strLen = 38;
-int posMap[9] = {8,10,12,18,20,22,28,30,32};
-int betweenMap[14] = {-1,-1,21,5,11,7,1,9,23,15,13,17,3,19};
+int betweenMap[14] = {-1,-1,24,16,19,17,14,18,25,21,20,22,15,23};
 int horList[2][6] = {{0,1,3,4,6,7}, {1,2,4,5,7,8}};
 int verList[2][6] = {{0,1,2,3,4,5}, {3,4,5,6,7,8}};
 
-POSITION InteractStringToPosition(STRING str) {
-	POSITION turn = (str[2] == 'A') ? 0x100000LL : 0;
-	POSITION red, white, blue;
+POSITION StringToPosition(char *positionString) {
+	int turnInt;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turnInt, &board)) {
+		POSITION turn = (turnInt == 1) ? 0x100000LL : 0;
+		POSITION red, white, blue;
 
-	for (int i = 0; i < 6; i++) {
-		char h1 = str[posMap[horList[0][i]]];
-		char h2 = str[posMap[horList[1][i]]];
-		char v1 = str[posMap[verList[0][i]]];
-		char v2 = str[posMap[verList[1][i]]];
-		if (h1 == h2) {
-			int value = boardToPos(horList[0][i], 'h');
-			if (h1 == 'R') {
-				red = value << 8;
-			} else if (h1 == 'W') {
-				white = value << 4;
-			} else if (h1 == 'B') {
-				blue = value;
+		for (int i = 0; i < 6; i++) {
+			char h1 = board[horList[0][i]];
+			char h2 = board[horList[1][i]];
+			char v1 = board[verList[0][i]];
+			char v2 = board[verList[1][i]];
+			// We're actually switching B and R here because we want B to be the first player
+			// but the game was coded to have red go first.
+			if (h1 == h2) {
+				int value = boardToPos(horList[0][i], 'h');
+				if (h1 == 'B') {
+					red = value << 8;
+				} else if (h1 == 'W') {
+					white = value << 4;
+				} else if (h1 == 'R') {
+					blue = value;
+				}
+			}
+			if (v1 == v2) {
+				int value = boardToPos(verList[0][i], 'v');
+				if (v1 == 'B') {
+					red = value << 8;
+				} else if (v1 == 'W') {
+					white = value << 4;
+				} else if (v1 == 'R') {
+					blue = value;
+				}
 			}
 		}
-		if (v1 == v2) {
-			int value = boardToPos(verList[0][i], 'v');
-			if (v1 == 'R') {
-				red = value << 8;
-			} else if (v1 == 'W') {
-				white = value << 4;
-			} else if (v1 == 'B') {
-				blue = value;
-			}
-		}
-	}
 
-	POSITION ptsA = (10 * (str[33] - '0') + (str[34] - '0'));
-	POSITION ptsB = (10 * (str[36] - '0') + (str[37] - '0'));
-	if (str[35] != '-') {
-		if (turn) {
-			ptsA -= pointsEarned[(red >> 8) - 2];
-			red = (str[35] - 'a') << 8;
-		} else {
-			ptsB -= pointsEarned[blue - 2];
-			blue = str[35] - 'a';
-		}
+		POSITION ptsA = (10 * (board[9] - '0') + (board[10] - '0'));
+		POSITION ptsB = (10 * (board[11] - '0') + (board[12] - '0'));
+		ptsA <<= 16;
+		ptsB <<= 12;
+		return turn | ptsA | ptsB | red | white | blue;
 	}
-	ptsA <<= 16;
-	ptsB <<= 12;
-	return turn | ptsA | ptsB | red | white | blue;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char *boardString = calloc(strLen + 1, sizeof(char));
-	memcpy(boardString, initial3SpotInteractString, strLen);
-	
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[14];
+	memset(board, '-', 14 * sizeof(char));
+	int turn = (GetWhoseTurn(position)) ? 1 : 2;
 
-	boardString[2] = (GetWhoseTurn(pos)) ? 'A' : 'B';
+	// We're actually switching B and R here because we want B to be the first player
+	// but the game was coded to have red go first.
+	board[pieceToBoard(GetRedPosition(position), 0)] = 'B';
+	board[pieceToBoard(GetRedPosition(position), 1)] = 'B';
+	board[pieceToBoard(GetBluePosition(position), 0)] = 'R';
+	board[pieceToBoard(GetBluePosition(position), 1)] = 'R';
+	board[pieceToBoard(GetWhitePosition(position), 0)] = 'W';
+	board[pieceToBoard(GetWhitePosition(position), 1)] = 'W';
 
-	if (pos >> 63) {
-		boardString[35] = 'a' + ((pos >> 59) & 0b1111);
-		pos &= 0xFFFFFFFFFFF;
-	}
-
-	boardString[posMap[pieceToBoard(GetRedPosition(pos),0)]] = 'R';
-	boardString[posMap[pieceToBoard(GetRedPosition(pos),1)]] = 'R';
-	boardString[posMap[pieceToBoard(GetBluePosition(pos),0)]] = 'B';
-	boardString[posMap[pieceToBoard(GetBluePosition(pos),1)]] = 'B';
-	boardString[posMap[pieceToBoard(GetWhitePosition(pos),0)]] = 'W';
-	boardString[posMap[pieceToBoard(GetWhitePosition(pos),1)]] = 'W';
-
-	int player1Score = GetPlayer1Score(pos);
-	int player2Score = GetPlayer2Score(pos);
-	boardString[33] = (player1Score / 10) + '0';
-	boardString[34] = (player1Score % 10) + '0';
-	boardString[36] = (player2Score / 10) + '0';
-	boardString[37] = (player2Score % 10) + '0';
-	
-	return boardString;
+	int player1Score = GetPlayer1Score(position);
+	int player2Score = GetPlayer2Score(position);
+	board[9] = (player1Score / 10) + '0';
+	board[10] = (player1Score % 10) + '0';
+	board[11] = (player2Score / 10) + '0';
+	board[12] = (player2Score % 10) + '0';
+	board[13] = '\0';
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	if (mv >> 9) { // Placing player's piece.	
-		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[((mv & 0xFF) >> 4)-2], betweenMap[(mv >> 4) & 0xF]);
-	} else if ((mv >> 8) & 1) { // Placing neutral piece.
-		return UWAPI_Board_Regular2D_MakeAddString(moveToTextOri[(mv & 0x0F) -2], betweenMap[mv & 0xF]);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	if (move & 0x200) { // Placing player's piece.
+		move ^= 0x200;
+		AutoGUIMakeMoveButtonStringA(
+			moveToTextOri[(move >> 4) - 2], 
+			betweenMap[move >> 4], 'x', autoguiMoveStringBuffer);
+	} else if (move & 0x100) { // Placing neutral piece.
+		move ^= 0x100;
+		AutoGUIMakeMoveButtonStringA(
+			moveToTextOri[(move & 0xF) - 2], 
+			betweenMap[move & 0xF], 'x', autoguiMoveStringBuffer);
 	} else {
-		return MoveToString(mv);
+		if (move & 0xF) { 
+			// Full-moves that are not single-part do not have an autogui move string.
+			AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+		} else {
+			// This is a single-part full-move (moving colored piece without moving neutral piece).
+			AutoGUIMakeMoveButtonStringA(
+				moveToTextOri[(move >> 4) - 2], 
+				betweenMap[move >> 4], 'x', autoguiMoveStringBuffer);
+		}
 	}
 }
 
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
 	MULTIPARTEDGELIST *mpel = NULL;
 	int edgeFromAdded = 0;
+	MOVE move;
+	POSITION intermediateState;
+	int isP1Turn = GetWhoseTurn(position);
 
-	if (GetWhoseTurn(position)) {
-		while (moveList != NULL) {
-			MOVE move = moveList->move;
-			POSITION origRed = (position >> 8) & 0xF;
-			POSITION interPos = (1LL << 63) | (origRed << 59) | (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
+	while (moveList != NULL) {
+		move = moveList->move;
+		if (move & 0xF) {
+			// The intermediate state is the state of the board when the current player has
+			// moved their color piece but hasn't moved the neutral piece yet.
+			// The intermediate state will have the child position's colored piece location
+			// the child position's current-player's score, and the parent position's neutral
+			// piece location.
+			if (isP1Turn) {
+				intermediateState = (position & 0xFFF0F0FF) | (positionList->position & 0xF0000) | ((move >> 4) << 8);
+			} else {
+				intermediateState = (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
+			}			
+			
 			if (!(edgeFromAdded & (1 << (move >> 4)))) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
+				// Condition is for preventing duplicate edges from being added
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, intermediateState, move | 0x200, 0, mpel);
 				edgeFromAdded |= (1 << (move >> 4));
 			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
-			
-			moveList = moveList->next;
-			positionList = positionList->next;
+			mpel = CreateMultipartEdgeListNode(intermediateState, NULL_POSITION, move | 0x100, move, mpel);
 		}
-	} else {
-		while (moveList != NULL) {
-			MOVE move = moveList->move;
-
-			POSITION origBlue = position & 0xF;
-			POSITION interPos = (1LL << 63) | (origBlue << 59) | (position & 0xFFFF0FF0) | (positionList->position & 0xF000) | (move >> 4);
-			if (!(edgeFromAdded & (1 << (move >> 4)))) {
-				mpel = CreateMultipartEdgeListNode(position, interPos, move | 0x200, 0, FALSE, mpel);
-				edgeFromAdded |= (1 << (move >> 4));
-			}
-			mpel = CreateMultipartEdgeListNode(interPos, positionList->position, move | 0x100, move, TRUE, mpel);
-			
-			moveList = moveList->next;
-			positionList = positionList->next;
-		}
+		moveList = moveList->next;
+		positionList = positionList->next;
 	}
-
 	return mpel;
 }

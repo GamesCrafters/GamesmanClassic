@@ -95,7 +95,9 @@ void                    load_offsets (TIER tier);
 
 tierdb_cellValue*       tierdb_array;
 
-char tierdb_outfilename[80];
+#define TIERDB_OUTFILENAME_PARTIAL_LENGTH_MAX 80
+#define TIERDB_OUTFILENAME_LENGTH_MAX 160
+char tierdb_outfilename[TIERDB_OUTFILENAME_LENGTH_MAX];
 char tierdb_lookupfilename[80];
 gzFile         tierdb_filep;
 short tierdb_dbVer[1];
@@ -397,6 +399,7 @@ MEX tierdb_get_mex_from_lookup_table(POSITION pos)
 
 BOOLEAN tierdb_save_database ()
 {
+	char tierdb_outfilename_partial[TIERDB_OUTFILENAME_PARTIAL_LENGTH_MAX];
 	struct stat statbuf;
 	statbuf.st_size = 0;
 
@@ -415,21 +418,21 @@ BOOLEAN tierdb_save_database ()
 
 	// Make the directory for this game's tierdb's
 	mkdir("data", 0755);
-	sprintf(tierdb_outfilename,"./data/m%s_%d_tierdb",kDBName,getOption());
-	mkdir(tierdb_outfilename, 0755);
+	snprintf(tierdb_outfilename_partial, TIERDB_OUTFILENAME_PARTIAL_LENGTH_MAX, "./data/m%s_%d_tierdb",kDBName,getOption());
+	mkdir(tierdb_outfilename_partial, 0755);
 	sprintf(tierdb_lookupfilename,"./data/m%s_%d_tierdb/lookup", kDBName, getOption());
 	mkdir(tierdb_lookupfilename, 0755);
 
-	if (gDBTierStart != -1 && gDBTierEnd != -1) { // we're creating a partial tier file!
-		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
-		        tierdb_outfilename, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
+	if (gDBTierStart != -1ULL && gDBTierEnd != -1ULL) { // we're creating a partial tier file!
+		snprintf(tierdb_outfilename, TIERDB_OUTFILENAME_LENGTH_MAX, "%s/m%s_%d_%llu__%llu_%llu_minitierdb.dat.gz",
+		        tierdb_outfilename_partial, kDBName, getOption(), gCurrentTier, gDBTierStart, gDBTierEnd);
 		start = gDBTierStart;
 		finish = gDBTierEnd;
 		// reset the vars
 		gDBTierStart = gDBTierEnd = -1;
 	} else {
-		sprintf(tierdb_outfilename, "%s/m%s_%d_%llu_tierdb.dat.gz",
-		        tierdb_outfilename, kDBName, getOption(), gCurrentTier);
+		snprintf(tierdb_outfilename, TIERDB_OUTFILENAME_LENGTH_MAX, "%s/m%s_%d_%llu_tierdb.dat.gz",
+		        tierdb_outfilename_partial, kDBName, getOption(), gCurrentTier);
 	}
 	sprintf(tierdb_lookupfilename, "./data/m%s_%d_tierdb/lookup/m%s_%d_%llu_tierdb.dat.gz.idx",
 		        kDBName, getOption(), kDBName, getOption(), gCurrentTier);
@@ -456,7 +459,7 @@ BOOLEAN tierdb_save_database ()
 			gzclose(tierdb_filep);
 			off_t prevsize = statbuf.st_size;
 			stat(tierdb_outfilename, &statbuf);
-			fprintf(indexFP, "%ld\n",statbuf.st_size - prevsize);
+			fprintf(indexFP, "%ld\n",(long unsigned int)(statbuf.st_size - prevsize));
 			if((tierdb_filep = gzopen(tierdb_outfilename, "ab")) == NULL) {
 				if(kDebugDetermineValue) {
 					printf("Unable to create compressed data file\n");
@@ -514,7 +517,7 @@ BOOLEAN tierdb_load_database()
 	if(!gHashWindowInitialized)
 		return FALSE;
 
-	POSITION i, maxpos; int j;
+	POSITION i, maxpos; POSITION j;
 	tierdb_goodDecompression = 1;
 	tierdb_goodClose = 1;
 	BOOLEAN correctDBVer;

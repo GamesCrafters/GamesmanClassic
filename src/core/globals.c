@@ -31,6 +31,7 @@
 
 #include "types.h"
 #include "constants.h"
+#include <stddef.h>
 
 VALUE (*gSolver)(POSITION) = NULL;
 BOOLEAN (*gGoAgain)(POSITION,MOVE) = NULL;
@@ -45,7 +46,6 @@ STRING (*GetHelpTextInterface)() = NULL;
 STRING (*GetHelpOnYourTurn)() = NULL;
 STRING (*GetHelpObjective)() = NULL;
 STRING (*GetHelpTieOccursWhen)() = NULL;
-STRING (*gMoveToStringFunPtr)(MOVE) = NULL;
 STRING (*gGetVarStringPtr)() = NULL;
 WINBY (*gPutWinBy)(POSITION) = NULL;
 
@@ -160,6 +160,7 @@ TIER gCurrentTier = -1;
 TIERPOSITION gCurrentTierSize = 0;
 BOOLEAN*        gTierDBExists = NULL;
 // For the modules
+BOOLEAN gSupportsMex = FALSE;
 BOOLEAN kSupportsTierGamesman = FALSE;
 BOOLEAN kSupportsShardGamesman = FALSE;
 BOOLEAN kUsesQuartoGamesman = FALSE;
@@ -175,6 +176,11 @@ UNDOMOVELIST*   (*gGenerateUndoMovesToTierFunPtr)(POSITION,TIER) = NULL;
 POSITION (*gUnDoMoveFunPtr)(POSITION,UNDOMOVE) = NULL;
 STRING (*gTierToStringFunPtr)(TIER) = NULL;
 MULTIPARTEDGELIST* (*gGenerateMultipartMoveEdgesFunPtr)(POSITION,MOVELIST*,POSITIONLIST*) = NULL;
+void (*gPositionStringToAutoGUIPositionStringFunPtr)(char*,char*) = NULL;
+void (*gPositionStringDoMoveFunPtr)(char*,MOVE,char*) = NULL;
+
+void (*gPositionToStringFunPtr)(POSITION,char*) = NULL;
+POSITION (*gRandomInitialPositionFunPtr)(void) = NULL;
 
 BOOLEAN kUsePureDraw = FALSE;
 // For the experimental GenerateMoves

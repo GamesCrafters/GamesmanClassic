@@ -9,29 +9,6 @@
 **
 ** DATE:        24 Feb 2004 - Added Initial Code
 **
-** UPDATE HIST: 24 Feb 2004 - Initial Setup
-**              31 Mar 2004 - More Stuff Added. Almost Done.
-**              18 Apr 2004 - Revamped Generate Moves. Now shows up in Gamesman
-**              23 May 2004 - Began Reduction of Board Size from 33 positions to 21
-**              Dates After - Refer to CVS Logs
-**
-** CHECKLIST:
-**            Fix Bugs (GoAgain)
-**            Unflag GoAgain
-**            PROOFREAD
-**            DOUBLE CHECK DEFAULT POSITION!
-**
-** DONE       Reverse Board
-**            Make User Lowercase
-**            'D' DONE instead of Pass
-**            Hash Go Again
-**            Make more Friendly
-**            Make EVERYTHING Pretty. Mimic Gamesman
-**            Add Sample Game Help
-**            Fix Menus. B) Categorically Go Back
-**            Add Piece on PrintPosition
-**            Redo Example Game
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -40,14 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
-
-extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 0; /* The number of total possible positions | If you are using our hash, this is given by the hash_init() function*/
 
@@ -55,9 +25,9 @@ POSITION gInitialPosition    = 812760; /* The initial position (starting board) 
 POSITION gMinimalPosition    = 0; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kGameName           = "Asalto";   /* The name of your game */
-STRING kDBName             = "Asalto";   /* The name to store the database under */
-STRING kAuthorName          = "Robert Liao and Michael Chen";
+CONST_STRING kGameName           = "Asalto";   /* The name of your game */
+CONST_STRING kDBName             = "Asalto";   /* The name to store the database under */
+CONST_STRING kAuthorName          = "Robert Liao and Michael Chen";
 BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
 BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
@@ -66,20 +36,20 @@ BOOLEAN kLoopy               = TRUE;  /* TRUE if the game tree will have cycles 
 BOOLEAN kDebugDetermineValue = FALSE;  /* TRUE while debugging */
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "init_game_help not run!";
+CONST_STRING kHelpGraphicInterface = "init_game_help not run!";
 
-STRING kHelpTextInterface  = "init_game_help not run!";
+CONST_STRING kHelpTextInterface  = "init_game_help not run!";
 
-STRING kHelpOnYourTurn     = "init_game_help not run!";
+CONST_STRING kHelpOnYourTurn     = "init_game_help not run!";
 
-STRING kHelpStandardObjective = "init_game_help not run!";
+CONST_STRING kHelpStandardObjective = "init_game_help not run!";
 
-STRING kHelpReverseObjective  = "init_game_help not run!";
+CONST_STRING kHelpReverseObjective  = "init_game_help not run!";
 
-STRING kHelpTieOccursWhen =  "init_game_help not run!";
+CONST_STRING kHelpTieOccursWhen =  "init_game_help not run!";
 /* Should follow 'A Tie occurs when... */
 
-STRING kHelpExample = "init_game_help not run!";
+CONST_STRING kHelpExample = "init_game_help not run!";
 
 /*************************************************************************
 **
@@ -218,15 +188,6 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum);
 
 void PrintSpaces(int spaces);
 
-STRING MoveToString( MOVE );
-
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -245,9 +206,6 @@ void InitializeGame ()
 
 	/* GoAgain assignment moved here. -JJ */
 	gGoAgain = GoAgain;
-
-	gMoveToStringFunPtr = &MoveToString;
-
 	if (INIT_DEBUG) { printf("mASALTO - InitializeGame() Done\n"); }
 }
 
@@ -528,13 +486,11 @@ void DebugMenu ()
 void GameSpecificMenu ()
 {
 	char selection = 'Z';
-	POSITION GetInitialPosition();
 	do
 	{
 		printf("\n\t----- Game Specific Options for Asalto ----- \n\n");
 		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
 		printf("\n\n");
-		printf("\tm)\t(M)odify Board\n");
 		printf("\tg)\tToggle (G)o Again from ");
 		if(variant_goAgain)
 		{
@@ -569,9 +525,6 @@ void GameSpecificMenu ()
 		selection = toupper(GetMyChar());
 		switch (selection)
 		{
-		case 'M':
-			gInitialPosition = GetInitialPosition();
-			break;
 		case 'G':
 			variant_goAgain = (variant_goAgain) ? 0 : 1;
 			selection = 'Z';
@@ -634,9 +587,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions (int options[])
 {
+	(void)options;
 }
 
 
@@ -713,23 +666,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 	{
 		next_player = (generic_hash_turn(getPosition(thePosition)) == GEESE_PLAYER) ? FOX_PLAYER : GEESE_PLAYER;
 	}
-
-	if (DOMOVE_TEST)
-	{
-		printf("MOVE FOR NEXT BOARD: "); PrintMove(theMove);
-		printf("\n");
-		printf("NEXT PLAYER: ");
-		if (next_player == FOX_PLAYER)
-		{
-			printf("%d Fox",next_player);
-		}
-		else if (next_player == GEESE_PLAYER)
-		{
-			printf("%d Geese",next_player);
-		}
-		printf("  goAgainFoxNum = %d \n",goAgainFoxNum);
-		PrintBoard(board);
-	}
 	if (DOMOVE_DEBUG) { printf("mASALTO - DoMove() Done\n"); }
 	return mergePositionGoAgain(generic_hash_hash(board,next_player),goAgainFoxNum);
 }
@@ -737,11 +673,6 @@ POSITION DoMove (POSITION thePosition, MOVE theMove)
 BOOLEAN GoAgain(POSITION pos, MOVE move)
 {
 	int player = generic_hash_turn(getPosition(pos));
-	if(GAMESMAN_GOAGAIN_DEBUG)
-	{
-		printf("Move: "); PrintMove(move); printf("    ");
-		printf("player == %d ",player);
-	}
 	if (variant_goAgain && player == FOX_PLAYER)
 	{
 		int moveArray[2];
@@ -776,73 +707,6 @@ BOOLEAN GoAgain(POSITION pos, MOVE move)
 		return 0;
 	}
 	return 0;
-}
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	int boardStats[2];
-	char selection = 'Z';
-
-	do
-	{
-		boardPieceStats(start_standard_board, boardStats);
-		printf("\n\t----- Asalto Initial Position Setup -----\n\n");
-		printf("\tCurrent Number of Maximum Positions: " POSITION_FORMAT, gNumberOfPositions);
-		printf("\n\n");
-		printf("\tCurrent Board\n");
-
-		PrintBoard(start_standard_board);
-
-		printf("\tg)\tAdd/Remove (G)eese\n");
-
-		if (numFoxes(boardStats) < 2)
-		{
-			printf("\tf)\tAdd/Remove (F)oxes [REQUIRED]\n");
-			printf("\t  \tYou must place two foxes to play the game.\n");
-		}
-		else
-		{
-			printf("\tf)\tAdd/Remove (F)oxes\n");
-			printf("\tb)\t(B)ack to previous menu\n\n");
-		}
-		printf("Select an option: ");
-		selection = toupper(GetMyChar());
-		switch (selection)
-		{
-		case 'G':
-			AddRemoveGeese(start_standard_board);
-			selection = 'Z';
-			break;
-		case 'F':
-			AddRemoveFoxes(start_standard_board);
-			selection= 'Z';
-			break;
-		case 'B':
-			break;
-		default:
-			printf("Invalid option. Try again\n");
-			selection = -1;
-		}
-		boardPieceStats(start_standard_board, boardStats);
-		GEESE_MAX = numGeese(boardStats);
-		FOX_MAX = numFoxes(boardStats);
-
-		init_board_hash();
-	} while (selection != 'B');
-
-
-	return mergePositionGoAgain(generic_hash_hash(start_standard_board, GEESE_PLAYER),0);
 }
 
 /************************************************************************
@@ -1096,7 +960,6 @@ void PrintSpaces(int spaces)
 
 MOVELIST *GenerateMoves (POSITION position)
 {
-	MOVELIST *CreateMovelistNode();
 	MOVELIST *moves = NULL;
 	char board[BOARDSIZE];
 	int i=0;
@@ -1487,8 +1350,7 @@ int validMove(const char board[BOARDSIZE], int move[2],int player)
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName)
 {
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 
 	if (GETANDPRINT_DEBUG) {printf("mASALTO - GetAndPrintPlayersMove() Start\n"); }
 
@@ -1652,23 +1514,6 @@ MOVE ConvertTextInputToMove (STRING input)
 	return hashMove(move);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : Fixed m3spot case errorThe move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	printf( "%s", MoveToString( move ) );
-}
-
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1679,11 +1524,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(9);
-
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	int moveArray[2];
 	char origin_grid[2];
 	char destination_grid[2];
@@ -1698,9 +1539,7 @@ MOVE theMove;
 	coordToGridCoordinate(origin_coord, origin_grid);
 	coordToGridCoordinate(destination_coord, destination_grid);
 
-	sprintf(move, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
-
-	return move;
+	snprintf(moveStringBuffer, 15, "[%c%c %c%c]",origin_grid[0],origin_grid[1],destination_grid[0],destination_grid[1]);
 }
 
 
@@ -1926,13 +1765,13 @@ void AddRemoveFoxes(char board[])
 		case 'B':
 			if (numFoxes(boardStats) < 2)
 			{
+				/* Robert Shi: the original code falls through in this
+				   case. Preserving the behavior. */
 				printf("You must have two foxes on the board.\n");
+				printf("Invalid option. Try again\n");
 				selection = 'Z';
 			}
-			else
-			{
-				break;
-			}
+			break;
 		default:
 			printf("Invalid option. Try again\n");
 			selection = 'Z';
@@ -1950,7 +1789,7 @@ void AddRemoveGeese(char board[])
 	char selection = 'Z';
 	int location = -1;
 	int coordinate[2] = {-1,-1};
-	int boardStats[2];
+	int boardStats[3];
 	int validCoord=0;
 
 	do
@@ -2273,20 +2112,18 @@ int getFoxPos(const char board[BOARDSIZE], int foxnum)
 	return -1;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

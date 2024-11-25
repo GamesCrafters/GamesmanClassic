@@ -10,18 +10,6 @@
 **
 ** DATE:        Sunday, February 26 2006
 **
-** UPDATE HIST:
-** 3/19/2006     fixed DoMove, added ConvertTextInputToMove, printMove(for debugging)
-**              Problems with internal row representation: printposition prints "bottom-up",
-**              while directional functions use implied "top-down."
-** 3/12/2006    Modified Forward-directions to return index instead of char
-** 2/26/2006    GenerateMoves, DoMoves, forward-directions
-** 2/13/2006    Started. Much of the code is shamelessly borrowed from
-**              m1210.c, which is used as a template. Done: InitializeGame,
-**              PrintPosition
-** 2/20/2008    Added bounds checking, adjusted bounds to be from 2 to 9 and
-**              implemented options commands -EthanR+AlanW
-** 3/10/2008    Further refined functions for options. -EthanR+AlanW
 *****************************************************************************/
 
 /*****************************************************************************
@@ -29,7 +17,7 @@
 ** Everything below here must be in every game file
 **
 *****************************************************************************/
-#include <stdio.h>
+
 #include "gamesman.h"
 
 POSITION gNumberOfPositions   = 0;      /* Calculated in InitializeGame */
@@ -39,8 +27,9 @@ POSITION gInitialPosition     = 0;      /* Calculated in InitializeGame */
 
 //POSITION gMinimalPosition     = 0;       /* TODO: ? */
 
-STRING kAuthorName          = "Johnny Tran and Steve Wu";
-STRING kGameName            = "Rubik's Checkers";
+CONST_STRING kAuthorName          = "Johnny Tran and Steve Wu";
+CONST_STRING kGameName            = "Rubik's Checkers";
+CONST_STRING kDBName = "rubikscheckers";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -49,23 +38,23 @@ BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";      /* TODO */
+CONST_STRING kHelpGraphicInterface = "";      /* TODO */
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Play like checkers, except only kings can capture, men can only move backwards\n and cannot capture, and jumping a piece demotes a king to a man and captures a man.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Select a piece and its destination(s). (i.e. a2c4a6 to double-capture; a2\nto promote)";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Eliminate all your opponent's pieces or block them from moving.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Eliminate all your pieces or block them from moving.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =             /* TODO */
+CONST_STRING kHelpExample =             /* TODO */
                       "Help Example";
 
 /*************************************************************************
@@ -79,20 +68,6 @@ STRING kHelpExample =             /* TODO */
 ** Every variable declared here is only used in this file (game-specific)
 **
 **************************************************************************/
-
-// External Functions
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc();
-extern void             SafeFree();
-#endif
-extern POSITION         generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), int player);
-extern POSITION         generic_hash_hash(char* board, int player);
-extern char             *generic_hash_unhash(POSITION hash_number, char *empty_board);
-extern int              generic_hash_turn (POSITION hashed);
-
-STRING MoveToString(MOVE);
-
-
 
 // How a piece can move
 #define FORWARD               1
@@ -140,6 +115,7 @@ BOOLEAN forceCapture        = FALSE;     // No forced captures
 BOOLEAN startPromoted       = TRUE;      // Starting pieces are already kings
 unsigned int promoteRow     = BACKWARD;  // Promote on your row
 
+POSITION GetInitialPosition(void);
 /*
    typedef enum square {
     empty, orangeKing, orangeMan, greenKing, greenMan
@@ -168,19 +144,17 @@ void ForceInitialize() {
 		         EMPTY,  boardSize-(maxPieces*2), boardSize-1,
 		         -1 };
 	char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
-	int i;
 	gNumberOfPositions = generic_hash_init(boardSize, pieces, vcfg, 0);
 	// Create initial position
-	for (i = 0; i < maxPieces; i++) {
+	for (int i = 0; i < maxPieces; i++) {
 		initialPosition[i] = (startPromoted ? P1KING : P1MAN);
 		initialPosition[boardSize-1 - i] = (startPromoted ? P2KING : P2MAN);
 	}
-	for (i = maxPieces; i < (boardSize - maxPieces); i++) {
+	for (unsigned int i = maxPieces; i < (boardSize - maxPieces); i++) {
 		initialPosition[i] = EMPTY;
 	}
 	gInitialPosition = generic_hash_hash(initialPosition, P1);
 	SafeFree(initialPosition);
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 void InitializeOnce() {
@@ -221,10 +195,6 @@ void InitializeGame()
     gInitialPosition = generic_hash_hash(initialPosition, P1);
     SafeFree(initialPosition);
    }*/
-
-void FreeGame()
-{
-}
 
 //Switches the forward and backward mobility for P2 -
 //used for absolute movement directions
@@ -391,7 +361,7 @@ void setBoardSize() {
 
 	printf("How many starting rows per player? ");
 	temp = GetMyInt();
-	if ((temp < 1) || (temp >= rows/2)) {
+	if ((temp < 1) || (temp >= (int)rows/2)) {
 		printf("Starting rows should be between 1 and 1/2 the number of rows\n");
 		HitAnyKeyToContinue();
 		return;
@@ -450,6 +420,7 @@ void GameSpecificMenu() {
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -479,10 +450,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -498,10 +469,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	//int myPosition = thePosition;
 	char myPosition[boardSize];
 	POSITION retValue;
@@ -610,7 +578,7 @@ MOVE theMove;
 		previousMove = nextMove;
 		theMove = theMove << 2;
 		nextMove = (theMove >> 30)&0x00000003;
-		if(oppositeMove(previousMove)==nextMove)
+		if((unsigned int)oppositeMove(previousMove) == nextMove)
 			done = TRUE;
 	}
 
@@ -650,7 +618,7 @@ MOVE theMove;
 
 POSITION GetInitialPosition()
 {
-	int i = 0;
+	unsigned int i = 0;
 	boardSize = rows * cols;
 	char* initialPosition = (char*)SafeMalloc(boardSize * sizeof(char));
 	char c;
@@ -731,10 +699,9 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+	(void)computersMove;
+	(void)computersName;
 	// TODO
 }
 
@@ -799,18 +766,16 @@ unsigned int CountPieces(char board[],
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	char board[boardSize];
 	unsigned int p1Pieces, p2Pieces;
 	int whosTurn = generic_hash_turn(position);
 	// Check for no more pieces
 	CountPieces(board, &p1Pieces, &p2Pieces);
 	if(whosTurn == P1) {
-		if (&p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
+		if (p1Pieces == 0) return (gStandardGame ? lose : win); // Player 1 has no more pieces
 	}
-	else if(&p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
+	else if(p2Pieces == 0) return (gStandardGame ? lose : win); // P2 has no more pieces
 
 	// TODO: Check for all pieces being locked (unable to move)
 	if(GenerateMoves(position) == NULL)
@@ -845,11 +810,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char board[boardSize];
 	int player;
 	unsigned int i, j, k = 0;
@@ -981,6 +942,7 @@ BOOLEAN usersTurn;
 ************************************************************************/
 //currentIndex
 MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head){
+	(void)whosTurn;
 	unsigned int myMove = (currentIndex << (32-MVHASHACC+1));
 	int currentMobility;
 
@@ -992,7 +954,10 @@ MOVELIST *makeMove(char *initialPosition, int whosTurn, int currentIndex, MOVELI
 		currentMobility = manMobility;
 	else if(initialPosition[currentIndex] == P2MAN)
 		currentMobility = reverseMobility(manMobility);
-	else BadElse("makeMove");
+	else {
+		BadElse("makeMove");
+		return NULL;
+	}
 
 	if((currentMobility&FORWARD) == FORWARD) {
 		if(forwardLeft(currentIndex)!= -1 && initialPosition[forwardLeft(currentIndex)] == EMPTY)
@@ -1128,7 +1093,7 @@ MOVELIST *makeCapture(char *initialPosition, int whosTurn, int currentIndex, MOV
 }
 
 
-MOVELIST *makePromote(char *initialPosition, int whosTurn, int currentIndex, MOVELIST *head){
+MOVELIST *makePromote(char *initialPosition, int currentIndex, MOVELIST *head){
 	int isFirstRow = ((currentIndex/cols) == 0),
 	    isLastRow = ((currentIndex/cols) == rows-1);
 	if(promoteRow == BACKWARD) {
@@ -1173,17 +1138,13 @@ MOVELIST *makePromote(char *initialPosition, int whosTurn, int currentIndex, MOV
 
 //need to write makePromote
 //
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL, *oldHead = NULL;
-	MOVELIST *CreateMovelistNode();
 	char initialPosition[boardSize];
 	//char tempPositions[boardSize];
 
 	int whosTurn = generic_hash_turn(position);
 	char currentKing, currentMan;
-	int i;
 	int hasCaptures = 0;
 
 	generic_hash_unhash(position, initialPosition);
@@ -1195,8 +1156,8 @@ POSITION position;
 		currentKing = P2KING;
 		currentMan = P2MAN;
 	}
-	for(i = 0; i < boardSize; i++) {
-		if((initialPosition[i] == currentKing)) {
+	for(int i = 0; i < (int)boardSize; i++) {
+		if (initialPosition[i] == currentKing) {
 			if(whosTurn == P1)
 				head = makeCapture(initialPosition, whosTurn, i, head, (i<<(32-MVHASHACC+1)), 2, kingMobility);
 			else if (whosTurn == P2)
@@ -1205,7 +1166,7 @@ POSITION position;
 			if (head != oldHead) hasCaptures = 1;
 			if (!forceCapture || !hasCaptures) {
 				head = makeMove(initialPosition, whosTurn, i, head);
-				head = makePromote(initialPosition, whosTurn, i, head);
+				head = makePromote(initialPosition, i, head);
 			}
 		}
 		else if (initialPosition[i] == currentMan) {
@@ -1217,7 +1178,7 @@ POSITION position;
 			if (head != oldHead) hasCaptures = 1;
 			if (!forceCapture || !hasCaptures) {
 				head = makeMove(initialPosition, whosTurn, i, head);
-				head = makePromote(initialPosition, whosTurn, i, head);
+				head = makePromote(initialPosition, i, head);
 			}
 		}
 
@@ -1246,17 +1207,9 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
-	BOOLEAN ValidMove();
-	char input[2];
-	// TODO
-
-	input[0] = '3';
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
+	
 	do {
 		printf("%8s's move [ (u)ndo/(a-%c)(1-%d)[(a-%c)(1-%d)]* ] : ", playerName, 'a' - 1 + cols*2, rows, 'a' - 1 + cols*2, rows);
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -1302,9 +1255,7 @@ void getTextFromIndex(int index, char* pos) {
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	// TODO
 	unsigned int i = 1, myIndex;
 	char currentRow = input[1], currentCol = input[0];
@@ -1329,12 +1280,11 @@ STRING input;
 		isEvenRow = (((rows+'0')-currentRow)%2 == 0);
 		isEvenCol = ((currentCol - 'a')%2 == 0);
 
-		if(currentRow-'1'>rows || (currentCol-'a')/2>cols)
+		if(currentRow-'1'>(int)rows || (currentCol-'a')/2>(int)cols)
 			return(FALSE);
 		if(currentRow-'1'<0 || currentCol-'a'<0)
 			return(FALSE);
-		//printf("%d\n", myIndex);
-		if(myIndex<0 || myIndex>boardSize)
+		if(myIndex>boardSize)
 			return(FALSE);
 		i= i+2;
 		if(!isEvenRow && isEvenCol)
@@ -1344,9 +1294,6 @@ STRING input;
 	}
 	return(TRUE);
 }
-
-
-
 
 
 /************************************************************************
@@ -1363,12 +1310,10 @@ STRING input;
 
 //NO ERROR CHECKING YET
 //write
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	int i = 2;
 	char currentRow = input[1], currentCol = input[0];
-	unsigned int myMove, currentIndex, nextIndex;
+	int myMove, currentIndex, nextIndex;
 	int previousMove = -1;
 	myMove = currentIndex = getIndexFromText(currentRow, currentCol);
 	myMove = myMove<<(32-MVHASHACC+1);
@@ -1443,7 +1388,7 @@ int canPromote(int index, POSITION position) {
 
 	if (promoteRow == BACKWARD) {
 		if (player == P1) {
-			return (row == rows);
+			return (row == (int)rows);
 		} else if (player == P2) {
 			return (row == 1);
 		} else BadElse("canPromote()");
@@ -1451,7 +1396,7 @@ int canPromote(int index, POSITION position) {
 		if (player == P1) {
 			return (row == 1);
 		} else if (player == P2) {
-			return (row == rows);
+			return (row == (int)rows);
 		} else BadElse("canPromote()");
 	}
 
@@ -1468,16 +1413,13 @@ int canPromote(int index, POSITION position) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING s = (STRING) SafeMalloc(100); // replace with exact #
+void MoveToString(MOVE theMove, char *s) {
 	s[0] = 0; // Initialize string to null
 
 	unsigned int move = theMove;
 	unsigned int startIndex = (move >> (32-MVHASHACC+1));
 	unsigned int currentIndex = startIndex;
-	unsigned int currentMove = 0, previousMove = 0;
+	int currentMove = 0, previousMove = 0;
 	char startSq[3], nextSq[3];
 	unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
 	int done = FALSE, jump = FALSE;
@@ -1554,134 +1496,7 @@ MOVE theMove;
 			move = move << 2;
 		}
 	}
-
-	return s;
 }
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	/*  unsigned int currentMove, previousMove, counter=0, done = FALSE;
-	   char *myMove = (char *)malloc((32-MVHASHACC)/2*sizeof(char));
-	   printf("(%d ", theMove>>(32-MVHASHACC)), counter = 0;
-	   theMove = theMove<<MVHASHACC;
-	   currentMove = previousMove = theMove>>30;
-	   while(counter<(32-MVHASHACC)/2 && !done){
-	   previousMove = currentMove;
-	   currentMove = (theMove>>30)&0x00000003;
-	   if(currentMove != oppositeMove(previousMove))
-	    myMove[counter] = currentMove+'0';
-	   else
-	    done = TRUE;
-	   theMove = theMove<<2;
-	   counter++;
-	   }
-	   myMove[counter-1] = 0;
-	   if(counter<=(32-MVHASHACC)/2)
-	   printf("%s", myMove);
-	   printf(")");
-	   SafeFree(myMove);
-	 */ /*
-	   unsigned int move = theMove;
-	   unsigned int startIndex = (move >> (32-MVHASHACC+1));
-	   unsigned int currentIndex = startIndex;
-	   unsigned int currentMove = 0, previousMove = 0;
-	   char startSq[3], nextSq[3];
-	   unsigned int maxJumps = (32-MVHASHACC)/2, i = 0;
-	   int done = FALSE, jump = FALSE;
-
-	   //generic_hash_unhash(curBoard, myBoard);
-	   // Print initial square
-	   getTextFromIndex(startIndex, startSq);
-	   printf("%s", startSq);
-	   move = move << MVHASHACC;
-
-	   if(((theMove>>(32-MVHASHACC))&0x00000001) == 1)
-	    jump = TRUE;
-	   else{
-	    //getTextFromIndex(currentIndex, nextSq);
-	    //printf("%s", nextSq);
-	    currentMove = move>>30;
-	    switch(currentMove){
-	    case FORWARDLEFT:
-	      currentIndex = forwardLeft(currentIndex);
-	      break;
-	    case FORWARDRIGHT:
-	      currentIndex = forwardRight(currentIndex);
-	      break;
-	    case BACKWARDLEFT:
-	      currentIndex = backwardLeft(currentIndex);
-	      break;
-	    case BACKWARDRIGHT:
-	      currentIndex = backwardRight(currentIndex);
-	      break;
-	    default:
-	      BadElse("PrintMove");
-	    }
-	    getTextFromIndex(currentIndex, nextSq);
-	    printf("%s", nextSq);
-	   }
-
-	   //if (canPromote(startIndex, curBoard)) return;
-
-	   // Loop through jumps
-	   if(jump == TRUE){
-	      if (move == 0) return;
-
-	   for (i = 0; (i < maxJumps) && !done; i++) {
-	      previousMove = currentMove;
-	      currentMove = (move >> 30)&0x00000003;
-	      if ((currentMove == oppositeMove(previousMove)) && (i != 0)) {
-	          done = TRUE;
-	      } else {
-	        //printf("%d", currentIndex);
-	          switch (currentMove) {
-	              case FORWARDLEFT:
-	                  currentIndex = forwardLeft(forwardLeft(currentIndex));
-	                  currentMove = FORWARDLEFT;
-	                break;
-	              case FORWARDRIGHT:
-	                  currentIndex = forwardRight(forwardRight(currentIndex));
-	                  currentMove = FORWARDRIGHT;
-	                break;
-	              case BACKWARDRIGHT:
-	                //printf("~%d%d%c~", currentTurn, currentIndex, myBoard[backwardRight(currentTurn, currentIndex)]);
-	                  currentIndex = backwardRight(backwardRight(currentIndex));
-	                  currentMove = BACKWARDRIGHT;
-	                break;
-	              case BACKWARDLEFT:
-	                  currentIndex = backwardLeft(backwardLeft(currentIndex));
-	                  currentMove = BACKWARDLEFT;
-	                break;
-	          default:
-	                BadElse("PrintMove");
-	          }
-	          getTextFromIndex(currentIndex, nextSq);
-	          printf("%s", nextSq);
-	      }
-
-	      move = move << 2;
-	      }
-	   }
-	   // TODO */
-
-	STRING s = MoveToString(theMove);
-	printf("%s",s);
-	SafeFree(s);
-}
-
-
-STRING kDBName = "Rubik's Checkers";
 
 int NumberOfOptions()
 {
@@ -1734,20 +1549,18 @@ void setOption(int option)
 	cols = extract;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

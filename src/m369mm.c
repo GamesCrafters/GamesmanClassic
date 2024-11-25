@@ -8,22 +8,9 @@
 **
 ** DATE:        too long to remember
 **
-** LAST CHANGE: $Id: m369mm.c,v 1.4 2008-09-29 07:33:40 noafroboy Exp $
-**
 **************************************************************************/
 
-/*************************************************************************
-**
-** Everything below here must be in every game file
-**
-**************************************************************************/
-
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <time.h>
 
 /*************************************************************************
 **
@@ -31,9 +18,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "369 Men's Morris";   /* The name of your game */
-STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
-STRING kDBName              = "369mm";   /* The name to store the database under */
+CONST_STRING kGameName            = "369 Men's Morris";   /* The name of your game */
+CONST_STRING kAuthorName          = "Patricia Fong, Kevin Liu, Erwin A. Vedar, Elmer Lee, Cameron Cheung";   /* Your name(s) */
+CONST_STRING kDBName              = "369mm";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -48,32 +35,6 @@ POSITION gInitialPosition     =  0; /* The initial hashed position for your star
 POSITION kBadPosition         = -1; /* A position that will never be used */
 void*    gGameSpecificTclInit = NULL;
 
-char initial9mmInteractString[] = "R_A_8_7_9-----9-------------------------------------------------";
-char initial6mmInteractString[] = "R_A_6_5_6---6-------------------------";
-
-int indexMapInteractString9[24] = {15,18,21,23,25,27,31,32,33,36,37,38,40,41,42,45,46,47,51,53,55,57,60,63};
-int indexMapMoveString9[24] = {7,10,13,15,17,19,23,24,25,28,29,30,32,33,34,37,38,39,43,45,47,49,52,55};
-
-int remainingXIdxInteractString9 = 8;
-int remainingOIdxInteractString9 = 14;
-int multipartFromIdx9 = 9;
-int multipartToIdx9 = 10;
-
-int indexMapInteractString6[18] = {13,15,17,19,20,21,23,24,26,27,29,30,31,33,35,37};
-int indexMapMoveString6[18] = {5,7,9,11,12,13,15,16,18,19,21,22,23,25,27,29};
-int remainingXIdxInteractString6 = 8;
-int remainingOIdxInteractString6 = 12;
-int multipartFromIdx6 = 9;
-int multipartToIdx6 = 10;
-
-STRING initialInteractString = initial9mmInteractString;
-int (*indexMapInteractString);
-int (*indexMapMoveString);
-int remainingXIdxInteractString;
-int remainingOIdxInteractString;
-int multipartFromIdx;
-int multipartToIdx;
-
 /**
  * Help strings that are pretty self-explanatory
  * Strings than span more than one line should have backslashes (\) at the end of the line.
@@ -81,25 +42,25 @@ int multipartToIdx;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "369 Men's Morris does not currently support a Graphical User Interface\n(other than beloved ASCII).";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "The LEGEND shows numbers corresponding to positions on the board.  On your\nturn, use the LEGEND to enter the position your piece currently is, the position\nyour piece is moving to, and (if your move creates a mill) the position of the\npiece you wish to remove from play.  Seperate each number entered with a space\nand hit return to commit your move.  If you ever make a mistake when choosing\nyour move, you can type \"u\" and hit return to revert back to your most recent\nposition.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 /*************************************************************************
@@ -149,12 +110,6 @@ int totalPieces = 18; //Remove when tiering
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /*function prototypes*/
 void InitializeGame ();
 void SetupTierStuff();
@@ -168,13 +123,11 @@ VALUE Primitive (POSITION position);
 void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void PrintComputersMove (MOVE computersMove, STRING computersName);
 void PrintMove (MOVE move);
-STRING MoveToString(MOVE move);
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName);
 BOOLEAN ValidTextInput (STRING input);
 MOVE ConvertTextInputToMove (STRING input);
 void GameSpecificMenu ();
 void SetTclCGameSpecificOptions (int options[]);
-POSITION GetInitialPosition ();
 int NumberOfOptions ();
 int getOption ();
 void setOption (int option);
@@ -187,7 +140,6 @@ BOOLEAN all_mills(char *board, int slot, char turn);
 int find_pieces(char *board, char piece, int *pieces);
 BOOLEAN closes_mill(POSITION position, int raw_move);
 BOOLEAN checkMill(char *board, int slot, char turn);
-//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn);
 char returnTurn(POSITION pos);
 char* customUnhash(POSITION pos);
 void changeToSix();
@@ -200,7 +152,6 @@ char* smallUnhash(POSITION, char*);
 BOOLEAN closesMillNew(char *board, char turn, int fromIdx, int toIdx);
 int findLegalRemoves(char *board, char turn, int *legalRemoves);
 int findAdjacentNew(char *board, int slot, int *slots);
-STRING MoveToStringOld (MOVE move);
 UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier);
 POSITION UndoMove(POSITION position, UNDOMOVE undoMove);
 int findLegalRemovesUndo(char *board, char turn, int *legalRemoves);
@@ -550,9 +501,6 @@ void InitializeHelpStrings() {
 
 	kHelpExample =
 	        "";
-
-	gMoveToStringFunPtr = &MoveToString;
-
 }
 
 
@@ -672,7 +620,7 @@ UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	int undoMoveType;
 
 	if (tier < 100 && ((tier / 10) % 10 == 2 || tier % 10 == 2)) return NULL;
-	int currTier = piecesLeft * 100 + numX * 10 + numO;
+	TIER currTier = piecesLeft * 100 + numX * 10 + numO;
 	if (currTier == tier - (oppTurn == X ? 91 : 109))
 		// Placement with removal.
 		undoMoveType = 0;
@@ -702,21 +650,6 @@ UNDOMOVELIST *GenerateUndoMovesToTier(POSITION position, TIER tier) {
 	int legalRemoves[BOARDSIZE];
 	int numLegalRemoves = findLegalRemovesUndo(board, turn, legalRemoves);
 
-	// if (undoMoveType == 0 && numCurr < maxx) {
-	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
-	// 		if (board[toIdx] == oppTurn && closesMillNew(board, oppTurn, 31, toIdx))
-	// 			for (int i = 0; i < numLegalRemoves; i++)
-	// 				/* ONLY this type of undomove is encoded as "from: to, to: remove, remove: remove" instead of 
-	// 				"from: from, to: to, remove: remove" in order to distinguish this type of move (to+remove for placement and removal) 
-	// 				from the other type of two-argument move (from+to for sliding) for the sake of correctly converting 
-	// 				text inputs to moves. All functions that unhash moves will account for this peculiarity 
-	// 				and set from, to, and remove to the correct values. */
-	// 				undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(toIdx, legalRemoves[i], legalRemoves[i]), undoMoves);
-	// } else if (undoMoveType == 1) {
-	// 	for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++)
-	// 		if (board[toIdx] == oppTurn && (!closesMillNew(board, oppTurn, 31, toIdx) || (millType == 2 && allMillsNew(board, -1, turn))))
-	// 			undoMoves = CreateUndoMovelistNode(MOVE_ENCODE(31, toIdx, 31), undoMoves);
-	// } else
 	if (undoMoveType == 2 && numCurr < maxx) {
 		for (int toIdx = 0; toIdx < BOARDSIZE; toIdx++) {
 			if (gFlying && ((oppTurn == X && numX <= 3) || (oppTurn == O && numO <= 3))) {
@@ -1090,6 +1023,33 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	SafeFree(board);
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	int fromIdx = move >> 10;
+	int toIdx = (move >> 5) & 0x1F;
+	int removeIdx = move & 0x1F;
+
+	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
+		sprintf(moveStringBuffer, "%d-%dr%d",fromIdx, toIdx, removeIdx);
+	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
+		sprintf(moveStringBuffer, "%d-%d", fromIdx, toIdx);
+	} else if (fromIdx == 31 && toIdx == 31 && removeIdx != 31) {
+		sprintf(moveStringBuffer, "r%d", removeIdx);
+	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
+		sprintf(moveStringBuffer, "%d", toIdx);
+	} else {
+		sprintf(moveStringBuffer, "%dr%d", toIdx, removeIdx);
+	}
+}
 
 /************************************************************************
 **
@@ -1103,7 +1063,8 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-	STRING str = MoveToString( computersMove );
+	char str[12];
+	MoveToString(computersMove, str);
 	if (gameType == 3) {
 		printf("%8s's Move                                     :    %s\n",computersName,str);
 	} else if (gameType == 6) {
@@ -1111,60 +1072,6 @@ void PrintComputersMove (MOVE computersMove, STRING computersName) {
 	} else {
 		printf("%8s's Move                                                 :    %s\n",computersName,str);
 	}
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING str = MoveToString( move );
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString(MOVE move) {
-	int fromIdx = move >> 10;
-	int toIdx = (move >> 5) & 0x1F;
-	int removeIdx = move & 0x1F;
-
-	STRING movestring;
-	//tier = generic_hash_cur_context();
-	//piecesLeft = tier / 100;
-	if (fromIdx != 31 && toIdx != 31 && removeIdx != 31) {
-		movestring = (STRING) SafeMalloc(12);
-		sprintf( movestring, "%d-%dr%d",fromIdx, toIdx, removeIdx);
-	} else if (fromIdx != 31 && toIdx != 31 && removeIdx == 31) {
-		movestring = (STRING) SafeMalloc(8);
-		sprintf( movestring, "%d-%d", fromIdx, toIdx);
-	} else if (fromIdx == 31 && toIdx != 31 && removeIdx == 31) {//if 1st == 2nd position in move formula
-		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "%d", toIdx);
-	} else {
-		movestring = (STRING) SafeMalloc(8);
-		sprintf(movestring, "%dr%d", toIdx, removeIdx);
-	}
-
-	return movestring;
 }
 
 /************************************************************************
@@ -1387,7 +1294,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 void GameSpecificMenu() {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -1444,6 +1350,7 @@ void GameSpecificMenu() {
 			break;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -1474,26 +1381,8 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions(int options[]) {
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -1754,6 +1643,7 @@ STRING TierToString(TIER tier) {
 // Given POSITION, slot
 // Return whether player indicated by `turn` has all pieces in a mill.
 BOOLEAN all_mills(char *board, int slot, char turn) {
+	(void)slot;
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (board[i] == turn) {
 			if (!checkMill(board, i, turn)) {
@@ -1899,11 +1789,6 @@ BOOLEAN checkMill(char *board, int slot, char turn) {
 	return FALSE;
 }
 
-// given new board, slots to compare.  if slots all same, then it's a 3
-//BOOLEAN THREE_IN_A_ROW(char *board, int slot1, int slot2, char turn) {
-//	return board[slot1] == turn && board[slot2] == turn;
-//}
-
 void changeToThree() {
 	gameType = 3;
 	BOARDSIZE = 9;
@@ -1920,7 +1805,7 @@ void changeToThree() {
 
 void changeToSix() {
 	gameType = 6;
-	BOARDSIZE =16;
+	BOARDSIZE = 16;
 	maxx = 6;
 	maxo = 6;
 	minb = 4;
@@ -1930,14 +1815,6 @@ void changeToSix() {
 	adjacent = adjacent6;
 	symmetriesToUse = gSymmetryMatrix6MM;
 	totalNumSymmetries = 16;
-
-	initialInteractString = initial6mmInteractString;
-	indexMapInteractString = indexMapInteractString6;
-	indexMapMoveString = indexMapMoveString6;
-	remainingXIdxInteractString = remainingXIdxInteractString6;
-	remainingOIdxInteractString = remainingOIdxInteractString6;
-	multipartFromIdx = multipartFromIdx6;
-	multipartToIdx = multipartToIdx6;
 }
 
 void changeToNine() {
@@ -1952,14 +1829,6 @@ void changeToNine() {
 	adjacent = adjacent9;
 	symmetriesToUse = gSymmetryMatrix9MM;
 	totalNumSymmetries = 16;
-
-	initialInteractString = initial9mmInteractString;
-	indexMapInteractString = indexMapInteractString9;
-	indexMapMoveString = indexMapMoveString9;
-	remainingXIdxInteractString = remainingXIdxInteractString9;
-	remainingOIdxInteractString = remainingOIdxInteractString9;
-	multipartFromIdx = multipartFromIdx9;
-	multipartToIdx = multipartToIdx9;
 }
 
 
@@ -2017,161 +1886,145 @@ POSITION GetCanonicalPosition(POSITION position) {
     return canonPos;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	int origFrom = 31, origTo = 31;
-	char realBoard[BOARDSIZE];
-	char turn = (board[2] == 'A') ? X : O;
-	int numX = 0;
-	int numO = 0;
-
-	for (int i = 0; i < BOARDSIZE; i++) {
-		char piece = board[indexMapInteractString[i]];
-        if (piece == '-') {
-			realBoard[i] = BLANK;
-    	} else {
-			if (piece == 'W') {
-				numX++;
+/* POSITION STRING FORMAT
+	First BOARDSIZE characters represent pieces of board
+	(BOARDSIZE+1)th character: Number of X left to place
+	(BOARDSIZE+2)th character: Number of O left to place
+	(BOARDSIZE+3)th character: Multipart move info for piece destination space
+	(BOARDSIZE+4)th character: Multipart move info for piece departure space
+*/
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		char realBoard[BOARDSIZE];
+		int numX = 0, numO = 0;
+		for (int i = 0; i < BOARDSIZE; i++) {
+			char piece = board[i];
+			if (piece == '-') {
+				realBoard[i] = BLANK;
 			} else {
-				numO++;
-			}
-		    realBoard[i] = (piece == 'W') ? X : O;
-        }
-	}
-
-	// Conversion from intermediate to real
-	int isPlacement = 0;
-	if (board[multipartToIdx] != '-') { // Detects if position is intermediate
-		origTo = board[multipartToIdx] - 'A';
-		if (board[multipartFromIdx] != '-') { // Sliding
-			origFrom = board[multipartFromIdx] - 'A';
-			realBoard[origFrom] = realBoard[origTo];
-		} else { // Placing
-			isPlacement = 1;
-			if (turn == X) {
-				numX--;
-			} else {
-				numO--;
+				if (piece == 'W') {
+					numX++;
+				} else {
+					numO++;
+				}
+				realBoard[i] = (piece == 'W') ? X : O;
 			}
 		}
-		realBoard[origTo] = BLANK;
-	}
-	// End Conversion from intermediate to real
 
-	int piecesLeft = (board[remainingXIdxInteractString] - '0') + (board[remainingOIdxInteractString] - '0') + isPlacement;
-	gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
-	return hash(realBoard, turn, piecesLeft, numX, numO);
+		int piecesLeft = 0;
+		if (board[BOARDSIZE + 1] != '-') {
+			piecesLeft = (board[BOARDSIZE] - '0') + (board[BOARDSIZE + 1] - '0');
+		}
+		gInitializeHashWindow(piecesLeft * 100 + numX * 10 + numO, FALSE);
+		return hash(realBoard, turn == 1 ? X : O, piecesLeft, numX, numO);
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char* finalBoard = calloc(65, sizeof(char));
-	memcpy(finalBoard, initialInteractString, 64);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char finalBoard[BOARDSIZE + 3];
+	memset(finalBoard, '-', (BOARDSIZE + 3) * sizeof(char));
+	
 	int origFrom = 31, origTo = 31;
-	if (pos >> 63) {
-		origFrom = (pos >> 58) & 0x1F;
-		origTo = (pos >> 53) & 0x1F;
-		pos &= 0xFFFFFFFFFFFF;
+	if (position >> 63) {
+		origFrom = (position >> 58) & 0x1F;
+		origTo = (position >> 53) & 0x1F;
+		position &= 0xFFFFFFFFFFFF;
 	}
 
 	char turn;
 	int piecesLeft, numX, numO;
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
+	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
 	TIER tier;
 	TIERPOSITION tierPosition;
-	gUnhashToTierPosition(pos, &tierPosition, &tier);
+	gUnhashToTierPosition(position, &tierPosition, &tier);
 	for (int i = 0; i < BOARDSIZE; i++) {
         if (board[i] != BLANK) {
-		    finalBoard[indexMapInteractString[i]] = (board[i] == X) ? 'W' : 'B';
+		    finalBoard[i] = (board[i] == X) ? 'W' : 'B';
         }
 	}
 	SafeFree(board);
 
-	finalBoard[2] = (turn == X) ? 'A' : 'B';
-	finalBoard[remainingXIdxInteractString] = ((tier / 100) / 2) + '0';
-	finalBoard[remainingOIdxInteractString] = (((tier / 100) + 1) / 2) + '0';
+	finalBoard[BOARDSIZE] = ((tier / 100) / 2) + '0';
+	finalBoard[BOARDSIZE + 1] = (((tier / 100) + 1) / 2) + '0';
 
-	if (origTo != 31) {
-		finalBoard[indexMapInteractString[origTo]] = (turn == X) ? 'W' : 'B';
-		finalBoard[multipartToIdx] = origTo + 'A';
+	if (origTo != 31) { // If position is an intermediate state
+		finalBoard[origTo] = (turn == X) ? 'W' : 'B';
 		if (origFrom != 31) {
-			finalBoard[indexMapInteractString[origFrom]] = '-';
-			finalBoard[multipartFromIdx] = origFrom + 'A';
+			finalBoard[origFrom] = '-';
 		} else {
 			if (turn == X) {
-				finalBoard[remainingXIdxInteractString]--;
+				finalBoard[BOARDSIZE]--;
 			} else {
-				finalBoard[remainingOIdxInteractString]--;
+				finalBoard[BOARDSIZE + 1]--;
 			}
 		}
 	}
 
-	return finalBoard;
+	if (finalBoard[BOARDSIZE + 1] == '0') {
+		finalBoard[BOARDSIZE] = '-';
+		finalBoard[BOARDSIZE + 1] = '-';
+	}
+	finalBoard[BOARDSIZE + 2] = '\0';
+
+	AutoGUIMakePositionString(turn == X ? 1 : 2, finalBoard, autoguiPositionStringBuffer);
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE move) {
-	// Move will be of the form:
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+  	// Move will be of the form:
 	// from, to (for sliding only)
 	// remove (for removal only)
 	// to (for placement only)
 	int from = move >> 10;
 	int to = (move >> 5) & 0x1F;
 	int remove = move & 0x1F;
-	char turn;
-	int piecesLeft, numX, numO;
-	char* board = unhash(pos, &turn, &piecesLeft, &numX, &numO);
-	SafeFree(board);
 
 	if (to != 31 && remove != 31) { // Fullmove
-		return MoveToString(move);
+		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
 	} else {
 		if (from != 31 && to != 31) { // Sliding piece partmove
-			return UWAPI_Board_Regular2D_MakeMoveString(indexMapMoveString[from], indexMapMoveString[to]);
+			AutoGUIMakeMoveButtonStringM(from, to, 'y', autoguiMoveStringBuffer);
 		} else if (to != 31) { // Placing piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[to]);
+			AutoGUIMakeMoveButtonStringA('-', to, 'x', autoguiMoveStringBuffer);
 		} else { // Removing opponent piece partmove
-			return UWAPI_Board_Regular2D_MakeAddString((turn == X) ? '-' : '-', indexMapMoveString[remove]);
+			AutoGUIMakeMoveButtonStringA('z', remove, 'z', autoguiMoveStringBuffer);
 		}
 	}
 }
 
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	(void) position;
 	// Assumes moveList/positionList is same ordering as generated in GenerateMoves
 	MULTIPARTEDGELIST *mpel = NULL;
-	int piecesLeft, numX, numO;
-	char turn;
-	char* board = unhash(position, &turn, &piecesLeft, &numX, &numO);
-	int currFrom = 31;
-	int currTo = 31;
-	POSITION currIntermediatePosition = 0;
+	POSITION currFrom = 31ULL, currTo = 31ULL, interpos = 0;
+	POSITION from, to, remove;
+	MOVE move;
 
 	while (moveList != NULL) {
-		MOVE move = moveList->move;
-		POSITION from = move >> 10;
-		POSITION to = (move >> 5) & 0x1F;
-		POSITION remove = move & 0x1F;
+		move = moveList->move;
+		from = move >> 10;
+		to = (move >> 5) & 0x1F;
+		remove = move & 0x1F;
 
 		if (remove != 31) {
 			// Select piece to place
 			if (currFrom != from || currTo != to) {
 				currFrom = from;
 				currTo = to;
-				currIntermediatePosition = (1LL << 63) | (from << 58) | (to << 53) | position;
-				mpel = CreateMultipartEdgeListNode(position, currIntermediatePosition, MOVE_ENCODE(from, to, 31), 0, FALSE, mpel);
+				interpos = (1LL << 63) | (from << 58) | (to << 53) | position;
+				mpel = CreateMultipartEdgeListNode(NULL_POSITION, interpos, MOVE_ENCODE(from, to, 31), 0, mpel);
 			}
 			
 			// Place selected piece
-			mpel = CreateMultipartEdgeListNode(currIntermediatePosition, positionList->position, MOVE_ENCODE(31, 31, remove), move, TRUE, mpel);
+			mpel = CreateMultipartEdgeListNode(interpos, NULL_POSITION, MOVE_ENCODE(31, 31, remove), move, mpel);
 		}
-
 		// Ignore sliding moves, they are single-part
+
 		moveList = moveList->next;
 		positionList = positionList->next;
 	}
-
-	SafeFree(board);
 	return mpel;
 }

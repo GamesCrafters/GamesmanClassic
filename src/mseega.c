@@ -1,18 +1,3 @@
-
-// $id$
-// $log$
-
-/*
-   To compile, use
-   gcc -fPIC -O -DSUNOS5  -I/usr/sww/pkg/tcltk-8.4.4/include -I/usr/openwin/include -fPIC -lz -lnsl -lsocket -lm -shared -static-libgcc -L/usr/sww/pkg/tcltk-8.4.4/lib -ltk8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 -L/usr/sww/pkg/tcltk-8.4.4/lib -ltcl8.4 mseega.c
- */
-
-//Please write down updates!!
-/*
- * Above is will include the name and the log of the last
- * person to commit this file to gamesman.
- */
-
 /************************************************************************
 **
 ** NAME:        mseega.c
@@ -25,17 +10,6 @@
 **
 ** DATE:        Began 2004-09-29; Finished 2004-10-...
 **
-** UPDATE HIST: 2004-10-04 YR: Put it into CVS.
-**              2004-10-11 Peter: I wrote this earlier, but I didn't know
-**               know that checking-in a file would lead to a vi interface
-**              2004-10-11 Added more defines, GamesSpecificMenu, PrintPosition
-**	        2004-10-12 Peter, on behalf of Emad: legalMove, boardcopy, *GenerateMoves
-**              **PLEASE PUT UPDATES HERE**
-**
-**		2006-8-21	change to GetMyChar()/GetMyInt() dmchan
-**     2008-2-05   Implemented getOption(), setOption(int option), and NumberOfOption().
-**     2008-2-09   Added checks for misere mode and modified options to handle the new variants introcuted by misere mode.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -44,13 +18,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <math.h>
 #define DEBUGGING 0
 #define DEBUGGING2 0
 #define DEBUGGING3 0 //Peter's debugging flag
@@ -62,9 +30,9 @@ POSITION gInitialPosition    =  147972; /* The initial position (starting board)
 //POSITION gMinimalPosition    = 0 ;
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
-STRING kGameName           = "Seega";   /* The name of your game */
-STRING kDBName             = "seega";   /* The name to store the database under */
+CONST_STRING kAuthorName          = "Emad Salman, Yonathan Randolph, and Peter Wu";
+CONST_STRING kGameName           = "Seega";   /* The name of your game */
+CONST_STRING kDBName             = "seega";   /* The name to store the database under */
 //TODO Peter: check this - this could be a partisan game
 BOOLEAN kPartizan           = FALSE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 //BOOLEAN  kSupportsHeuristic  = ;
@@ -82,10 +50,10 @@ void*    gGameSpecificTclInit = NULL;
    Help strings that are pretty self-explanatory
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "There are two types of turns in Seega: place moves, and slide moves.\n\
 ***Part 1: PLACE MOVES:***\n\
 First, you and your opponent will take turns placing TWO moves at a time.\n\
@@ -101,7 +69,7 @@ Note: You may only do slide moves to adjacent squares connected to the\n\
 current square. If at any point you have made a mistake, you can type u and\n\
 hit return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "There are two types of turns in Seega: place moves, and slide moves.\n\
 ***Part 1: PLACE MOVES:***\n\
 Each player alternates taking turns putting down pieces on the board,\n\
@@ -124,19 +92,19 @@ x-ox   =======>     -x-x\n\
 -x-o                -x-o\n\
 x's turn to move    x moves right and captures two o pieces."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To capture the opponent's counters until the opponent only has one\n"
         "counter left.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to make moves that will eat of your pieces until\n"
         "you are left with one piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "NOT possible in this game.";
 
 //TODO
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "  LEGEND:            TOTAL (forbidden spots don't show up):\n\
   ( 0  1  2 )        :- - -\n\
   ( 3  4  5 )        :-   -\n\
@@ -275,6 +243,7 @@ int nextOpenInitSpot(Board b, int lowerBound);
 int nextSpotOfType(Board b, int lowerBound, int whoseTurn);
 MOVELIST *GeneratePlacingMoves(Board b);
 MOVELIST *GenerateMovingMoves(Board b);
+int legalMove(int from, int to);
 
 
 /*************************************************************************
@@ -283,19 +252,7 @@ MOVELIST *GenerateMovingMoves(Board b);
 **
 *************************************************************************/
 
-/*
-** Function Prototypes:
-*/
-
 /* Function prototypes here. */
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
-STRING                  MoveToString(MOVE);
 
 /************************************************************************
 **
@@ -328,8 +285,6 @@ void InitializeGame () {
 		gInitialPosition = hash(b);
 		//printf ("init------------- %d",gInitialPosition);
 	} while (FALSE);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -362,7 +317,6 @@ void changeForbiddenSpots();
 
 void GameSpecificMenu()
 {
-	char GetMyChar();
 
 	printf("\n");
 	printf("Seega Game Specific Menu\n\n");
@@ -400,9 +354,8 @@ void GameSpecificMenu()
 //cheesy error: floating point input doesn't work
 void changeBoard()
 {
-	int n_rows, n_cols, valid_cols, valid_rows;
+	int n_rows, n_cols, valid_cols;
 	valid_cols = 0; //a flag
-	valid_rows = 0; //another flag - not used
 	printf("Enter the new number of rows (3-%d):  ", MAXROWS);
 	n_rows = GetMyUInt();
 	if ((n_rows < 3) || (n_rows > MAXROWS)) {
@@ -461,7 +414,7 @@ void changeForbiddenSpots()
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
-
+	(void)options;
 }
 
 
@@ -558,40 +511,6 @@ POSITION DoMove (POSITION position, MOVE m) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-//TODO change - default for now
-POSITION GetInitialPosition ()
-{
-	// TODO: find a one-line way to say the following:
-	//char tempname[BOARDARRAYSIZE];
-	//Board b = tempname;
-
-	//printf("\n\n\t----- Get Initial Position -----\n");
-	//printf("\n\tPlease input the position to begin with.\n");
-	//printf("\nUse x for left player, o for right player, and _ for blank spaces\n");
-	//printf("Example:\n");
-
-	//printf("\nTEMP: On second thought let me just give you a random board.\n");
-	//printf("TODO: allow you to enter something.\n");
-	//setWhoseBoard(b, 'x');
-	//makeRandomBoard(b);
-	//InitializeGame();
-	//printf("d",);
-	//gInitialPosition;
-	return gInitialPosition;
-}
-
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -602,9 +521,9 @@ POSITION GetInitialPosition ()
 ************************************************************************/
 
 void PrintComputersMove (MOVE computersMove, STRING computersName) {
-
+	(void)computersMove;
+	(void)computersName;
 }
-
 
 
 /************************************************************************
@@ -706,6 +625,7 @@ VALUE Primitive (POSITION position) {
 //TODO: get predicition here
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn)
 {
+	(void)usersTurn;
 	int index=0;
 	int currRow;
 	char currCol;
@@ -821,11 +741,8 @@ MOVELIST *GenerateMoves (POSITION position)
 	char mover;
 	int player,i;
 	// void boardcopy();
-	int legalMove();
-	int isoddbrd;
 	MOVE m;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	unhash(gBoard,position);
 	player=generic_hash_turn(position);
 	if(player == 1)
@@ -835,7 +752,6 @@ MOVELIST *GenerateMoves (POSITION position)
 		mover=P2;
 
 	if (placingBoard(gBoard)) {
-		isoddbrd=BOARDSIZE%2;
 		for (i=0; i<BOARDSIZE; i++) {
 			//   if (!isoddbrd && i<4)
 			//continue;
@@ -848,7 +764,6 @@ MOVELIST *GenerateMoves (POSITION position)
 			}
 		}
 	}
-
 
 	else{
 
@@ -914,9 +829,6 @@ MOVELIST *GenerateMoves (POSITION position)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
-
-	BOOLEAN ValidMove();
 
 	do {
 		printf("%8s's move [(undo)/<number> <number>] : ", playersName);
@@ -1000,7 +912,6 @@ MOVE ConvertTextInputToMove (STRING input) {
 		setMove2(&m,p1);
 	else
 		setMove(&m, 'x', p1, p2);
-	if (DEBUGGING2) {printf("Conversion finds "); PrintMove(m); printf(".\n"); }
 	return m;
 	//get first piece
 	//formula: result = letter + number
@@ -1033,57 +944,6 @@ MOVE ConvertTextInputToMove (STRING input) {
 
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-/* Converts the number to the specified base and puts this into the
-   array. Returns the number of digits that it used. */
-/*
-   void numberInBase(char* out, unsigned int n, int b, char* lookuptable) {
-   int i,j;
-   char swap;
-   out[0]='\0';
-   for (i=1; n!=0; i++) {
-   out[i]=lookuptable[n%b];
-   n = n/b;
-   }
-   if (i==1) out[i++]=lookuptable[0]; // if the number was 0, print 0.
-   i--;
-   for (j=0;i>j;i--,j++) {
-   swap=out[i];
-   out[i]=out[j];
-   out[j]=swap;
-   }
-   }
-   void PrintMove (MOVE move) {
-   char alphabet[]="abcdefghijklmnopqrstuvwxyz";
-   char digits[]="0123456789";
-   // TODO: change this to log(maxnum)/log(base), so that we are
-   //   not restricted to boards of size 10^4 * 10^4
-   char row1[5],col1[5]; // numbers from 0 to base
-   char row2[5],col2[5];
-   numberInBase(row1, fromWhere(&move)/width, 26, alphabet);
-   numberInBase(col1, fromWhere(&move)%width, 10, digits);
-   numberInBase(row2, toWhere(&move)/width, 26, alphabet);
-   numberInBase(col2, toWhere(&move)%width, 10, digits);
-   printf("Move with coordinates %s%s and %s%s.",row1,col1,row2,col2);
-   printf("%d",move);
-   }
- */
-void PrintMove(MOVE move) {
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -1094,14 +954,8 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString (move)
-MOVE move;
-{
-	STRING m = (STRING) SafeMalloc( 5 );
-
+void MoveToString(MOVE move, char *m) {
 	sprintf(m, "[%d]", toWhere(&move));
-
-	return m;
 }
 
 
@@ -1226,18 +1080,22 @@ BOOLEAN placingBoard(Board b) {
 void setWhoseBoard(Board b, char t) {
 	b[width*height+1]=t;
 }
+
 void setpce(Board b, int r, char c) {
 	b[r]=c;
 }
+
 void setMove2(SMove m, int val){
 	*m=val;
 }
+
 void setMove(SMove m, char who, int rfrom, int rto) {
 	/* TODO: figure out how we're supposed to encode invariants.
 	   if ((unsigned int)rfrom >= 1<<8*sizeof(MOVE)/2 ||
 	   (unsigned int)rto >= 1<<8*sizeof(MOVE)/2)
 	   error("Moves are too big to store.");
 	 */
+	(void)who;
 	*m = rfrom<<8*sizeof(MOVE)/2 | rto;
 }
 void setPlacingBoard(Board b, BOOLEAN t) {
@@ -1275,7 +1133,7 @@ int nextSpotOfType(Board b, int lowerBound, int whoseTurn) {
 	return -1;
 }
 MOVELIST *GeneratePlacingMoves(Board b) {
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	char c = whoseBoard(b);
 	int i,move=0;
 	for (i=nextOpenInitSpot(b,0);
@@ -1304,7 +1162,7 @@ MOVELIST *GeneratePlacingMoves(Board b) {
 	return head;
 }
 MOVELIST *GenerateMovingMoves(Board b) {
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	char c = whoseBoard(b);
 	int i,j,move=0;
 	for (i=nextSpotOfType(b,0,c);
@@ -1393,20 +1251,18 @@ int forbiddenSpot(int r) {
 	}
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

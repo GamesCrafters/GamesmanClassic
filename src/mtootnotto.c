@@ -8,37 +8,6 @@
 **
 ** DATE:        2007-02-26
 **
-** UPDATE HIST: RECORD CHANGES YOU HAVE MADE SO THAT TEAMMATES KNOW
-**
-**              2005-11-28  Added Primitive
-**				2006-04-05  Edited Primitive to player1 wins if toot and
-**							player2 wins if otto. Also fixed tie condition and
-**							default output is now undecided if no win/lose/tie.
-**				2006-04-08	Added a lot of printfs for debugging. Gets bus error
-**							with GetAndPrintPlayersMove
-**				2006-04-11  Fixed bus error and all warnings. DoMove working
-**							correctly now. Primitive needs rewrite.
-**				2006-04-14  Fixed part of problem with primitive. Doesn't
-**							work perfectly, but will solve and it's playable
-**							on a 4x4 board. Will not work for bigger boards.
-**							number of starting pieces is now a variable.
-**				2006-04-15	Fixed primitive, should be working correctly now.
-**							Found bug in primitive. Added #define for move
-**							hashing and unhashing. Debugging...
-**				2006-04-16	Everything seems to be working correctly. Primitive
-**							needs to be changed so when a move causes both
-**							players to win it returns tie.
-**				2006-04-21	Primitive now handles both players winning at
-**							the same time. It returns a tie. PrintPosition
-**							has improvements suggested. Added GameSpecificMenu.
-**				2006-05-09	Added MoveToString.
-**				2006-05-22	Edited help strings. Fixed primitive to return tie
-**							if both players are out of pieces and there is no
-**							win or lose.
-**				2006-08-19	Changed scanf to use GetMyInt(), bounds checking still needs to be done
-**				2007-02-26	Small changes, nothing significant
-**				2007-05-01	Tiers working! Hooray!
-**              2008-02-19  Reimplemented game options, added error checking on game-specific options. -EthanR + AlanW
 **************************************************************************/
 
 /*************************************************************************
@@ -47,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -60,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Toot and Otto";   /* The name of your game */
-STRING kAuthorName          = "Kyler Murlas and Zach Wasserman";   /* Your name(s) */
-STRING kDBName              = "mtootnotto";   /* The name to store the database under */
+CONST_STRING kGameName            = "Toot and Otto";   /* The name of your game */
+CONST_STRING kAuthorName          = "Kyler Murlas and Zach Wasserman";   /* Your name(s) */
+CONST_STRING kDBName              = "mtootnotto";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -82,38 +46,38 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn enter the number of the column (each number corresponds to \n\
 its respective column) and the piece you would like to place there (t or o). \n\
 Below the board is a count of how many Ts and Os that you are still able \n\
 to place. If at any point you have made a mistake, you can type u and hit \n\
 return and the system will revert back to your most recent position."                                                                                                                                                                                                                                                                                                                                 ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Enter the number of the column and the type of piece, t or o. The piece \n\
 that you chose will be 'dropped' into that column on top of any other \n\
 pieces, if there are any."                                                                                                                                                               ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get your name, either Toot or Otto depending on which player you are, \n\
 spelled on the board vertically, horizontally, or diagonally. First player \n\
 to spell their name WINS. The first player is Toot, second player Otto."                                                                                                                                                                     ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to spell their name, either Toot or Otto depending \n\
 on which player you are, spelled on the board vertically, horizontally, or \n\
 diagonally. First player to spell their name LOSES.\n\
 The first player is Toot, second player Otto."                                                                                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "the board is filled and there is no winner\n\
 OR both players win with one move\n\
 OR both players run out of pieces."                                                                                            ;
 
-STRING kHelpExample ="";
+CONST_STRING kHelpExample ="";
 /*"        +-------------+\n\
  |             |												\n\
  |   1 2 3 4   | You (OTTO) have:        TTTT    OOOO		\n\
@@ -241,12 +205,7 @@ int INIT_O = 4;  //Cannot exceed 7
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-STRING MoveToString(MOVE);
+void PositionToBoard(POSITION pos, TOBlank **board);
 //VOID PositiontoPieces
 
 
@@ -269,7 +228,7 @@ TIERLIST* TierChildren(TIER);
 TIERPOSITION NumberOfTierPositions(TIER);
 BOOLEAN IsLegal(POSITION);
 BOOLEAN tierCheckNumPieces(POSITION);
-void SetupTierStuff();
+void SetupTierStuff(void);
 //STRING TierToString(TIER);
 
 
@@ -291,7 +250,7 @@ void SetupTierStuff();
 ** For 4x4 with 4 Ts and 4 Os the number is: 37,782,561
 ************************************************************************/
 
-int MyInitialPosition() {
+int MyInitialPosition(void) {
 	POSITION p=0;
 	int i;
 	p+=INIT_T;
@@ -318,7 +277,7 @@ int MyInitialPosition() {
 ** OUTPUTS:     unsigned long int (number)
 **
 ************************************************************************/
-int MyNumberOfPos() {
+int MyNumberOfPos(void) {
 	int i;
 	unsigned long size=1;
 	for (i=0; i<(TNO_HEIGHT+1)*TNO_WIDTH+6; i++)
@@ -337,9 +296,7 @@ int MyNumberOfPos() {
 **
 ************************************************************************/
 
-void PositionToBoard(pos,board)
-POSITION pos;
-TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
+void PositionToBoard(POSITION pos, TOBlank **board)
 // board is a two-dimensional array of size
 // TNO_WIDTH x TNO_HEIGHT
 {
@@ -387,7 +344,7 @@ TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
 **
 ************************************************************************/
 
-void InitializeGame ()
+void InitializeGame (void)
 {
 	gNumberOfPositions = MyNumberOfPos(); //ORIGINAL
 	gInitialPosition = MyInitialPosition();
@@ -399,23 +356,17 @@ void InitializeGame ()
 
 
 	SetupTierStuff();
-
-	//PrintPosition(148479, "blah", TRUE);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
-void PiecesOnBoard(pos)
-POSITION pos;
-{
+void PiecesOnBoard(POSITION pos) {
 	Board.t = 0;
 	Board.o = 0;
 	Board.total = 0;
 
 	int row, col;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(pos,board);
+	PositionToBoard(pos, (TOBlank **) board);
 
 	for (row=TNO_HEIGHT-1; row>=0; row--) {
 		for (col=0; col<TNO_WIDTH; col++) {
@@ -427,9 +378,7 @@ POSITION pos;
 }
 
 
-void PositionToPieces(pos)
-POSITION pos;
-{
+void PositionToPieces(POSITION pos) {
 	unsigned long i;
 	i = (TNO_HEIGHT+1)*TNO_WIDTH;
 
@@ -475,9 +424,7 @@ POSITION pos;
 **
 ** OUTPUTS:     1 or 2
 ************************************************************************/
-int WhoseTurn(pos)
-POSITION pos;
-{
+int WhoseTurn(POSITION pos) {
 	PositionToPieces(pos);
 	if(Player1.total == Player2.total) {
 		return 1;
@@ -515,7 +462,7 @@ MOVELIST *GenerateMoves (POSITION position)
 	player = WhoseTurn(position);
 	PositionToPieces(position);
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(position,board);
+	PositionToBoard(position, (TOBlank**) board);
 
 	for (col=0; col<TNO_WIDTH; col++) {
 		move = 0;
@@ -706,8 +653,8 @@ VALUE Primitive (POSITION position)
 	//printf("primitive position= %ld\n", pos);
 
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	int col,row, player1=1, t=1, blank=2, count=0, ottoWins=0, tootWins=0;
-	PositionToBoard(position, board); // Temporary storage.
+	int col,row, player1=1, t=1, count=0, ottoWins=0, tootWins=0;
+	PositionToBoard(position, (TOBlank**) board); // Temporary storage.
 
 
 
@@ -719,11 +666,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]   == board[col][row+3])
 			      && (board[col][row+1] == board[col][row+2])
 			      && (board[col][row]   != board[col][row+2])
-			      && (board[col][row]   != blank) //check blanks
-			      && (board[col][row+1] != blank)) //check blanks
+			      && (board[col][row]   != Blank) //check blanks
+			      && (board[col][row+1] != Blank)) //check blanks
 			{
 				//printf("Column Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -754,11 +701,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]   == board[col+3][row])
 			      && (board[col+1][row] == board[col+2][row])
 			      && (board[col][row]   != board[col+2][row])
-			      && (board[col][row]   != blank)
-			      && (board[col+1][row] != blank))
+			      && (board[col][row]   != Blank)
+			      && (board[col+1][row] != Blank))
 			{
 				//printf("Row Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -788,11 +735,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]     == board[col+3][row+3])
 			      && (board[col+1][row+1] == board[col+2][row+2])
 			      && (board[col][row]     != board[col+2][row+2])
-			      && (board[col][row]     != blank)
-			      && (board[col+1][row+1] != blank))
+			      && (board[col][row]     != Blank)
+			      && (board[col+1][row+1] != Blank))
 			{
 				//printf("Diag A Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -820,11 +767,11 @@ VALUE Primitive (POSITION position)
 			if(   (board[col][row]     == board[col+3][row-3])
 			      && (board[col+1][row-1] == board[col+2][row-2])
 			      && (board[col][row]     != board[col+2][row-2])
-			      && (board[col][row]     != blank)
-			      && (board[col+1][row-1] != blank))
+			      && (board[col][row]     != Blank)
+			      && (board[col+1][row-1] != Blank))
 			{
 				//printf("Diag B Win [%i][%i]", col, row);
-				if(board[col][row]==t)
+				if((int)board[col][row]==t)
 				{
 					tootWins++;
 					//Checks if its toot or otto
@@ -974,7 +921,7 @@ void PrintPosition(POSITION position,STRING playerName,BOOLEAN usersTurn)
 {
 	int i, row, playerTurn, pieceCount;
 	TOBlank board[TNO_WIDTH][TNO_HEIGHT+1];
-	PositionToBoard(position,board);
+	PositionToBoard(position, (TOBlank**) board);
 	playerTurn = WhoseTurn(position);
 	PositionToPieces(position);
 
@@ -1126,13 +1073,8 @@ USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersN
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(4);
-
+void MoveToString(MOVE theMove, char *move) {
 	sprintf(move, "%d%c", moveUnhashCol(theMove), moveUnhashPiece(theMove));
-	return move;
 }
 
 
@@ -1216,7 +1158,7 @@ MOVE ConvertTextInputToMove (STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu ()
+void GameSpecificMenu (void)
 {
 	int test = 0;
 	do {
@@ -1305,28 +1247,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return MyInitialPosition();
-}
-
 
 /************************************************************************
 **
@@ -1339,7 +1261,7 @@ POSITION GetInitialPosition ()
 **
 ************************************************************************/
 
-int NumberOfOptions ()
+int NumberOfOptions (void)
 {
 	/*or 1 << 13 for the 13 different settings,
 	   miserre, o, t, width, height, where everything but misere is 3 bits,
@@ -1360,7 +1282,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
+int getOption (void)
 {
 	/*return TNO_HEIGHT*1000 + TNO_WIDTH*100 + INIT_T*10 + INIT_O;*/
 	int option = 0;
@@ -1422,7 +1344,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu ()
+void DebugMenu (void)
 {
 
 }
@@ -1447,7 +1369,7 @@ void DebugMenu ()
 **
 ************************************************************************/
 
-void SetupTierStuff() {
+void SetupTierStuff(void) {
 
 	// kSupportsTierGamesman
 	kSupportsTierGamesman = TRUE;
@@ -1499,6 +1421,7 @@ TIERLIST* TierChildren(TIER tier) {
 
 
 TIERPOSITION NumberOfTierPositions(TIER tier) {
+	(void)tier;
 	TIERPOSITION maxTierPos = 1;
 	int i;
 	for(i = 1; i < (TNO_WIDTH*(TNO_HEIGHT+1)); i++) {
@@ -1565,20 +1488,18 @@ BOOLEAN IsLegal(POSITION position) {
 	return TRUE; //if it never encounters an invalid position
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -1,11 +1,3 @@
-// $id$
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mshogi.c
@@ -16,13 +8,6 @@
 **
 ** DATE:        February 1, 2005 / December 6, 2005
 **
-** UPDATE HIST:
-** 02/02/2005 Updated some game-specific constants.
-** 02/02/2005 Added PrintPosition().
-**
-** 04/30/2008 Added Symmetries:
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -31,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
 
 /*************************************************************************
 **
@@ -46,9 +25,9 @@
 **************************************************************************/
 
 void*   gGameSpecificTclInit = NULL;
-STRING kGameName            = "Hasami Shogi";   /* The name of your game */
-STRING kAuthorName          = "Chris Willmore, Ann Chen";   /* Your name(s) */
-STRING kDBName              = "mhshogi";   /* The name to store the database under */
+CONST_STRING kGameName            = "Hasami Shogi";   /* The name of your game */
+CONST_STRING kAuthorName          = "Chris Willmore, Ann Chen";   /* Your name(s) */
+CONST_STRING kDBName              = "mhshogi";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -68,10 +47,10 @@ BOOLEAN kSupportsSymmetries = TRUE; /* Whether we support symmetries */
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, lookup the horizontal and vertical position of the piece\n\
 you want to move and the destination of the move.  The position\n\
 notation is the same as chess notation, and you can find the positions\n\
@@ -81,7 +60,7 @@ between (e.g. a1a2). If at any point you have made a mistake, you can\n\
 type u and hit return and the system will revert back to your most\n\
 recent position."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "On your turn, move one or more spaces in any direction--forward,\n\
 backward, left, right--everything except diagonal. All the spaces\n\
 passed over and the one landed upon must be empty. You can jump over\n\
@@ -105,7 +84,7 @@ line of pieces--of which one is in a corner--can be captured by your\n\
 pieces on both ends of the line. This just means you can make right-\n\
 angle sandwiches."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To make a chain of 5 connected pieces of your markers (either x or o)\n\
 in a straight line. The chain can be in any direction--vertical,\n\
 horizontal, or diagonal. None of the pieces may be in your original\n\
@@ -113,7 +92,7 @@ starting rows.\n\
 The War Version: To capture all of the enemy pieces, or reduce the\n\
 enemy to one or no pieces."                                                                                                                                                                                                                                                                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your enemy into making a chain of 5 connected pieces of\n\
 his/her markers (either x or o) in a straight line. The chain can be in\n\
 any direction--vertical, horizontal, or diagonal. None of the pieces\n\
@@ -121,11 +100,11 @@ may be in his/her original starting rows.\n\
 The War Version: To force your enemy into capturing all of your pieces,\n\
 or reduce you to one or no pieces."                                                                                                                                                                                                                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "both players have less than 5 pieces.\n\
 The War Version: A tie never occurs."                                                   ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Player's turn\n\
   -----\n\
 3 |o|o|\n\
@@ -238,14 +217,6 @@ int BoardPosToArrayPos(int x, int y);
 MOVE hashMove(unsigned int fromX, unsigned int fromY, unsigned int toX, unsigned int toY);
 sMove unhashMove(MOVE move);
 
-STRING MoveToString(MOVE);
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -278,8 +249,6 @@ void InitializeGame ()
 
 	int reflections[] = {90};
 	generic_hash_init_sym(0, numOfRows, numOfCols, reflections, 1, NULL, 0, 0);
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 /************************************************************************
@@ -300,9 +269,7 @@ void InitializeGame ()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	BlankOX theBlankOX[boardSize];
 	MOVELIST *head = NULL;
 
@@ -433,6 +400,7 @@ POSITION GetCanonicalPosition(POSITION position)
 
 POSITION DoSymmetry(POSITION position, int symmetry)
 {
+	(void)symmetry;
 	int row, col;
 	char temp;
 	BlankOX theBlankOX[boardSize];
@@ -587,6 +555,21 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 	printf("%s\n\n", GetPrediction(position, playersName, usersTurn));
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *theMove         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	struct cleanMove x;
+	x = unhashMove(theMove);
+	sprintf( moveStringBuffer, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
+}
 
 /************************************************************************
 **
@@ -599,52 +582,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%s's move: ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *theMove         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(5);
-
-	struct cleanMove x;
-	x = unhashMove(theMove);
-
-	sprintf( move, "%c%d%c%d", x.fromX + 'a', x.fromY+1, x.toX + 'a', x.toY + 1 );
-
-	return move;
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%s's move: %s\n", computersName, moveStringBuffer);
 }
 
 
@@ -671,7 +612,6 @@ MOVE theMove;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -876,29 +816,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	InitializeGame();
-	return gInitialPosition;
-}
-
 
 /************************************************************************
 **
@@ -1540,20 +1459,18 @@ MOVE hashMove(unsigned int fromX,
 	return move;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

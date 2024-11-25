@@ -63,11 +63,11 @@ struct hashContext
 	int contextNumber;
 };
 
-int generic_hash_context_init();
+int generic_hash_context_init(void);
 void generic_hash_context_switch(int context);
-void generic_hash_destroy();
-int generic_hash_cur_context();
-POSITION generic_hash_max_pos();
+void generic_hash_destroy(void);
+int generic_hash_cur_context(void);
+POSITION generic_hash_max_pos(void);
 void generic_hash_custom_context_mode(BOOLEAN on);
 void generic_hash_set_context(int context);
 

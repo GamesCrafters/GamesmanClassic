@@ -11,7 +11,6 @@
 **
 ** DATE:        01/27/14
 **
-** UPDATE HIST:
 **************************************************************************/
 
 /*************************************************************************
@@ -20,9 +19,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-
 
 POSITION gNumberOfPositions  = 387420489;  /* 3^18 */
 POSITION kBadPosition        = 0;//Was -1 for TTT
@@ -30,8 +27,9 @@ POSITION kBadPosition        = 0;//Was -1 for TTT
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-STRING kAuthorName         = "Niko Gomez & Colby Guan";
-STRING kGameName           = "Tic-Tac-Two";
+CONST_STRING kAuthorName         = "Niko Gomez & Colby Guan";
+CONST_STRING kGameName           = "Tic-Tac-Two";
+CONST_STRING kDBName = "tt2";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -40,13 +38,13 @@ BOOLEAN kLoopy               = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right, for the top layer,\n\
 and between a and i, with a at the upper left and i at the lower right,\n\
@@ -54,22 +52,22 @@ for the bottom layer) to the empty board position you desire and hit return.\n\
 If at any point you have made a mistake, you can type u and hit return and the\n\
 system will revert back to your most recent position."                                                                                                                                                                                                                                                                                                                           ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place one of your pieces on one of the empty board positions.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your markers (either X/+ or O/*) in a row, either\n\
 horizontally, vertically, or diagonally. 3-in-a-row WINS."                                                                          ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three of his markers (either X or\n\
 O) in a row, either horizontally, vertically, or diagonally. 3-in-a-row\n\
 LOSES."                                                                                                                                                             ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the board fills up without either player getting three-in-a-row.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
 "      	( 1 2 3 )           : - - -\n\
 LEGEND: ( 4 5 6 )  TOTAL:   : - - - \n\
 		( 7 8 9 )           : - - - \n\n\
@@ -156,7 +154,6 @@ BOOLEAN ThreeInARow(BlankOX[], int, int, int);
 void UndoMove(MOVE move);
 BlankOX WhoseTurn(BlankOX *theBlankOX);
 
-STRING MoveToString( MOVE );
 POSITION ActualNumberOfPositions(int variant);
 
 /**************************************************/
@@ -228,13 +225,7 @@ void InitializeGame()
 	gPosition.nextPiece = x;
 	gPosition.piecesPlaced = 0;
 	gUndoMove = UndoMove;
-
-	gMoveToStringFunPtr = &MoveToString;
 	gActualNumberOfPositionsOptFunPtr = &ActualNumberOfPositions;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -265,6 +256,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -318,12 +310,11 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 
 void SetTclCGameSpecificOptions(int theOptions[])
 {
-    #if 0
 	// Anoto pen support
-	if ((gPenFile != NULL) && (gTclInterp != NULL)) {
-		gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
-	}
-	#endif
+	// if ((gPenFile != NULL) && (gTclInterp != NULL)) {
+	// 	gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
+	// }
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -399,8 +390,7 @@ POSITION GetInitialPosition()
 			theBlankOX[i++] = o;
 		else if(c == '-')
 			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 
 	/*
@@ -427,10 +417,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %2d\n", computersName, computersMove+1);
 }
 
@@ -506,11 +493,7 @@ VALUE Primitive(POSITION position)
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	BlankOX theBlankOx[BOARDSIZE];
 
 	PositionToBlankOX(position,theBlankOx);
@@ -581,38 +564,6 @@ MOVELIST *GenerateMoves(POSITION position)
 
 /************************************************************************
 **
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-POSITION GetCanonicalPosition(position)
-POSITION position;
-{
-	POSITION newPosition, theCanonicalPosition, DoSymmetry();
-	int i;
-
-	theCanonicalPosition = position;
-
-	for(i = 0; i < NUMSYMMETRIES; i++) {
-
-		newPosition = DoSymmetry(position, i); /* get new */
-		if(newPosition < theCanonicalPosition) /* THIS is the one */
-			theCanonicalPosition = newPosition; /* set it to the ans */
-	}
-
-	return(theCanonicalPosition);
-}
-
-/************************************************************************
-**
 ** NAME:        DoSymmetry
 **
 ** DESCRIPTION: Perform the symmetry operation specified by the input
@@ -626,13 +577,9 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoSymmetry(position, symmetry)
-POSITION position;
-int symmetry;
-{
+POSITION DoSymmetry(POSITION position, int symmetry) {
 	int i;
 	BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
-	POSITION BlankOXToPosition();
 
 	PositionToBlankOX(position,theBlankOx);
 	PositionToBlankOX(position,symmBlankOx); /* Make copy */
@@ -643,6 +590,36 @@ int symmetry;
 		symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
 
 	return(BlankOXToPosition(symmBlankOx));
+}
+
+/************************************************************************
+**
+** NAME:        GetCanonicalPosition
+**
+** DESCRIPTION: Go through all of the positions that are symmetrically
+**              equivalent and return the SMALLEST, which will be used
+**              as the canonical element for the equivalence set.
+**
+** INPUTS:      POSITION position : The position return the canonical elt. of.
+**
+** OUTPUTS:     POSITION          : The canonical element of the set.
+**
+************************************************************************/
+
+POSITION GetCanonicalPosition(POSITION position) {
+	POSITION newPosition, theCanonicalPosition;
+	int i;
+
+	theCanonicalPosition = position;
+
+	for(i = 0; i < NUMSYMMETRIES; i++) {
+
+		newPosition = DoSymmetry(position, i); /* get new */
+		if(newPosition < theCanonicalPosition) /* THIS is the one */
+			theCanonicalPosition = newPosition; /* set it to the ans */
+	}
+
+	return(theCanonicalPosition);
 }
 
 /**************************************************/
@@ -668,11 +645,7 @@ int symmetry;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
 	USERINPUT ret;
 
 	do {
@@ -704,9 +677,8 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
+	(void)input;
 	return TRUE;//((input[0] <= '9' && input[0] >= '1')&&(input[1] <= '9' && input[0] >= '1'));
 }
 
@@ -722,9 +694,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
     //Converts the input into an integer, then subtracts 1 from the interger 
     //and turns it back into a string for the internal representation
     //Is atoi a function?
@@ -732,24 +702,6 @@ STRING input;
     //return((MOVE) input[0] - '1'); (Old Code)
     int int_move = atoi(input) - 1;
 	return((MOVE) int_move); /* user input is 01-18, our rep. is 0-17 */
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	STRING str = MoveToString( theMove );
-	printf( "%s", str );
-	SafeFree( str );
 }
 
 
@@ -763,13 +715,9 @@ MOVE theMove;
 **
 ************************************************************************/
 
-STRING MoveToString (MOVE theMove)
-{
-	STRING m = (STRING) SafeMalloc( 3 );
+void MoveToString (MOVE theMove, char *m) {
 	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
 	sprintf( m, "%d", theMove + 1);
-
-	return m;
 }
 
 /************************************************************************
@@ -798,23 +746,20 @@ STRING MoveToString (MOVE theMove)
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX)
-POSITION thePos;
-BlankOX *theBlankOX;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX) {
 	int i;
 	for(i = 17; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -833,9 +778,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX)
-BlankOX *theBlankOX;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX) {
 	int i;
 	POSITION position = 0;
 
@@ -858,10 +801,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-BOOLEAN ThreeInARow(theBlankOX,a,b,c)
-BlankOX theBlankOX[];
-int a,b,c;
-{
+BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
     /**
      * FRONT | BACK
 	 * 0 1 2 | 9  10 11
@@ -913,9 +853,7 @@ int a,b,c;
 **
 ************************************************************************/
 
-BOOLEAN AllFilledIn(theBlankOX)
-BlankOX theBlankOX[];
-{
+BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
 	BOOLEAN answer = TRUE;
 	int i;
 
@@ -939,9 +877,7 @@ BlankOX theBlankOX[];
 **
 ************************************************************************/
 
-BlankOX WhoseTurn(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX WhoseTurn(BlankOX *theBlankOX) {
 	int i, xcount = 0, ocount = 0;
 
 	for(i = 0; i < BOARDSIZE; i++)
@@ -949,15 +885,13 @@ BlankOX *theBlankOX;
 			xcount++;
 		else if(theBlankOX[i] == o)
 			ocount++;
-		else ;    /* don't count blanks */
+		/* else don't count blanks */
 
 	if(xcount == ocount)
 		return(x);  /* in our TicTacToe, x always goes first */
 	else
 		return(o);
 }
-
-STRING kDBName = "tt2";
 
 int NumberOfOptions()
 {
@@ -982,12 +916,22 @@ void setOption(int option)
 }
 
 POSITION ActualNumberOfPositions(int variant) {
+	(void)variant;
 	return 5478;
 }
 
-GM_DEFINE_BLANKOX_ENUM_BOARDSTRINGS()
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
+}
 
-STRING InteractPositionToEndData(POSITION pos)
-{
-	return NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -8,16 +8,9 @@
 **
 ** DATE:         2004.05.01
 **
-** UPDATE HIST:  a lot of shit happened.
-**
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 
 #define X               99999
 #define O               9999
@@ -25,22 +18,13 @@
 #define MIN_BOARD_SIZE  2
 #define NUM_OPTIONS     3
 
-/* External Globals */
-#ifndef MEMWATCH
-extern GENERIC_PTR SafeMalloc ();
-extern void SafeFree ();
-#endif
-//extern VALUE *gDatabase;
-extern STRING gValueString[];
-/* External Globals */
-
 /* Globals setup for use by outside functions */
 POSITION gNumberOfPositions   = 0;
 POSITION gInitialPosition     = 0;
 POSITION kBadPosition         = -1;
-STRING kAuthorName          = "Kevin Duncan and Neil Trotter";
-STRING kGameName            = "Ice Blocks";
-STRING kDBName              = "iceblocks";
+CONST_STRING kAuthorName          = "Kevin Duncan and Neil Trotter";
+CONST_STRING kGameName            = "Ice Blocks";
+CONST_STRING kDBName              = "iceblocks";
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kDebugMenu           = FALSE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -78,21 +62,21 @@ STRING gTallyThreesR =
         "The objective of this game is to get less threes in a row than your\n\
 opponent. If you have 4 in a row, it will be counted as two threes in a row.\n\
 Same goes for any sequence of blocks greater than 4. Diagonals are valid."                                                                                                                                                                ;
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "On your turn, determine where you wish to move your piece.Simply type in\n\
 the numeric representation of that position as it is presented on the board."                                                                                     ;
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Place a block in the pyramid by entering the corresponding number.\n\
 You may only place a block if it is on the bottom row, or on top of two\n\
 adjacent pieces."                                                                                                                                                          ;
-STRING kHelpStandardObjective = NULL;
-STRING kHelpReverseObjective = NULL;
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpStandardObjective = NULL;
+CONST_STRING kHelpReverseObjective = NULL;
+CONST_STRING kHelpTieOccursWhen =
         "each player has accumulated an equal\n"
         "number of points by the end of the game.";
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "      [10]\n"
         "    [08][09]\n"
         "  [05][06][07]\n"
@@ -140,7 +124,6 @@ void ChangeBoardSize();
 void SetWinningCondition();
 WINBY computeWinBy (POSITION);
 
-STRING MoveToString(MOVE);
 /* Function declarations */
 
 
@@ -201,6 +184,7 @@ void GameSpecificMenu () {
 			break;
 		case 'b':
 			cont = FALSE;
+			break;
 		default:
 			printf("Invalid option!\n");
 		}
@@ -228,8 +212,6 @@ void InitializeGame () {
 		kHelpStandardObjective = gStandard;
 		kHelpReverseObjective = gStandardR;
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
 	gPutWinBy = &computeWinBy;
 }
 
@@ -254,7 +236,6 @@ void InitializeGame () {
 MOVELIST *GenerateMoves (POSITION position) {
 	int i, j;
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	BOARD board = arraytoboard(position);
 	for (i = 0; i < (base - 1); i++) {
 		for (j = 0; j < (base - i); j++) {
@@ -445,44 +426,6 @@ VALUE Primitive (POSITION pos) {
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
-	int i, numX, numO, turn;
-	char input[sumto(base)], c;
-	BOOLEAN cont = TRUE;
-	while(cont) {
-		cont = FALSE;
-		printf("type in a %d character string of X's, O's and -'s (- denotes empty):  ", sumto(base));
-		scanf("%s", input);
-		for(i = 0; i < sumto(base); i++) {
-			c = tolower(input[i]);
-			if(c == 'x')
-				numX++;
-			else if(c == 'o')
-				numO++;
-		}
-		if((numX - numO) != 0 || (numX - numO) != 1) {
-			printf("\nInvalid Board!\n\n");
-			cont = TRUE;
-		}
-		else if(numX > numO)
-			turn = 0;
-		else
-			turn = 1;
-	}
-	return generic_hash_hash(input, turn);
-}
-
-/************************************************************************
-**
 ** NAME:        PrintPosition
 **
 ** DESCRIPTION: Print the position in a pretty format, including the
@@ -547,8 +490,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 	do {
 		printf("%8s's move [(u)ndo/(1-%d)] :  ", playerName, sumto(base));
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
@@ -574,21 +516,6 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %d\n\n", computersName, computersMove);
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move) {
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
 
 /************************************************************************
 **
@@ -600,12 +527,8 @@ void PrintMove (MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(3);
-	sprintf(move, "%d", theMove);
-	return move;
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+	snprintf(moveStringBuffer, 10, "%d", theMove);
 }
 
 /************************************************************************
@@ -744,6 +667,7 @@ void setOption(int option) {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
+	(void)options;
 }
 
 
@@ -938,7 +862,7 @@ void SetWinningCondition () {
 WINBY computeWinBy(POSITION pos) {
 	BOARD board = arraytoboard(pos);
 	int i, j, countX = 0, countO = 0, color, k, m, count;
-	int pointsX = 0, pointsO = 0, threesX = 0, threesO = 0;
+	int pointsX = 0, pointsO = 0;
 	int dlvisited[base][base], drvisited[base][base], hvisited[base][base];
 	for(i = 0; i < base; i++) {
 		for(j = 0; j < base; j++) {
@@ -962,11 +886,9 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 			for (k = i, m = j, count = 0; k < base && m < (base - k) &&
 			     ((WinningCondition == tallythrees) ? TRUE : !drvisited[k][m]) &&
@@ -980,11 +902,9 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 			for (k = i, m = j, count = 0; m < (base - k) &&
 			     ((WinningCondition == tallythrees) ? TRUE : !hvisited[k][m]) &&
@@ -998,33 +918,29 @@ WINBY computeWinBy(POSITION pos) {
 				countO = count;
 			if((count > 2) && (color == X)) {
 				pointsX += 3 + (count - 3) * 2;
-				threesX++;
 			}
 			else if((count > 2) && (color == O)) {
 				pointsO += 3 + (count - 3) * 2;
-				threesO++;
 			}
 		}
 	}
-	return pointsX - pointsO;
+	int diff = pointsX - pointsO;
+	return diff > 0 ? diff : -diff;
 }
 
-/* end of file. */
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }
 

@@ -12,7 +12,6 @@
 **
 ************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions = 0;
@@ -21,9 +20,9 @@ POSITION kBadPosition = -1;
 POSITION gInitialPosition = 0;
 POSITION gMinimalPosition = 0;
 
-STRING kAuthorName = "Cameron Cheung";
-STRING kGameName = "mquarto";
-STRING kDBName = "quarto"; // should not be used
+CONST_STRING kAuthorName = "Cameron Cheung";
+CONST_STRING kGameName = "mquarto";
+CONST_STRING kDBName = "quarto"; // should not be used
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -33,19 +32,19 @@ BOOLEAN kDebugDetermineValue = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 void* gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpGraphicInterface = "";
 
-STRING kHelpTextInterface = "";
+CONST_STRING kHelpTextInterface = "";
 
-STRING kHelpOnYourTurn = "";
+CONST_STRING kHelpOnYourTurn = "";
 
-STRING kHelpStandardObjective = "";
+CONST_STRING kHelpStandardObjective = "";
 
-STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "";
 
-STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
 
-STRING kHelpExample = "";
+CONST_STRING kHelpExample = "";
 
 /*************************************************************************
 **
@@ -59,9 +58,6 @@ STRING kHelpExample = "";
 **
 **************************************************************************/
 
-POSITION GetCanonicalPosition(POSITION);
-STRING MoveToString(MOVE);
-
 POSITION GetCanonicalPosition(POSITION position) {
   return position;
 }
@@ -70,6 +66,7 @@ void DebugMenu() {
 }
 
 void SetTclCGameSpecificOptions(int theOptions[]) {
+  (void)theOptions;
 }
 
 
@@ -116,21 +113,8 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 POSITION DoMove(POSITION position, MOVE move) {
-  return 0;
-}
-
-/************************************************************************
-**
-** NAME: GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-** it in the space pointed to by initialPosition;
-**
-** OUTPUTS: POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition() {
+  (void)position;
+  (void)move;
   return 0;
 }
 
@@ -146,7 +130,9 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    printf("the computer moved\n");
+  (void)computersMove;
+  (void)computersName;
+  printf("the computer moved\n");
 }
 
 /************************************************************************
@@ -169,6 +155,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
+  (void)position;
   return undecided;
 }
 
@@ -190,7 +177,9 @@ VALUE Primitive(POSITION position) {
 ************************************************************************/
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-    
+    (void)position;
+    (void)playerName;
+    (void)usersTurn;
 }
 
 /************************************************************************
@@ -211,6 +200,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ************************************************************************/
 
 MOVELIST *GenerateMoves(POSITION position) {
+  (void)position;
   return NULL;
 }
 
@@ -235,7 +225,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
   /* local variables */
-	USERINPUT ret, HandleDefaultTextInput();
+	USERINPUT ret;
 	do {
 		printf("Enter your move here: ");
 		ret = HandleDefaultTextInput(position, move, playerName);
@@ -263,6 +253,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
+  (void)input;
   return TRUE;
 }
 
@@ -288,20 +279,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME: PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS: MOVE *theMove : The move to print.
-**
-************************************************************************/
-
-void PrintMove(MOVE move) {
-    printf("%s", MoveToString(move));
-}
-
-/************************************************************************
-**
 ** NAME: MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -310,8 +287,9 @@ void PrintMove(MOVE move) {
 **
 ************************************************************************/
 
-STRING MoveToString(MOVE move) {
-  return NULL;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+  (void)move;
+  (void)moveStringBuffer;
 }
 
 int NumberOfOptions() {
@@ -323,21 +301,22 @@ int getOption() {
 }
 
 void setOption(int option) {
+  (void)option;
   gInitialPosition = 0;
 }
 
-POSITION InteractStringToPosition(STRING str) {
- return 0;
+POSITION StringToPosition(char *positionString) {
+  (void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION position) {
-  return UWAPI_Board_Regular2D_MakePositionString(UWAPI_TURN_A, 17, 1, "-----------------");
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+  snprintf(autoguiPositionStringBuffer, 20, "1_-----------------");
 }
 
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
-STRING InteractMoveToString(POSITION position, MOVE move) {
-  return "not implemented";
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void) position;
+  (void) move;
+  (void) autoguiMoveStringBuffer;
 }

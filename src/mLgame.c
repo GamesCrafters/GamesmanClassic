@@ -16,7 +16,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 extern STRING gValueString[];
@@ -26,8 +25,8 @@ POSITION gNumberOfPositions  = 129022;  /* (6 + 7*7 + 23*7*8 + 47*7*8*24)*2 */
 POSITION gInitialPosition    =  19388;
 POSITION gMinimalPosition    =  19388;
 
-STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
-STRING kGameName           = "L-game";
+CONST_STRING kAuthorName         = "Michael Savitzky, Alexander John Kozlowski, and Cameron Cheung";
+CONST_STRING kGameName           = "L-game";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = TRUE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -38,13 +37,13 @@ POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts an X or O (depending on whether you went first\n\
 or second) on the spot the cursor was on when you clicked. The MIDDLE\n\
 button does nothing, and the RIGHT button is the same as UNDO, in that\n\
 it reverts back to your your most recent position."                                                                                                                                                                                                                                   ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "MOVING YOUR L-PIECE:\n\
 First enter the orientation index number of your desired L-piece position.\n\
 Then, after entering a space, enter the desired position for the corner square \n\
@@ -70,22 +69,22 @@ STRING kMove1SpecHelpOnYourTurn =
         "Move your L-piece to an empty position and then your neutral piece\n\
 to an empty square."                                                                               ;
 
-STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
+CONST_STRING kHelpOnYourTurn = "You move your L-piece to an empty position and then one (or neither) of\n\
 the neutral pieces to an empty square.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To position your L-piece and the neutral pieces so that your opponent\n\
 cannot move his L-piece."                                                                                  ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To not be able to move your L-piece.";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "you have been playing in a loop and you're sick of it, so you and your\n\
 opponent (or just you if you're playing the computer) decide that you'd \n\
 rather be doing something else."                                                                                                                                                                                   ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Ok, Dan and Computer, let us begin.\n\n\
 Type '?' if you need assistance...\n\n\n\
    CURRENT               POSSIBLE ORIENTATIONS                 LEGEND\n\
@@ -129,7 +128,6 @@ Type '?' if you need assistance...\n\n\n\
    X's turn      (Dan will Lose in 0) \n\n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ;
 
-STRING MoveToString(MOVE);
 
 /*************************************************************************
 **
@@ -158,6 +156,7 @@ int valCor[9][6] = {{},  /* Valid corners (with blank board) for each orientatio
 		    {5, 6, 9, 10, 13, 14},
 		    {1, 2, 5, 6, 9, 10}};
 
+// The third entry in the list is the corner index
 int FOURSQUARES[49][4] = {{0, 0, 0, 0},  /*Gives all 4 squares each L-piece covers*/
 			  {9, 5, 1, 2}, // 1
 			  {10, 6, 2, 3},
@@ -302,7 +301,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 
 
 /** Local Prototypes **/
-int hash(int L1, int L2, int S1, int S2, int whosMove);
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove);
 int unhashL1(int total);
 int unhashL2(int total);
 int unhashS1(int total);
@@ -329,6 +328,8 @@ int clearS2(int L1, int L2, int S1, int S2);
 int checkCor(int Lo, int Lc);
 int checkOrient(int Lo, int L1);
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
+POSITION GetInitialPosition(void);
+void PositionToString(POSITION state, char *positionStringBuffer);
 
 /************************************************************************
 **
@@ -340,12 +341,8 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 
 void InitializeGame()
 {
-	gMoveToStringFunPtr = &MoveToString;
+	gPositionToStringFunPtr = &PositionToString;
 	gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
-}
-
-void FreeGame()
-{
 }
 
 /************************************************************************
@@ -370,6 +367,7 @@ void DebugMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -431,6 +429,7 @@ void GameSpecificMenu()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'A': case 'a':
 			if (oneL) {
 				oneL = 0;
@@ -493,10 +492,10 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
+void SetTclCGameSpecificOptions(int theOptions[])
 {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
 
 /************************************************************************
@@ -530,42 +529,36 @@ int theOptions[];
 
 
 POSITION DoMove(POSITION thePosition, MOVE theMove) {
-	int L1, L2, S1, S2, whosMove, origL1, origL2, origS1, origS2, L, SPiece, SValue;
+	int L1, L2, S1, S2, origL1, origL2, origS1, origS2, origTurn, L, SPiece, SValue;
 	origL1 = unhashL1(thePosition);
 	origL2 = Make48(origL1, unhashL2(thePosition));
 	origS1 = Make8to16(origL1, origL2, unhashS1(thePosition));
 	origS2 = Make7to16(origL1, origL2, origS1, unhashS2(thePosition));
-	whosMove = unhashTurn(thePosition);
+	origTurn = unhashTurn(thePosition);
 	L = unhashMoveL(theMove);
 	SPiece = unhashMoveSPiece(theMove);
 	SValue = unhashMoveSValue(theMove);
-	if (whosMove == 1) {
+	if (origTurn == 1) {
 		L2 = origL2;
 		L1 = L;
-	}
-	else {
+	} else {
 		L1 = origL1;
 		L2 = L;
 	}
 	if (SPiece == 0) {
 		S1 = origS1;
 		S2 = origS2;
-	}
-	else if (SPiece == 1) {
+	} else if (SPiece == 1) {
 		S2 = origS2;
 		S1 = SValue;
-	}
-	else {
+	} else {
 		S1 = origS1;
 		S2 = SValue;
 	}
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-	if (whosMove == 1)
-		whosMove = 2;
-	else whosMove = 1;
-	return (POSITION)hash(L1, L2, S1, S2, whosMove);
+	return (POSITION) hash(L1, L2, S1, S2, (origTurn == 1) ? 2 : 1);
 }
 
 /************************************************************************
@@ -735,10 +728,7 @@ POSITION GetInitialPosition() {
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int L = unhashMoveL(computersMove);
 	int SValue = unhashMoveSValue(computersMove);
 	char SPiece = 'w';
@@ -771,7 +761,7 @@ STRING computersName;
 ************************************************************************/
 
 VALUE Primitive(POSITION position) {
-	MOVELIST *head = NULL, *ptr, *GenerateMoves();
+	MOVELIST *head = NULL, *ptr;
 	inPrimitive = 1;
 	head = ptr = GenerateMoves(position);
 	inPrimitive = 0;
@@ -912,11 +902,11 @@ MOVELIST *GenerateMoves(POSITION position) {
 	int newL2Piece = Make48(L1, L2);
 	int newS1Piece = Make8to16(L1, Make48(L1, L2), S1);
 	int newS2Piece = Make7to16(L1, Make48(L1, L2), newS1Piece, S2);
-	MOVELIST *CreateMovelistNode(), *head = NULL;
+	MOVELIST *head = NULL;
 	int i, j;
 
 	if (whosMove == 1) {
-		for (i = 1; i<49; i++) {
+		for (i = 1; i < 49; i++) {
 			if ((memberOf(i, FOURSQUARES[newL2Piece][0])==0) &&
 			    (memberOf(i, FOURSQUARES[newL2Piece][1])==0) &&
 			    (memberOf(i, FOURSQUARES[newL2Piece][2])==0) &&
@@ -947,28 +937,9 @@ MOVELIST *GenerateMoves(POSITION position) {
 						}
 					}
 				}
-				/*
-				for (j = 0; j<6; j++) {
-					if (white1) {
-						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-					}
-					else {
-						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(i, newL2Piece, newS1Piece, newS2Piece, j)), head);
-					}
-				}*/
 			}
 		}
-	}
-
-	else if (whosMove == 2) {
+	} else if (whosMove == 2) {
 		for (i = 1; i<49; i++) {
 			if ((memberOf(i, FOURSQUARES[L1][0])==0) &&
 			    (memberOf(i, FOURSQUARES[L1][1])==0) &&
@@ -1000,24 +971,6 @@ MOVELIST *GenerateMoves(POSITION position) {
 						}
 					}
 				}
-
-				/*
-				for (j = 0; j<6; j++) {
-					if (white1) {
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-					}
-					else {
-						if (!oneL)
-							head = CreateMovelistNode(hashMove(i, 2, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						head = CreateMovelistNode(hashMove(i, 1, Get6Empties(L1, i, newS1Piece, newS2Piece, j)), head);
-						if (inPrimitive)
-							return(head);
-					}
-				}*/
 			}
 		}
 	}
@@ -1043,12 +996,8 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("    Move format: ['Orientation' 'Pos of corner' 'N-Piece' 'Pos of N-Piece']\n");
@@ -1192,24 +1141,6 @@ MOVE ConvertTextInputToMove(STRING input) {
 
 /************************************************************************
 **
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-** CALLS:       unhashMoveL(MOVE)
-**              unhashMoveSPiece(MOVE)
-**              unhashMoveSValue(MOVE)
-**
-************************************************************************/
-
-void PrintMove(MOVE theMove) {
-	printf( "%s", MoveToString( theMove ) );
-}
-
-/************************************************************************
-**
 ** NAME:        MoveToString
 **
 ** DESCRIPTION: Returns the move as a STRING
@@ -1218,22 +1149,28 @@ void PrintMove(MOVE theMove) {
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(13);
-
-	int L = unhashMoveL(theMove);
-	if (unhashMoveSPiece(theMove) == 0)
-		sprintf( move, "[%d %d] ", transPairs[L][0], transPairs[L][1]);
-	else if (unhashMoveSPiece(theMove) == 1)
-		sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(theMove));
-	else
-		sprintf( move, "[%d %d %c %d] ", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(theMove));
-
-	return move;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	MOVE partMoveData = (move & 0xF00000);
+	move &= 0xFFFFF;
+	int L = unhashMoveL(move);
+	int SPiece = unhashMoveSPiece(move);
+	if (partMoveData & 0x800000) {
+		sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+	} else if (partMoveData & 0x600000) {
+		snprintf(moveStringBuffer, 10, "pass");
+	} else if (partMoveData & 0x100000) {
+		char p = (SPiece == 1) ? 'w' : 'g';
+		sprintf(moveStringBuffer, "%c %d", p, unhashMoveSValue(move));
+	} else {
+		if (SPiece == 0) {
+			sprintf(moveStringBuffer, "%d %d", transPairs[L][0], transPairs[L][1]);
+		} else if (SPiece == 1) {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'w', unhashMoveSValue(move));
+		} else {
+			sprintf(moveStringBuffer, "%d %d %c %d", transPairs[L][0], transPairs[L][1], 'g', unhashMoveSValue(move));
+		}
+	}
 }
-
 
 /**************************************************************
 ** Lgame specific functions
@@ -1255,7 +1192,7 @@ MOVE theMove;
 **                             relative to all the other pieces (1-7).
 **              INT whosmove : The player whose turn it is (1 or 2).
 **
-** OUTPUTS:     INT pos : The hash value of the board
+** OUTPUTS:     POSITION pos : The hash value of the board
 **
 ** CALLS:       unhashMoveL(MOVE)
 **              unhashMoveSPiece(MOVE)
@@ -1263,8 +1200,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int hash(int L1, int L2, int S1, int S2, int whosMove) {
-	int pos;
+POSITION hash(int L1, int L2, int S1, int S2, int whosMove) {
+	POSITION pos;
 	pos = (S2-1) + (S1-1)*7 + (L2-1)*7*8 + (L1-1)*7*8*24;
 	pos = (pos << 1) | (whosMove - 1);
 	return pos;
@@ -1951,7 +1888,7 @@ int checkOrient(int Lo, int L1) {
 	return b;
 }
 
-STRING kDBName = "Lgame";
+CONST_STRING kDBName = "Lgame";
 
 int NumberOfOptions()
 {
@@ -1982,302 +1919,210 @@ void setOption(int option)
 	mustMove = option/(2*3)%2==1;
 }
 
-// 1 11111111 11111 isIntermediate(2), fromLPiece (8), NPiece(2), fromNPiece (5), toLPiece(8)
-
-/*
-R_A_8_12_----WBB----------RB----------RB-----00---RRG-000111111222222333333444444555555666666777777888888
-
-R_A_8_12_
-----WBB-----
------RB-----
------RB-----
-00---RRG-000
-111111222222
-333333444444
-555555666666
-777777888888
-*/
-
-//STRING initialLGameInteractString = "R_A_8_12_----WRR----------BR----------BR-----00---BBG-000111111222222333333444444555555666666777777888888";
-STRING initialLGameInteractString = "R_A_8_12_------------------------------------aa-------aaa------------------------------------------------";
-int posMap[17] = {-1, 13,14,15,16,25,26,27,28, 37,38,39,40, 49,50,51,52};
-int gridMap[17] = {-1, 4,5,6,7,16,17,18,19, 28,29,30,31, 40,41,42,43};
-int strLen = 105;
-
-POSITION encodeInterpos(POSITION origPos, POSITION isIntermediate, POSITION fromLPiece, POSITION SPiece, POSITION fromSPiece, POSITION toLPiece) {
-	return origPos | (isIntermediate << 62) | (fromLPiece << 54) | (SPiece << 52) | (fromSPiece << 47) | (toLPiece << 39);
+POSITION encodeInterPos(POSITION origPos, int isIntermediate, int toLPiece) {
+	return origPos | (((POSITION) isIntermediate) << 63) | (((POSITION) toLPiece) << 55);
 }
 
-POSITION decodeInterpos(POSITION interPos, int *isIntermediate, int *fromLPiece, int *SPiece, int *fromSPiece, int *toLPiece) {
-	(*isIntermediate) = interPos >> 62;
-	(*fromLPiece) = (interPos >> 54) & 0xFF;
-	(*SPiece) = (interPos >> 52) & 0b11;
-	(*fromSPiece) = (interPos >> 47) & 0x1F;
-	(*toLPiece) = (interPos >> 39) & 0xFF;
+POSITION decodeInterPos(POSITION interPos, int *isIntermediate, int *toLPiece) {
+	(*isIntermediate) = interPos >> 63;
+	(*toLPiece) = (interPos >> 55) & 0xFF;
 	return interPos & 0x0000000FFFFFFFFF;
 }
 
-POSITION InteractStringToPosition(STRING str) {
-	BOOLEAN L1Found = FALSE, L2Found = FALSE, S1Found = FALSE, S2Found = FALSE;
-	int L1 = 0, L2 = 0, S1 = 0, S2 = 0;
-	int whoseMove = (str[2] == 'A') ? 1 : 2;
-	int prevL = 10 * (str[45] - 'a') + (str[46] - 'a');
-	int prevS = 10 * (str[55] - 'a') + (str[56] - 'a');
-	int whichS = str[54] - 'a';
-	if (prevL != 0) {
-		if (whichS == 1) {
-			S1 = prevS;
-			S1Found = TRUE;
-		} else if (whichS == 2) {
-			S2 = prevS;
-			S2Found = TRUE;
-		}
-		if (whoseMove == 1) {
-			L1 = prevL;
-			L1Found = TRUE;
-		} else {
-			L2 = prevL;
-			L2Found = TRUE;
-		}
-	}
+/* 1_WRR--BR--BR--BBG */
+POSITION StringToPosition(char *positionString) {
+	int turn = positionString[0] == '1' ? 1 : 2;
+	char *board = positionString + 1;
+	int i, L1 = 0, L2 = 0, S1 = 0, S2 = 0;
 
-	if (!S1Found) {
-		for (int i = 1; i <= 16; i++) {
-			if (str[posMap[i]] == 'W') {
-				S1 = i;
-				break;
-			}
-		}
-	}
-	if (!S2Found) {
-		for (int i = 1; i <= 16; i++) {
-			if (str[posMap[i]] == 'G') {
-				S2 = i;
-				break;
-			}
-		}
-	}
-
-	if (!L1Found) {
-		for (int i = 1; i <= 48; i++) {
-			if (str[posMap[FOURSQUARES[i][0]]] == 'R' && 
-			str[posMap[FOURSQUARES[i][1]]] == 'R' &&
-			str[posMap[FOURSQUARES[i][2]]] == 'R' &&
-			str[posMap[FOURSQUARES[i][3]]] == 'R') {
-				L1 = i;
-				break;
-			}
-		}
-	}
-	if (!L2Found) {
-		for (int i = 1; i <= 48; i++) {
-			if (str[posMap[FOURSQUARES[i][0]]] == 'B' && 
-			str[posMap[FOURSQUARES[i][1]]] == 'B' &&
-			str[posMap[FOURSQUARES[i][2]]] == 'B' &&
-			str[posMap[FOURSQUARES[i][3]]] == 'B') {
-				L2 = i;
-				break;
-			}
+	for (i = 1; i <= 16; i++) {
+		if (board[i] == 'W') {
+			S1 = i;
+			break;
 		}
 	}
 	
-	//printf("H: %d %d %d %d,", L1, L2, S1, S2);
+	for (i = 1; i <= 16; i++) {
+		if (board[i] == 'G') {
+			S2 = i;
+			break;
+		}
+	}
+
+	for (i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'B' && board[FOURSQUARES[i][1]] == 'B' &&
+			board[FOURSQUARES[i][2]] == 'B' && board[FOURSQUARES[i][3]] == 'B') {
+			L1 = i;
+			break;
+		}
+	}
+	
+	for (i = 1; i <= 48; i++) {
+		if (board[FOURSQUARES[i][0]] == 'R' && board[FOURSQUARES[i][1]] == 'R' &&
+			board[FOURSQUARES[i][2]] == 'R' && board[FOURSQUARES[i][3]] == 'R') {
+			L2 = i;
+			break;
+		}
+	}
+	
 	S2 = Make16to7(L1, L2, S1, S2);
 	S1 = Make16to8(L1, L2, S1);
 	L2 = Make24(L1, L2);
-	//printf("HA: %d %d %d %d,", L1, L2, S1, S2);
-
-	return hash(L1, L2, S1, S2, whoseMove);
+	return hash(L1, L2, S1, S2, turn);
 }
 
-/*
-"R_A_8_12_----WRR----------BR----------BR-----aa---BBG-aaa--1-----2---3--------------5-----6--------------"
-*/
-STRING InteractPositionToString(POSITION interpos) {
-	int isIntermediate, fromLPiece, SPiece, fromSPiece, toLPiece;
-	POSITION pos = decodeInterpos(interpos, &isIntermediate, &fromLPiece, &SPiece, &fromSPiece, &toLPiece);
-	char *board_string = (char *) calloc(strLen + 1, sizeof(char));
-	memcpy(board_string, initialLGameInteractString, strLen);
-	int L1 = unhashL1(pos);
-	int L2 = unhashL2(pos);
-	int S1 = unhashS1(pos);
-	int S2 = unhashS2(pos);
-	int whoseTurn = unhashTurn(pos);
-
-	board_string[2] = (whoseTurn == 1) ? 'A' : 'B';
-	//printf("POS: %llu, %d %d %d %d", pos, L1, L2, S1, S2);
-
-	L2 = Make48(L1, L2);
-	S1 = Make8to16(L1, L2, S1);
-	S2 = Make7to16(L1, L2, S1, S2);
-
-	//printf("%d %d %d %d", L1, L2, S1, S2);
-	if (isIntermediate > 0) {
-		if (isIntermediate > 1) {
-			//printf("\nFROMSPIECE: %d, isIntermediate: %d\n", fromSPiece, isIntermediate);
-			if (SPiece == 1) {
-				board_string[posMap[fromSPiece]] = '-';
-				board_string[posMap[S2]] = 'G';
-			} else {
-				board_string[posMap[S1]] = 'W';
-				board_string[posMap[fromSPiece]] = '-';
-			}
-		} else {
-			board_string[posMap[S1]] = 'W';
-			board_string[posMap[S2]] = 'G';
-		}
-		
-		if (whoseTurn == 1) {
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'R';
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
-		} else {
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
-			for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[toLPiece][i]]] = 'B';
-		}
-		board_string[45] = (fromLPiece / 10) + 'a';
-		board_string[46] = (fromLPiece % 10) + 'a';
-		board_string[54] = SPiece + 'a';
-		board_string[55] = (fromSPiece / 10) + 'a';
-		board_string[56] = (fromSPiece % 10) + 'a';
-	} else {
-		board_string[posMap[S1]] = 'W';
-		board_string[posMap[S2]] = 'G';
-		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L1][i]]] = 'R';
-		for (int i = 0; i < 4; i++) board_string[posMap[FOURSQUARES[L2][i]]] = 'B';
-		/*
-		if (whoseTurn == 1) {
-			for (int i = 1; i < 49; i++) {
-				if (L1 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'R') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'R') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'R')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		} else {
-			for (int i = 1; i < 49; i++) {
-				if (L2 != i) {
-					if (
-						(board_string[posMap[FOURSQUARES[i][0]]] == '-' || board_string[posMap[FOURSQUARES[i][0]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][1]]] == '-' || board_string[posMap[FOURSQUARES[i][1]]] == 'B') &&
-						(board_string[posMap[FOURSQUARES[i][2]]] == '-' || board_string[posMap[FOURSQUARES[i][2]]] == 'B') && 
-						(board_string[posMap[FOURSQUARES[i][3]]] == '-' || board_string[posMap[FOURSQUARES[i][3]]] == 'B')
-					) {
-						board_string[56 + i] = ((i - 1) / 6) + '1';
-					}
-				}
-			}
-		}*/
-	}
-	
-	return board_string;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	if (mv >= 300000) { // Selecting L: corner and orientation
-		int L = unhashMoveL(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString(((L - 1) / 6) + '1', 47 + L);
-	} else if (mv >= 200000) { // Selecting which neutral piece to place
-		int SP = unhashMoveSPiece(mv % 100000);
-		// SP will NOT be 0 if mv is a part-move
-		int L1 = unhashL1(pos);
-		int L2 = unhashL2(pos);
-		int S1 = unhashS1(pos);
-		int S2 = unhashS2(pos);
-
-		L2 = Make48(L1, L2);
-		S1 = Make8to16(L1, L2, S1);
-		S2 = Make7to16(L1, L2, S1, S2);
-		if (SP == 1) { 
-			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S1]);
-		} else {
-			return UWAPI_Board_Regular2D_MakeAddString('-', gridMap[S2]);
-		}
-	} else if (mv >= 100000) {
-		int SP = unhashMoveSPiece(mv % 100000);
-		int SV = unhashMoveSValue(mv % 100000);
-		return UWAPI_Board_Regular2D_MakeAddString((SP == 1) ? '-' : '-', gridMap[SV]);
-	} else {
-		return MoveToString(mv);
-	}
-}
-
-// CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST *next)
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	// Assumes moveList is grouped by L, then grouped by SPiece. Assumes no-neutral-move move comes before neutral-move moves
-	MULTIPARTEDGELIST *mpel = NULL;
-	int prevL = -1;
-	int prevSP = -1;
-
-	POSITION interPos1 = 0, interPos2w = 0, interPos2g = 0, interPos2 = 0;
-	MOVE moveW = 0, moveG = 0;
-
+void PositionToString(POSITION state, char *positionStringBuffer) {
+	int isIntermediate, toLPiece;
+	POSITION position = decodeInterPos(state, &isIntermediate, &toLPiece);
+	char board[17];
+	memset(board, '-', 17);
 	int L1 = unhashL1(position);
 	int L2 = unhashL2(position);
 	int S1 = unhashS1(position);
 	int S2 = unhashS2(position);
-	int whoseTurn = unhashTurn(position);
+	int turn = unhashTurn(position);
+	int i;
 
 	L2 = Make48(L1, L2);
 	S1 = Make8to16(L1, L2, S1);
 	S2 = Make7to16(L1, L2, S1, S2);
 
+	board[S1 - 1] = 'W';
+	board[S2 - 1] = 'G';
+	if (isIntermediate) {		
+		if (turn == 1) {
+			for (i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i] - 1] = 'B';
+			for (i = 0; i < 4; i++) board[FOURSQUARES[L2][i] - 1] = 'R';
+		} else {
+			for (i = 0; i < 4; i++) board[FOURSQUARES[L1][i] - 1] = 'B';
+			for (i = 0; i < 4; i++) board[FOURSQUARES[toLPiece][i] - 1] = 'R';
+		}
+	} else {
+		for (i = 0; i < 4; i++) board[FOURSQUARES[L1][i] - 1] = 'B';
+		for (i = 0; i < 4; i++) board[FOURSQUARES[L2][i] - 1] = 'R';
+	}
+	board[16] = '\0';
+	AutoGUIMakePositionString(turn, board, positionStringBuffer);
+}
+
+void PositionToAutoGUIString(POSITION state, char *autoguiPositionStringBuffer) {
+	int isIntermediate, toLPiece;
+	POSITION position = decodeInterPos(state, &isIntermediate, &toLPiece);
+	char board[17];
+	memset(board, '-', 17);
+	int L1 = unhashL1(position);
+	int L2 = unhashL2(position);
+	int S1 = unhashS1(position);
+	int S2 = unhashS2(position);
+	int turn = unhashTurn(position);
+
+	L2 = Make48(L1, L2);
+	S1 = Make8to16(L1, L2, S1);
+	S2 = Make7to16(L1, L2, S1, S2);
+
+	board[S1 - 1] = 'W';
+	board[S2 - 1] = 'G';
+	if (isIntermediate) {
+		if (turn == 1) {
+			board[FOURSQUARES[toLPiece][2] - 1] = 'H' + (toLPiece - 1) / 6;
+			board[FOURSQUARES[L2][2] - 1] = 'h' + (L2 - 1) / 6;
+		} else {
+			board[FOURSQUARES[L1][2] - 1] = 'H' + (L1 - 1) / 6;
+			board[FOURSQUARES[toLPiece][2] - 1] = 'h' + (toLPiece - 1) / 6;
+		}
+	} else {
+		board[FOURSQUARES[L1][2] - 1] = 'H' + (L1 - 1) / 6;
+		board[FOURSQUARES[L2][2] - 1] = 'h' + (L2 - 1) / 6;
+	}
+	board[16] = '\0';
+	AutoGUIMakePositionString(turn, board, autoguiPositionStringBuffer);
+}
+
+void MoveToAutoGUIString(POSITION position, MOVE partMove, char *autoguiMoveStringBuffer) {
+	MOVE fullMove = partMove & 0xFFFFF;
+	int L, SV, L1, L2, S1, S2;
+	if (partMove & 0x800000) {
+		// Part-Move 1: Selecting L-piece corner and orientation
+		L = unhashMoveL(fullMove);
+		AutoGUIMakeMoveButtonStringA(((L - 1) / 6) + '1', 20 + L, 'x', autoguiMoveStringBuffer);
+	} else if (partMove & 0x600000) {
+		// Part-Move 2: Choosing not to move a neutral piece
+		// Buttons for choosing not to move a neutral piece
+		// There are two buttons/partMoves that the user can click to indicate that
+		// they wish not to move a neutral piece
+		L1 = unhashL1(position);
+		L2 = unhashL2(position);
+		S1 = unhashS1(position);
+		L2 = Make48(L1, L2);
+		S1 = Make8to16(L1, L2, S1);
+
+		if (partMove & 0x400000) {
+			// Circle Button that appears on S1
+			AutoGUIMakeMoveButtonStringA('-', S1 - 1, 'y', autoguiMoveStringBuffer);
+		} else {
+			// Circle Button that appears on S2
+			S2 = unhashS2(position);
+			S2 = Make7to16(L1, L2, S1, S2);
+			AutoGUIMakeMoveButtonStringA('-', S2 - 1, 'y', autoguiMoveStringBuffer);
+		}
+	} else if (partMove & 0x100000) {
+		// Part-Move 2: Choosing where to slide neutral piece (arrow button)
+		SV = unhashMoveSValue(fullMove);
+		L1 = unhashL1(position);
+		L2 = unhashL2(position);
+		S1 = unhashS1(position);
+		L2 = Make48(L1, L2);
+		S1 = Make8to16(L1, L2, S1);
+		if (unhashMoveSPiece(fullMove) == 1) { 
+			AutoGUIMakeMoveButtonStringM(S1 - 1, SV - 1, 'z', autoguiMoveStringBuffer);
+		} else {
+			S2 = unhashS2(position);
+			S2 = Make7to16(L1, L2, S1, S2);
+			AutoGUIMakeMoveButtonStringM(S2 - 1, SV - 1, 'z', autoguiMoveStringBuffer);
+		}
+	} else {
+		// The input `partMove` is actually a full-move, and does not have an Autogui movestring.
+		AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+	}
+}
+
+MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
+	// Can assume moveList is in same order of what is returned by GenerateMoves
+	MULTIPARTEDGELIST *mpel = NULL;
+	int L, SP, prevL = -1;
+	POSITION interPos;
+
+	int L1 = unhashL1(position); // L1 is "base 48"
+	int L2 = unhashL2(position); // L2 is "base 24"
+	int S1 = unhashS1(position); // S1 is "base 8"
+	int S2 = unhashS2(position); // S2 is "base 7"
+
+	L2 = Make48(L1, L2);            // Convert L2 from "base 24" to "base 48"
+	S1 = Make8to16(L1, L2, S1);     // Convert S1 from "base 8"  to "base 16"
+	S2 = Make7to16(L1, L2, S1, S2); // Convert S2 from "base 7"  to "base 16"
+
 	while (moveList != NULL) {
-		int L = unhashMoveL(moveList->move);
-		int SP = unhashMoveSPiece(moveList->move);
+		L = unhashMoveL(moveList->move);       // Where L-piece is being moved (1-48)
+		SP = unhashMoveSPiece(moveList->move); // Which S-piece is being moved (1-2, or 0 for neither)
 
 		if (L != prevL) {
-			if (whoseTurn == 1) {
-				interPos1 = encodeInterpos(position, 1, L1, 0, 0, L);
-			} else {
-				interPos1 = encodeInterpos(position, 1, L2, 0, 0, L);
-			}
-			mpel = CreateMultipartEdgeListNode(position, interPos1, moveList->move + 300000, 0, FALSE, mpel); // from position to L
+			// This part-move corresponds to selecting the L-piece corner and orientation
+			// The condition is to ensure we don't add the same part-move twice
+			interPos = encodeInterPos(position, 1, L);
+			mpel = CreateMultipartEdgeListNode(NULL_POSITION, interPos, 0x800000 | moveList->move, 0, mpel);
 			prevL = L;
 		}
-		if (SP != prevSP) {
-			if (SP == 0) {
-				if (whoseTurn == 1) {
-					interPos2w = encodeInterpos(position, 2, L1, 1, S1, L);
-					moveW = hashMove(L1, 1, S1);
-					interPos2g = encodeInterpos(position, 2, L1, 2, S2, L);
-					moveG = hashMove(L1, 2, S2);
-				} else {
-					interPos2w = encodeInterpos(position, 2, L2, 1, S1, L);
-					moveW = hashMove(L2, 1, S1);
-					interPos2g = encodeInterpos(position, 2, L2, 2, S2, L);
-					moveG = hashMove(L2, 2, S2);
-				}
-				
-				mpel = CreateMultipartEdgeListNode(interPos1, interPos2w, moveW + 200000, 0, FALSE, mpel); // from L to w
-				mpel = CreateMultipartEdgeListNode(interPos2w, positionList->position, moveW + 100000, moveList->move, TRUE, mpel); // from w to end
-				mpel = CreateMultipartEdgeListNode(interPos1, interPos2g, moveG + 200000, 0, FALSE, mpel); // from L to g
-				mpel = CreateMultipartEdgeListNode(interPos2g, positionList->position, moveG + 100000, moveList->move, TRUE, mpel); // from g to end
-				moveList = moveList->next;
-				positionList = positionList->next;
-				prevSP = SP;
-				continue;
-			} else {
-				
-				if (SP == 1) {
-					interPos2 = interPos2w;
-				} else {
-					interPos2 = interPos2g;
-				}
-				//mpel = CreateMultipartEdgeListNode(interPos1, interPos2, moveList->move + 200000, 0, FALSE, mpel); // from L to SP
-				prevSP = SP;
-			}
-		}
 
-		mpel = CreateMultipartEdgeListNode(interPos2, positionList->position, moveList->move + 100000, moveList->move, TRUE, mpel); // from SP to end
+		if (SP == 0) {
+			// This is reached if the current move is a don't-move-either-neutral-piece move.
+			// We create two part-moves because we want two circle buttons on each neutral piece,
+			// either of which the user can click to indicate that they don't want to move the neutral piece
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x400000 | moveList->move, moveList->move, mpel);
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x200000 | moveList->move, moveList->move, mpel);
+		} else {
+			// This is reached if the current move is a move-a-neutral-piece move
+			mpel = CreateMultipartEdgeListNode(interPos, NULL_POSITION, 0x100000 | moveList->move, moveList->move, mpel);
+		}
 
 		moveList = moveList->next;
 		positionList = positionList->next;

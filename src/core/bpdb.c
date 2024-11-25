@@ -113,6 +113,7 @@ UINT32 BPDB_WINBYSLOT = 0;
 UINT32 BPDB_MEXSLOT = 0;
 UINT32 BPDB_REMSLOT = 0;
 UINT32 BPDB_VISITEDSLOT = 0;
+UINT32 BPDB_DRAWLEVELSLOT = 0;
 
 //
 // graphical purposes - used to test whether a new
@@ -285,6 +286,7 @@ bpdb_init(
 	new_db->set_slice_slot = bpdb_set_slice_slot;
 	new_db->set_slice_slot_max = bpdb_set_slice_slot_max;
 	new_db->free_db = bpdb_free;
+	new_db->get_drawlevel = bpdb_get_drawlevel;
 
 	// create a new singly-linked list of schemes
 	bpdb_schemes = slist_new();
@@ -540,8 +542,15 @@ bpdb_get_value(
         )
 {
 	VALUE val = (VALUE) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_VALUESLOT );
-	if (val == tie && bpdb_get_remoteness(pos) == bpdb_write_slice->maxvalue[BPDB_REMSLOT/2] ) {
-		val = drawtie;
+	SLICE bpdb_slice = bpdb_write_slice;
+	UINT8 index = BPDB_REMSLOT / 2;
+	BOOLEAN max_reserved = bpdb_slice->reservemax[index];
+	UINT64 max_value = bpdb_slice->maxvalue[index];
+	REMOTENESS remoteness = bpdb_get_remoteness(pos);
+	BOOLEAN has_draw_remoteness = (max_reserved && remoteness == max_value + 1) ||
+	                                 (!max_reserved && remoteness == max_value);
+	if (val == tie && has_draw_remoteness ) {
+		val = drawdraw;
 	}
 	return val;
 }
@@ -619,6 +628,15 @@ bpdb_get_winby(
         )
 {
 	return (WINBY) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_WINBYSLOT );
+}
+
+
+DRAWLEVEL
+bpdb_get_drawlevel(
+        POSITION pos
+        )
+{
+	return (DRAWLEVEL) functionsMapping->get_slice_slot( (UINT64)pos, BPDB_DRAWLEVELSLOT );
 }
 
 /*++
@@ -991,7 +1009,7 @@ bpdb_grow_slice(
 		currentSlice--;
 	}
 
-	printf("done\n");
+	printf("done growing slice\n");
 
 	/*
 	   // debugging information
@@ -1196,7 +1214,7 @@ bpdb_shrink_slice(
 	}
 
 	if(gBitPerfectDBVerbose) {
-		printf("done\n");
+		printf("done shrinking slice\n");
 	}
 
 
@@ -1478,6 +1496,7 @@ bpdb_add_slot(
 	else if(strcmp(name, "WINBY") == 0) BPDB_WINBYSLOT = *slotindex;
 	else if(strcmp(name, "REMOTENESS") == 0) BPDB_REMSLOT = *slotindex;
 	else if(strcmp(name, "VISITED") == 0) BPDB_VISITEDSLOT = *slotindex;
+	else if(strcmp(name, "DRAWLEVEL") == 0) BPDB_DRAWLEVELSLOT = *slotindex;
 
 	bpdb_slice->slots++;
 
@@ -1737,7 +1756,7 @@ bpdb_save_database()
 	GMSTATUS status = STATUS_SUCCESS;
 
 	// counter
-	int i = 0;
+	unsigned int i = 0;
 	SLIST cur = NULL;
 
 	// file names of saved files

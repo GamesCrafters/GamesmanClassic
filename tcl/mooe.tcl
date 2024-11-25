@@ -29,7 +29,7 @@ proc GS_InitGameSpecific {} {
 
     global gInitialPosition gPosition valueMoveColorWin valueMoveColorLose valueMoveColorTie
 	#How do you call original C code to determine initial position?
-    set gInitialPosition 1150000; #MIGHT HAVE TO CHANGE TO A VARIABLE (C_GetInitialPosition or something...)
+    set gInitialPosition 1150000; #MIGHT HAVE TO CHANGE TO A VARIABLE (or something...)
     ##set gInitialPosition [C_InitialPosition]
     set gPosition $gInitialPosition
     

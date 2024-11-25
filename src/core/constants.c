@@ -176,10 +176,8 @@ STRING kPrintMenuEnd =
 char *gValueString[] =
 {
 	"Undecided", "Win", "Lose", "Tie",
-        "Draw-win", "Draw-lose", 
-        "Draw-tie", "Draw-undecided"
-	// "Win-Visited", "Lose-Visited",
-	// "Tie-Visited", "Undecided-Visited"
+        "Draw-Win", "Draw-Lose", 
+        "Draw-Draw", "Draw-Undecided"
 };
 
 char gValueLetter[] = { 'U', 'W', 'L', 'T', 'D', 'D', 'D', 'D' };

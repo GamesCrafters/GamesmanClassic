@@ -55,12 +55,6 @@ Primitive()	   - takes in a board position and returns the value
 		     {win : loss : tie : undecided}.  Keep in mind
 		     that a tic tac toe board with 3 x's in a row 
 		     and more x's than o's is a loss.
-GetInitialPosition - takes input from the user of the game and 
-		     generates a board position from which to start
-		     the game.  It is very useful for debugging.
-		     It is critical that you are very clear about
-		     the format of the input and the resulting 
-		     board.
 PrintPosition	   - takes in a board position and prints it in a
 		     readable format so that the user can easily
 		     make sense of the board and the possible moves.

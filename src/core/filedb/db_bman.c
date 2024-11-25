@@ -36,6 +36,8 @@
 #include "db_basichash.h"
 #include "db_buf.h"
 #include "db_malloc.h"
+#include <stdint.h>
+#include <inttypes.h>
 
 #define INDEX_BITLENGTH 10
 #define INDEX_CHUNKSIZE 10
@@ -46,7 +48,8 @@
  * page.
  */
 
-gamesdb_bman* gamesdb_bman_init(){
+gamesdb_bman* gamesdb_bman_init(gamesdb_buffer* bufp){
+	(void) bufp;
 	gamesdb_bman *new = (gamesdb_bman*) gamesdb_SafeMalloc(sizeof(gamesdb_bman));
 	new->hash = gamesdb_basichash_create(INDEX_BITLENGTH, INDEX_CHUNKSIZE);
 	new->clock_hand = NULL;
@@ -95,7 +98,7 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
 			if (initial == 0) {
 				initial = 1;
 			}
-			while (bufp->num_pages > initial) {
+			while ((gamesdb_pageid) bufp->num_pages > initial) {
 				gamesdb_buf_removepage(db);
 			}
 		}
@@ -135,7 +138,11 @@ gamesdb_frameid gamesdb_bman_replace(gamesdb* db, gamesdb_pageid vpn) {
 	}
 
 	if (GAMESDB_DEBUG) {
+#if defined(__LP64__) || defined(_WIN64)
+		printf("db_bufman: evicted page at address %"PRIu64"\n", (uint64_t)ret);
+#else
 		printf("db_bufman: evicted page at address %u\n", (unsigned int)ret);
+#endif
 	}
 
 	return ret;

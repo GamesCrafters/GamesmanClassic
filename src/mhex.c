@@ -8,8 +8,6 @@
 **
 ** DATE:        2006-9-18 / 2006-11-29
 **
-** LAST CHANGE: $Id$
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -18,13 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
-
 
 /*************************************************************************
 **
@@ -32,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Hex";
-STRING kAuthorName          = "Shah Bawany and Jacob Andreas";
-STRING kDBName              = "Hex";
+CONST_STRING kGameName            = "Hex";
+CONST_STRING kAuthorName          = "Shah Bawany and Jacob Andreas";
+CONST_STRING kDBName              = "Hex";
 
 BOOLEAN kPartizan            = TRUE;
 BOOLEAN kGameSpecificMenu    = TRUE;
@@ -57,25 +49,25 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized!";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Help strings not initialized!";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 
@@ -145,16 +137,9 @@ int possize;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 //int                   vcfg(int *this_cfg);
 void                    InitializeHelpStrings();
 MOVELIST*               getValidMoves(STRING board, int index, int* count);
-STRING                  MoveToString(MOVE move);
 void                    PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn);
 void                    playSwapMove(char* board);
 void                    push(lnode** stack, int index);
@@ -235,9 +220,6 @@ void InitializeHelpStrings ()
 
 	kHelpExample =
 	        "";
-
-	gMoveToStringFunPtr = &MoveToString;
-
 }
 
 
@@ -530,13 +512,49 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 	printf("\n\n");
 
-	printf(GetPrediction(position, playersName, usersTurn));
+	printf("%s", GetPrediction(position, playersName, usersTurn));
 	printf("\n\n");
 
 	SafeFree(board);
 
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStringBuffer) {
+	if(move == SWAPMOVE) {
+		moveStringBuffer[0] = 'w';
+		moveStringBuffer[1] = '\0';
+	} else {
+		moveStringBuffer[0] = 'a' + (int)(move % boardcols);
+		moveStringBuffer[1] = '0' + (int)(move / boardcols);
+		moveStringBuffer[2] = '\0';
+	}
+}
+
+/************************************************************************
+**
+** NAME:        PrintMove
+**
+** DESCRIPTION: Prints the move in a nice format.
+**
+** INPUTS:      MOVE move         : The move to print.
+**
+************************************************************************/
+
+void PrintMove(MOVE move) {
+	char moveStringBuffer[20];
+	MoveToString( move, moveStringBuffer );
+	printf( "%s", moveStringBuffer );
+}
 
 /************************************************************************
 **
@@ -549,61 +567,10 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 **
 ************************************************************************/
 
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%s's move: %s", computersName, MoveToString(computersMove));
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = (char*)SafeMalloc(20*sizeof(char));
-	str = MoveToString( move );
-
-	printf( "%s", str );
-	SafeFree( str );
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING movestring = (char*)SafeMalloc(20*sizeof(char));
-
-	if(move == SWAPMOVE) {
-
-		movestring [0] = 'w';
-		movestring [1] = '\0';
-
-	} else {
-
-		movestring[0] = 'a' + (int)(move % boardcols);
-		movestring[1] = '0' + (int)(move / boardcols);
-
-		movestring[2] = '\0';
-
-	}
-
-	return movestring;
+void PrintComputersMove (MOVE computersMove, STRING computersName) {
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%s's move: %s", computersName, moveStringBuffer);
 }
 
 
@@ -630,7 +597,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 
@@ -784,28 +750,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -1132,20 +1078,18 @@ void getIntVal(int* target) {
 ** Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
 ************************************************************************/
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

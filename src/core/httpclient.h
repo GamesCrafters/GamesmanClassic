@@ -49,7 +49,7 @@ unsigned long long htonll(unsigned long long n); // convert from host to network
 void net_itoa(int n, char s[]); //convert int to char
 int parse(char url[], httpreq *req, char** errMsg); //parse (private)
 int newrequest(char url[], httpreq**req, char** errMsg);  //insantiate a request with a url
-void addheader(httpreq *req, char name[], char value[]); //add header
+void addheader(httpreq *req, char name[], CONST_STRING value); //add header
 void settype(httpreq *req, char value[]); //set request type
 int post(httpreq *req, char body[], int bodyLength, httpres**res, char** errMsg);  //post request: response
 void getheader(httpres *res, char name[], char** hdrVal); //get header

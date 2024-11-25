@@ -1,10 +1,3 @@
-// $id$
-// $log$
-
-/* Above is will include the name and the log of the last
- * person to commit this file to gamesman.
- */
-
 /************************************************************************
 **
 ** NAME:        mwinkers.c
@@ -16,10 +9,6 @@
 **
 ** DATE:        02/26/2004
 **
-** UPDATE HIST:
-**      Highest height 1 game solved: width 4
-**      Highest height 2 game solved: width 1
-**	8-21-06 fflush(stdin) should no longer be needed - dmchan
 **************************************************************************/
 
 /*************************************************************************
@@ -28,12 +17,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include "hash.h"
 
 extern STRING gValueString[];
 
@@ -43,9 +27,9 @@ POSITION gInitialPosition; /* The initial position (starting board) */
 POSITION gMinimalPosition; /* */
 POSITION kBadPosition        = -1; /* A position that will never be used */
 
-STRING kGameName           = "Winkers";   /* The name of your game */
-STRING kDBName             = "winkers";   /* The name to store the database under */
-STRING kAuthorName         = "Newton Le and Edward Li";
+CONST_STRING kGameName           = "Winkers";   /* The name of your game */
+CONST_STRING kDBName             = "winkers";   /* The name to store the database under */
+CONST_STRING kAuthorName         = "Newton Le and Edward Li";
 BOOLEAN kPartizan           = TRUE;  /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kDebugMenu          = FALSE;  /* TRUE while debugging */
 BOOLEAN kGameSpecificMenu   = TRUE;  /* TRUE if there is a game specific menu*/
@@ -58,33 +42,33 @@ void*    gGameSpecificTclInit = NULL;
    Help strings that are pretty self-explanatory
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which number you want to make\n\
 a move on. You can choose any number that doesn't have a winker on it. A\n\
 blank position will mean you place a checker, and a checker position will\n\
 mean you place your color winker."                                                                                                                                                                                                                                             ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "You place either a checker onto an empty position, or a winker onto\n\
 a checker as long as you have a piece of that type. If you can't make a\n\
 move with the pieces you have, you will pass."                                                                                                                                                           ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To get three of your winkers in a row, horizontally or diagonally.\n\
 Three-in-a-row WINS."                                                                               ;
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent into getting three winker in a row of their color\n\
 horizontally or diagonally. Three-in-a-row LOSES."                                                                                     ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "the entire board has been filled with winkers without either player\n\
 getting three-in-a-row."                                                                                                    ;
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "            1   2   3     :  - - - \n\
  LEGEND:  4   5   6   7   : - - - - \n\
             8   9  10     :  - - - \n\
@@ -219,18 +203,9 @@ typedef enum possibleBoardPieces {
 char *gBlankORBString[] = { "-", "O", "R", "B" };
 
 char *gBoard;
-// char *LegendKey;
 
 int *CP, *RW, *RN;
 
-/*typedef struct moveValuesStruct {
- *  BlankORB piece;
- *  int moveIndex;
- *  int dummy;
- *} moveValues;
- *
- * typedef moveValues *moveValuesPtr;
- */
 
 /*************************************************************************
 **
@@ -263,15 +238,10 @@ MOVE moveHash (int, int, BlankORB);
 int RowNumber(int i);
 int ColPosition(int i);
 int RowWidth(int i);
-
-STRING MoveToString( MOVE );
-
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-extern BOOLEAN (*gGoAgain)(POSITION, MOVE);
+void printBoard(char * board);
+char ThreeInARow(char *theBlankORB, int a, int b, int c);
+BOOLEAN AllFilledIn(char *theBlankORB);
+POSITION GetInitialPosition(void);
 
 /************************************************************************
 **
@@ -282,8 +252,7 @@ extern BOOLEAN (*gGoAgain)(POSITION, MOVE);
 **
 ************************************************************************/
 
-void InitializeGame ()
-{
+void InitializeGame() {
 	gGoAgain = passMoveOnly;
 
 	int i;
@@ -326,8 +295,6 @@ void InitializeGame ()
 		CP[i] = ColPosition(i);
 		RW[i] = RowWidth(i);
 	}
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -340,9 +307,7 @@ void InitializeGame ()
 **
 ************************************************************************/
 
-void DebugMenu ()
-{
-}
+void DebugMenu() {}
 
 
 /************************************************************************
@@ -367,12 +332,6 @@ void GameSpecificMenu ()
 
 		printf("\td)\t Change the (D)imensions of the board.  Currently: (%d,%d)\n", BOARDWIDTH, BOARDHEIGHT+1);
 
-		/*
-		   if (MISERE == 0)
-		   printf("\tm)\t Toggle from Standard to (M)isere\n");
-		   else
-		   printf("\tm)\t Toggle from (M)isere to Standard\n");
-		 */
 		printf("\ti)\t Change the (I)nitial Position.\n");
 		printf("\tb)\t (B)ack to the previous menu\n\nSelect an option:  ");
 
@@ -380,6 +339,7 @@ void GameSpecificMenu ()
 		switch(GetMyChar()) {
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
 			break;
@@ -401,10 +361,8 @@ void GameSpecificMenu ()
 
 
 void GetDimensions() {
-
 	char c;
 	char GetMyChar();
-	void printBoard(char*);
 	int height, width;
 
 	do {
@@ -486,9 +444,8 @@ void printBoard (char * board) {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
-{
+void SetTclCGameSpecificOptions (int options[]) {
+	(void)options;
 }
 
 
@@ -507,10 +464,7 @@ int options[];
 **              Unhash ()
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
-POSITION DoMove (thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove (POSITION thePosition, MOVE theMove) {
 	int player = generic_hash_turn(thePosition);
 
 	generic_hash_unhash(thePosition, gBoard);
@@ -543,10 +497,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-POSITION GetInitialPosition()
-{
-	/*  BlankORB theBlankORB[BOARDSIZE];*/
-	void printBoard();
+POSITION GetInitialPosition() {
+
 	signed char c;
 	int i;
 
@@ -582,8 +534,7 @@ POSITION GetInitialPosition()
 			gBoard[i++] = 'B';
 		else if(c == '-')
 			gBoard[i++] = EMPTYSPACE;
-		else
-			; /* do nothing */
+		/* else do nothing */
 	}
 	DEFAULT = FALSE;
 	return(generic_hash_hash(gBoard, 1));
@@ -601,10 +552,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move : ", computersName);
 	if (computersMove == PASSMOVE)
 		printf("pass");
@@ -633,11 +581,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive (pos)
-POSITION pos;
-{
-	BOOLEAN AllFilledIn();
-	char ThreeInARow();
+VALUE Primitive(POSITION pos) {
 	/*  BlankORB theBlankORB[BOARDSIZE];*/
 	VALUE EndGame(char, int);
 	generic_hash_unhash(pos, gBoard);
@@ -702,11 +646,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-void PrintPosition (position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	int i, j, m = 0; /*, n = 0;*/
 	generic_hash_unhash(position, gBoard);
 
@@ -714,18 +654,6 @@ BOOLEAN usersTurn;
 	int numCheckers = 0;
 	int numWinks = 0;
 	int numOpWinks = 0;
-
-	/*  printf("NumOfOptions: %d\n", NumberOfOptions());
-	   for (j = 1; j <= NumberOfOptions(); j++) {
-	   setOption(j);
-	   printf("Option: %d - W: %d, H: %d, ", j, BOARDWIDTH, BOARDHEIGHT);
-	   if (gStandardGame)
-	    printf("Standard\n");
-	   else
-	    printf("Misere\n");
-	    } */
-
-
 
 	//  if (Primitive(position)) {
 	generic_hash_unhash(position, gBoard);
@@ -802,12 +730,8 @@ BOOLEAN usersTurn;
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
-MOVELIST *GenerateMoves (position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	BOOLEAN AllFilledIn(char*);
-	VALUE Primitive();
+MOVELIST *GenerateMoves(POSITION position) {
+	MOVELIST *head = NULL;
 	int player = generic_hash_turn (position);
 	char wink, opWink;
 	int numCheckers = 0;
@@ -835,30 +759,12 @@ POSITION position;
 		else if (gBoard[i] == 'O')
 			numCheckers++;
 
-	/*    //Generate checker moves
-	   if (((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
-	   for (i = 0; i < BOARDSIZE; i--)
-	    if (gBoard[i] == EMPTYSPACE)
-	      head = CreateMovelistNode(moveHash(0, i , O), head);
-
-	   //Generate winker moves
-	   if (numWinks > 0)
-	   for (i = 0; i < BOARDSIZE; i--)
-	    if (gBoard[i] == O)
-	      head = CreateMovelistNode(moveHash(0, i , wink), head);
-	 */
-
 	for (i = BOARDSIZE - 1; i >= 0; i--) {
 		if (gBoard[i] == 'O' && numWinks < (BOARDSIZE+1)/2)
 			head = CreateMovelistNode(i+1, head);
 		else if (gBoard[i] == EMPTYSPACE && ((BOARDSIZE+1)/2 - numOpWinks - numCheckers/2) > 0)
 			head = CreateMovelistNode(i+1, head);
 	}
-
-	/* Commented out to support goAgain
-	   if (head == NULL && AllFilledIn(gBoard) == FALSE)
-	   head = CreateMovelistNode(PASSMOVE, head);
-	 */
 
 	return head;
 	// }
@@ -883,27 +789,10 @@ POSITION position;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 	do {
 		printf("%8s's move [1-%d] : ", playerName, BOARDSIZE);
-		/*    if (BOARDSIZE == 0)
-		      printf("0] : ");
-		      else if (BOARDSIZE < 10)
-		      printf("1-%c] : ", LegendKey[BOARDSIZE-1]);
-		      else if (BOARDSIZE == 10)
-		      printf("1-9/A] : ");
-		      else if (BOARDSIZE < 36)
-		      printf("1-9/A-%c] : ", LegendKey[BOARDSIZE-1]);
-		      else if (BOARDSIZE == 36)
-		      printf("1-9/A-Z/a] : ");
-		      else
-		      printf("1-9/A-Z/a-%c] : ", LegendKey[BOARDSIZE-1]);
-		 */
 
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if (ret != Continue)
@@ -932,9 +821,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	if (strlen(input) != 1 && strlen(input)!= 2)
 		return FALSE;
 	int a;
@@ -958,28 +845,8 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-STRING input;
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return ConvertToNumber(input);
-}
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (move)
-MOVE move;
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
 }
 
 /************************************************************************
@@ -992,16 +859,11 @@ MOVE move;
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING m = (STRING) SafeMalloc( 5 );
-
+void MoveToString(MOVE theMove, char *m) {
 	if (theMove == PASSMOVE)
 		sprintf( m, "pass");
 	else
 		sprintf( m, "%d", theMove);
-	return m;
 }
 
 /************************************************************************
@@ -1015,8 +877,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int NumberOfOptions()
-{
+int NumberOfOptions() {
 	return (2 * (MAXWIDTH * (MAXHEIGHT + 1)));
 }
 
@@ -1032,8 +893,7 @@ int NumberOfOptions()
 **
 ************************************************************************/
 
-int getOption()
-{
+int getOption() {
 	int opt = 0;
 
 	int i;
@@ -1061,8 +921,7 @@ int getOption()
 **
 ************************************************************************/
 
-void setOption(int option)
-{
+void setOption(int option) {
 	option -= 1;
 
 	BOARDWIDTH = 1;
@@ -1098,14 +957,11 @@ void setOption(int option)
 ** ones.
 ************************************************************************/
 
-int ConvertToNumber(input)
-STRING input;
-{
+int ConvertToNumber(STRING input) {
 	int x;
 
 	if (strlen(input) == 1) {
 		char a = input[0];
-
 		x = a - '0';
 	} else if (strlen(input) == 2) {
 		int a = input[0] - '0';
@@ -1115,21 +971,17 @@ STRING input;
 			return -1;
 
 		x = 10*a + b;
+	} else {
+		return -1;
 	}
 
 	if (x < 0 || x > BOARDSIZE)
 		return -1;
-	/*  int i;
-	    for (i=0; i< BOARDSIZE; i++)
-	    if (a == LegendKey[i])
-	    return i+1;
-	 */
+
 	return x;
 }
 
-char MoveToCharacter(move)
-MOVE move;
-{
+char MoveToCharacter(MOVE move) {
 	if (move < 10)
 		return (move + '0');
 	else if (move < 36)
@@ -1140,9 +992,7 @@ MOVE move;
 
 /* PrintSpaces(n) outputs n spaces
  */
-void PrintSpaces (n)
-int n;
-{
+void PrintSpaces(int n) {
 	int i;
 	for (i = 0; i < n; i++)
 		printf(" ");
@@ -1154,9 +1004,7 @@ int n;
  *
  * returns 0-9,a-z,A-Z
  */
-int Legend (n)
-int n;
-{
+int Legend(int n) {
 	if (n > 35)
 		n += ('a' - 36);
 	else if (n > 9)
@@ -1167,8 +1015,6 @@ int n;
 }
 
 VALUE EndGame(char x, int player) {
-	VALUE EndGame2(VALUE);
-
 	if (x == 'R') {
 		if (player == 1)
 			return (gStandardGame ? win : lose);
@@ -1183,10 +1029,7 @@ VALUE EndGame(char x, int player) {
 		return undecided;
 }
 
-char ThreeInARow(theBlankORB, a, b, c)
-char theBlankORB[];
-int a, b, c;
-{
+char ThreeInARow(char *theBlankORB, int a, int b, int c) {
 	if (theBlankORB[a] == theBlankORB[b] &&
 	    theBlankORB[b] == theBlankORB[c] &&
 	    (theBlankORB[c] != EMPTYSPACE || theBlankORB[c] != 'O'))
@@ -1195,9 +1038,7 @@ int a, b, c;
 		return EMPTYSPACE;
 }
 
-BOOLEAN AllFilledIn(theBlankORB)
-char theBlankORB[];
-{
+BOOLEAN AllFilledIn(char *theBlankORB) {
 	int i;
 
 	for (i = 0; i < BOARDSIZE; i++) {
@@ -1213,9 +1054,7 @@ char theBlankORB[];
  *
  */
 
-int RowNumber(i)
-int i;
-{
+int RowNumber(int i) {
 	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
 	while(TRUE) {
@@ -1235,9 +1074,7 @@ int i;
  *
  */
 
-int RowWidth(i)
-int i;
-{
+int RowWidth(int i) {
 	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
 	while(TRUE) {
@@ -1260,9 +1097,7 @@ int i;
  *
  */
 
-int ColPosition(i)
-int i;
-{
+int ColPosition(int i) {
 	int CurrentRow = 0, CurrentWidth = BOARDWIDTH;
 
 	while(TRUE) {
@@ -1278,7 +1113,7 @@ int i;
 	return 0;
 }
 
-BOOLEAN passMoveOnly (POSITION pos, MOVE move) {
+BOOLEAN passMoveOnly(POSITION pos, MOVE move) {
 
 	int player1 = generic_hash_turn(pos);
 
@@ -1287,20 +1122,18 @@ BOOLEAN passMoveOnly (POSITION pos, MOVE move) {
 	return (generic_hash_turn(next) == player1);
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

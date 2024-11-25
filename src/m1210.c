@@ -27,7 +27,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 /*************************************************************************
@@ -36,9 +35,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "1,2,...,10";
-STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
-STRING kDBName              = "1210";
+CONST_STRING kGameName            = "1,2,...,10";
+CONST_STRING kAuthorName          = "Dan Garcia and his GamesCrafters";
+CONST_STRING kDBName              = "1210";
 
 BOOLEAN kPartizan            = FALSE;
 BOOLEAN kGameSpecificMenu    = FALSE;
@@ -56,10 +55,10 @@ void*    gGameSpecificTclInit = NULL;
 
 POSITION gMinimalPosition     = 0;        /* Is this used by anyone? */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
 /*
    --------------------------------------------------------------------------------
  */
@@ -69,18 +68,18 @@ STRING kHelpTextInterface    =
         "choice of raising the sum by 1 or 2 points. The winner is the first\n"
         "person to raise the total sum to exactly 10.";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Type 1 or 2 to choose how much you'd like to increase the total.";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the first player to raise the total to 10.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To force your opponent to raise the total to 10.";
 
-STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
+CONST_STRING kHelpTieOccursWhen = "";   /* empty since kTieIsPossible == FALSE */
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "TOTAL                        :  0   \n\n\
      Dan's move [(u)ndo/1/2] : { 2 } \n\n\
 TOTAL                        :  2    \n\n\
@@ -96,7 +95,7 @@ Computer's move              :  2    \n\n\
 TOTAL                        : 11    \n\n\
 Computer wins. Nice try, Dan."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       ;
 
-STRING MoveToString(MOVE);
+void PositionToString(POSITION position, char *positionStringBuffer);
 
 /*************************************************************************
 **
@@ -128,9 +127,9 @@ STRING MoveToString(MOVE);
 **
 ************************************************************************/
 
-void InitializeGame()
-{
-	gMoveToStringFunPtr = &MoveToString;
+void InitializeGame() {
+	gPositionToStringFunPtr = &PositionToString;
+	gSupportsMex = TRUE;
 }
 
 /************************************************************************
@@ -150,11 +149,8 @@ void InitializeGame()
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 
 	/* If at 9, you can only go 1 to 10. Otherwise you can go 1 or 2 */
 	if (position < 9)
@@ -179,10 +175,7 @@ POSITION position;
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	return(thePosition + theMove);
 }
 
@@ -206,9 +199,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
+VALUE Primitive(POSITION position) {
 	if(position == 10) /* If it's your turn, and it's 10, THEY got there! */
 		return(gStandardGame ? lose : win);
 	else
@@ -233,11 +224,7 @@ POSITION position;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//  VALUE GetValueOfPosition();
 
 	printf("\nTOTAL                        : " POSITION_FORMAT " %s \n\n",
@@ -256,28 +243,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	printf("%8s's move              : %1d\n", computersName, computersMove);
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
-	printf("%d", theMove);
 }
 
 /************************************************************************
@@ -299,12 +266,8 @@ MOVE theMove;
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1/2] : ", playerName);
@@ -343,9 +306,8 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input)
-{
-	return(input[0] == '1' || input[0] == '2');
+BOOLEAN ValidTextInput(STRING input) {
+	return input[0] == '1' || input[0] == '2';
 }
 
 
@@ -361,8 +323,7 @@ BOOLEAN ValidTextInput(STRING input)
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(STRING input)
-{
+MOVE ConvertTextInputToMove(STRING input) {
 	return((MOVE) input[0] - '0'); /* user inputs '1','2', our rep. is 1,2 */
 }
 
@@ -377,8 +338,7 @@ MOVE ConvertTextInputToMove(STRING input)
 **
 ************************************************************************/
 
-void GameSpecificMenu() {
-}
+void GameSpecificMenu() {}
 
 
 /************************************************************************
@@ -390,32 +350,10 @@ void GameSpecificMenu() {
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int theOptions[]) {
 	/* No need to have anything here, we have no extra options */
+	(void)theOptions;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** INPUTS:      POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	POSITION initialPosition;
-	printf("Please input the starting value [1 - 10] : ");
-	scanf(POSITION_FORMAT,&initialPosition);
-	return initialPosition;
-}
-
 
 /************************************************************************
 **
@@ -427,14 +365,9 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-STRING MoveToString (theMove)
-MOVE theMove;
-{
-	STRING move = (STRING) SafeMalloc(3);
-
-	sprintf( move, "%d", theMove );
-
-	return move;
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	moveStringBuffer[0] = move + '0';
+	moveStringBuffer[1] = '\0';
 }
 
 /************************************************************************
@@ -448,8 +381,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-int NumberOfOptions ()
-{
+int NumberOfOptions() {
 	return 2;
 }
 
@@ -466,8 +398,7 @@ int NumberOfOptions ()
 **
 ************************************************************************/
 
-int getOption ()
-{
+int getOption() {
 	return(gStandardGame ? 1 : 2);
 }
 
@@ -483,8 +414,7 @@ int getOption ()
 **
 ************************************************************************/
 
-void setOption (int option)
-{
+void setOption(int option) {
 	if      (option == 1)
 		gStandardGame = TRUE;
 	else if (option == 2)
@@ -506,8 +436,7 @@ void setOption (int option)
 **
 ************************************************************************/
 
-void DebugMenu() {
-}
+void DebugMenu() {}
 
 
 STRING GetNextMoveValues(char* board, int option) {
@@ -537,22 +466,37 @@ STRING GetNextMoveValues(char* board, int option) {
 	return NULL;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	return atoi(board);
+/* Position String is formatted: <turn>_<number>. Example: 2_5 means that
+it is Player 2's turn and the current number is 5. However, since
+this is an impartial game, we will set the turn character to 0. */
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	snprintf(positionStringBuffer, 8, "0_%d", (int) position);
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	char buffer[32];
-	snprintf(buffer, 32, "%lld",pos);
-	char* ret = malloc(sizeof(char)*(strlen(buffer)+1));
-	strncpy(ret, buffer, (strlen(buffer)+1));
-	return ret;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *number;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &number)) {
+		POSITION position = (POSITION) atoi(number);
+		if (position >= gNumberOfPositions) {
+			return NULL_POSITION;
+		} else {
+			return position;
+		}
+	}
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char entityString[gNumberOfPositions + 1];
+	for (unsigned i = 0; i < gNumberOfPositions; i++) {
+		entityString[i] = '-';
+	}
+	entityString[position] = 'x';
+	entityString[gNumberOfPositions] = '\0';
+  	AutoGUIMakePositionString(0, entityString, autoguiPositionStringBuffer);
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  	AutoGUIMakeMoveButtonStringM(position, position + move, 'x', autoguiMoveStringBuffer);
 }

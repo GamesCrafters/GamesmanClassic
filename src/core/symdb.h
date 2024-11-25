@@ -54,7 +54,7 @@ void
 symdb_free( );
 
 GMSTATUS
-symdb_free_slice( );
+symdb_free_slice( SLICE sl );
 
 // get/set value
 VALUE
@@ -117,6 +117,11 @@ void
 symdb_set_winby(
         POSITION pos,
         WINBY winBy);
+
+DRAWLEVEL
+symdb_get_drawlevel(
+        POSITION pos
+        );
 
 //
 // functions for internal use

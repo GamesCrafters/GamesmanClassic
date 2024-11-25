@@ -45,7 +45,7 @@
 #include "visualization.h"
 #include "openPositions.h"
 //#include "Parallel.h"
-extern POSITION InteractStringToPosition(STRING str);
+extern POSITION StringToPosition(STRING str);
 
 /*
 ** Globals
@@ -184,7 +184,7 @@ VALUE DetermineValue(POSITION position)
 		//    SaveAnalysis();
 		//}
 
-	} else if (gLoadDatabase && LoadDatabase() && LoadOpenPositionsData()) {
+	} else if (gLoadDatabase && LoadDatabase()) {
 		if (GetValueOfPosition(position) == undecided) {
 			if (gPrintDatabaseInfo)
 				printf("\nRe-evaluating the value of %s...", kGameName);
@@ -274,30 +274,12 @@ void SolveAndStore()
 	}
 }
 
-void RemoteStartGamesman(BOOLEAN admin) {
-	Initialize();
-	InitializeDatabases();
-	InitializeAnalysis();
-	gAnalysis.TotalMoves = 0;
-
-	gZeroMemPlayer = FALSE; // make sure tierdb behaves properly
-	if (gPrintDatabaseInfo)
-		printf("\nEvaluating the value of %s...", kGameName);
-	gDBLoadMainTier = FALSE; // initialize main tier as undecided rather than load
-	gTierSolvePrint = FALSE;
-
-	RemoteInitialize(); //init the retrograde solver
-	//if (admin)
-	//    runAdmin_Main(NULL);
-	//else runClient_Main(NULL);
-}
-
-
 /* Handles the command line arguments by setting flags and options
    declared in in globals.h */
 void HandleArguments (int argc, char *argv[])
 {
 	int i, option;
+	char moveStringBuffer[32];
 	for(i = 1; i < argc; i++) {
 		if(!strcasecmp(argv[i], "--nodb")) {
 			gSaveDatabase = FALSE;
@@ -320,10 +302,12 @@ void HandleArguments (int argc, char *argv[])
 				gMessage = TRUE;
 			} else {
 				option = atoi(argv[++i]);
-				if(option > NumberOfOptions()) {
-					fprintf(stderr, "\nInvalid option configuration!\n\n");
-					gMessage = TRUE;
-				} else
+				// This is commented out because it's possible for max variant ID
+				// to be larger than NumberOfOptions()
+				// if(option > NumberOfOptions()) {
+				// 	fprintf(stderr, "\nInvalid option configuration!\n\n");
+				// 	gMessage = TRUE;
+				// } else
 					setOption(option);
 			}
 		} else if (!strcasecmp(argv[i], "--nobpdb")) {
@@ -457,7 +441,8 @@ void HandleArguments (int argc, char *argv[])
 				printf("\nGenerateMoves returns: [ ");
 				MOVELIST *moves = GenerateMoves(atoi(argv[2])), *ptr;
 				for (ptr = moves; ptr != NULL; ptr = ptr->next) {
-					PrintMove(ptr->move);
+					MoveToString(ptr->move, moveStringBuffer);
+					printf("%s", moveStringBuffer);
 					printf(" ");
 				}
 				printf("]\n\n");
@@ -536,8 +521,8 @@ void HandleArguments (int argc, char *argv[])
 				// where "position" is a board string, "move" is a move string
 				// that describes how to reach the specified board from its
 				// parent, and "value" specifies the win/lose/tie value.
-				/* POSITION pos = InteractStringToPosition(boardStr, whoseMove, option); */
-				POSITION pos = InteractStringToPosition(boardStr);
+				/* POSITION pos = StringToPosition(boardStr, whoseMove, option); */
+				POSITION pos = StringToPosition(boardStr);
 				VALUE primitiveValue = Primitive(pos);
 				if (getNextMoveValues) {
 					if (primitiveValue) {
@@ -559,9 +544,6 @@ void HandleArguments (int argc, char *argv[])
 								} else if (value == lose) {
 									value = win;
 								}
-								/* Broken. */
-								/* printf("(%s, %s, %d)", childPosition, MoveToString(moves->move), */
-								/*        GetValueOfPosition(child)); */
 								moves = moves->next;
 								if (moves != NULL) {
 									printf(", ");

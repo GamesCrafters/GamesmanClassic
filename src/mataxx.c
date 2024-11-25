@@ -1,5 +1,3 @@
-// $Id: mataxx.c,v 1.15 2007-12-07 19:56:04 max817 Exp $
-
 /************************************************************************
 **
 ** NAME:        mattax.c
@@ -10,12 +8,6 @@
 **
 ** DATE:        2006-10-04
 **
-** UPDATE HIST: -2006.10.4 = First version, includes most functionality.
-**				Some things not implemented yet, and all functions not
-**				fully tested.
-**				-2006.10.4 = Added a quick implementation of Tiers for
-**				the demo. Basic functions only.
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -24,12 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-
 
 /*************************************************************************
 **
@@ -37,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Ataxx";   /* The name of your game */
-STRING kAuthorName          = "Max Delgadillo";   /* Your name(s) */
-STRING kDBName              = "ataxx";   /* The name to store the database under */
+CONST_STRING kGameName            = "Ataxx";   /* The name of your game */
+CONST_STRING kAuthorName          = "Max Delgadillo";   /* Your name(s) */
+CONST_STRING kDBName              = "ataxx";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -62,25 +49,25 @@ void*    gGameSpecificTclInit = NULL;
  * InitializeHelpStrings()
  **/
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Help strings not initialized!";
 
-STRING kHelpTextInterface =
+CONST_STRING kHelpTextInterface =
         "Help strings not initialized!";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Help strings not initialized!";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Help strings not initialized!";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Help strings not initialized!";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "Help strings not initialized!";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Help strings not initialized!";
 
 
@@ -131,13 +118,6 @@ void SetupTierStuff();
 STRING TierToString(TIER tier);
 TIERLIST* TierChildren(TIER tier);
 TIERPOSITION NumberOfTierPositions(TIER tier);
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR SafeMalloc ();
-extern void     SafeFree ();
-#endif
-
-STRING MoveToString(MOVE move);
 int GenerateMovesEfficient (POSITION);
 
 /************************************************************************
@@ -157,8 +137,6 @@ void InitializeGame ()
 	//gPutWinBy = &computeWinBy;
 
 	gGenerateMovesEfficientFunPtr = &GenerateMovesEfficient;
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -195,9 +173,6 @@ void InitializeGame ()
 
    kHelpExample =
    "";
-
-    gMoveToStringFunPtr = &MoveToString;
-
    }*/
 
 
@@ -403,6 +378,24 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 		SafeFree(board);
 }
 
+/************************************************************************
+**
+** NAME:        MoveToString
+**
+** DESCRIPTION: Returns the move as a STRING
+**
+** INPUTS:      MOVE *move         : The move to put into a string.
+**
+************************************************************************/
+
+void MoveToString (MOVE move, char *moveStr)
+{
+	moveStr[0] = ((move/1000) % 10)+'a'-1;
+	moveStr[1] = ((move/100) % 10)+'0';
+	moveStr[2] = ((move/10) % 10)+'a'-1;
+	moveStr[3] = (move % 10)+'0';
+	moveStr[4] = '\0';
+}
 
 /************************************************************************
 **
@@ -417,49 +410,9 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn)
 
 void PrintComputersMove (MOVE computersMove, STRING computersName)
 {
-	printf("%8s's move : ", computersName);
-	PrintMove(computersMove);
-	printf("\n\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING str = MoveToString(move);
-	printf("%s", str);
-	SafeFree(str);
-}
-
-
-/************************************************************************
-**
-** NAME:        MoveToString
-**
-** DESCRIPTION: Returns the move as a STRING
-**
-** INPUTS:      MOVE *move         : The move to put into a string.
-**
-************************************************************************/
-
-STRING MoveToString (MOVE move)
-{
-	STRING moveStr = (STRING) SafeMalloc(sizeof(char)*5);
-	moveStr[0] = ((move/1000) % 10)+'a'-1;
-	moveStr[1] = ((move/100) % 10)+'0';
-	moveStr[2] = ((move/10) % 10)+'a'-1;
-	moveStr[3] = (move % 10)+'0';
-	moveStr[4] = '\0';
-	return moveStr;
+	char moveStringBuffer[20];
+	MoveToString(computersMove, moveStringBuffer);
+	printf("%8s's move : %s\n\n", computersName, moveStringBuffer);
 }
 
 
@@ -486,7 +439,6 @@ STRING MoveToString (MOVE move)
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -589,16 +541,12 @@ void GameSpecificMenu ()
 		PrintPosition(gInitialPosition, "Gamesman", 0);
 		printf("\tGame Options:\n\n"
 		       "\tc)\t(C)hange the board size (nxn), currently: %dx%d\n"
-		       "\ti)\tSet the (I)nitial position\n"
 		       "\tb)\t(B)ack to the main menu\n"
 		       "\nSelect an option:  ", width, length);
 		c = GetMyChar();
 		switch(c) {
 		case 'c': case 'C':
 			ChangeBoardSize();
-			break;
-		case 'i': case 'I':
-			GetInitialPosition();
 			break;
 		case 'b': case 'B':
 			cont = FALSE;
@@ -622,28 +570,8 @@ void GameSpecificMenu ()
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
-
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Called when the user wishes to change the initial
-**              position. Asks the user for an initial position.
-**              Sets new user defined gInitialPosition and resets
-**              gNumberOfPositions if necessary
-**
-** OUTPUTS:     POSITION : New Initial Position
-**
-************************************************************************/
-
-POSITION GetInitialPosition ()
-{
-	return 0;
-}
-
 
 /************************************************************************
 **
@@ -752,7 +680,8 @@ WINBY computeWinBy (POSITION position)
 	countPieces(board, &reds, &blues);
 	if (board != NULL)
 		SafeFree(board);
-	return reds-blues;
+	int diff = reds - blues;
+	return diff > 0 ? diff : -diff;
 }
 
 /*
@@ -962,68 +891,18 @@ int GenerateMovesEfficient (POSITION position)
 	return index;
 }
 
-
-// $Log: not supported by cvs2svn $
-// Revision 1.14  2007/05/08 22:14:00  max817
-// Fixed a bug with initializing the game
-//
-// Revision 1.13  2007/04/05 19:16:19  max817
-// Changed TIER from an unsigned int to an unsigned long long, and fixed any warnings associated with the change.
-//
-// Revision 1.12  2007/03/06 02:16:40  max817
-// Fixed Generic Hash custom contexts mode. Tested with mataxx.c. -Max
-//
-// Revision 1.11  2007/02/27 02:15:00  max817
-// Fixed a bug with the global board inits. -Max
-//
-// Revision 1.10  2007/02/27 02:08:18  max817
-// Fixed a bug in Primitive, and implemented a tester for GenerateMovesEfficient.
-//
-// Revision 1.9  2007/02/27 01:29:45  max817
-// Added Win-By for fun, even though it doesn't work thanks to tiers. -Max
-//
-// Revision 1.8  2007/02/27 01:02:39  max817
-// Made code more efficient with globals. -Max
-//
-// Revision 1.7  2006/12/19 20:00:50  arabani
-// Added Memwatch (memory debugging library) to gamesman. Use 'make memdebug' to compile with Memwatch
-//
-// Revision 1.6  2006/12/07 02:52:50  max817
-// TUI Changes to Ataxx.
-//
-// Revision 1.5  2006/11/30 10:30:25  max817
-// Ataxx now correctly handles misere.
-//
-// Revision 1.4  2006/10/17 10:45:20  max817
-// HUGE amount of changes to all generic_hash games, so that they call the
-// new versions of the functions.
-//
-// Revision 1.3  2006/10/11 06:59:02  max817
-// A quick modification of the Tier Gamesman games to include the new changes.
-//
-// Revision 1.2  2006/10/04 23:55:40  max817
-// Added quick implementation of Tiers for the demo tonight.
-//
-// Revision 1.1  2006/10/04 13:14:13  max817
-// Added in Ataxx in mataxx.c, and changed Makefile.in to include it.
-//
-// Revision 1.10  2006/04/25 01:33:06  ogren
-// Added InitialiseHelpStrings() as an additional function for new game modules to write.  This allows dynamic changing of the help strings for every game without adding more bookkeeping to the core.  -Elmer
-
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

@@ -83,6 +83,8 @@ extern MOVE             GetWinByMove                    (POSITION, MOVELIST*);
 
 void             PrintMoveHistory                (POSITION);
 void             PrintVisualValueHistory         (POSITION, int);
+void sendLocalMove(MOVE* move, STRING name, int turnNumber);
+int getRemoteMove(STRING name, int turnNumber);
 
 /**
  * Prototypes for delta-Remoteness
@@ -354,6 +356,7 @@ void PrintMoveHistory(POSITION position)
 	int whoseTurn = kPlayerOneTurn;
 	int ct = 1;
 	moveList* mlist = mList;
+	char moveStringBuffer[32];
 	printf("\n\t*************************************\n");
 	printf("\t  Script of %s", kGameName);
 	printf("\n\t*************************************\n");
@@ -366,7 +369,8 @@ void PrintMoveHistory(POSITION position)
 
 		if (whoseTurn == kPlayerOneTurn)
 			printf("%d.\t", ct++);
-		PrintMove(mlist->move);
+		MoveToString(mlist->move, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		if (whoseTurn == kPlayerOneTurn)
 			whoseTurn = kPlayerTwoTurn;
 		else {
@@ -378,7 +382,7 @@ void PrintMoveHistory(POSITION position)
 
 	printf("\n\n");
 
-	if (position != -1) {
+	if (position != (POSITION)(-1)) {
 		PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
 	}
 
@@ -419,7 +423,7 @@ char* digitToString(char* s, int d)
 }
 
 void PrintHeader(int maxMoveLength, int maxRemoteness,
-                 int maxTieRemoteness, POSITION position, int whoseTurn)
+                 int maxTieRemoteness, int whoseTurn)
 {
 
 	int length = 2*maxMoveLength+2*maxRemoteness+2*maxTieRemoteness+6;
@@ -439,7 +443,7 @@ void PrintHeader(int maxMoveLength, int maxRemoteness,
 
 	POSITION tmp = gInitialPosition;
 	if (gHashWindowInitialized) {         //Tier-Gamesman
-		gInitializeHashWindowToPosition(&position, !usingLookupTierDB);
+		gInitializeHashWindow(gInitialTier, !usingLookupTierDB);
 		tmp = gInitialTierPosition;
 	}
 	PrintPosition(tmp, gPlayerName[whoseTurn], whoseTurn);
@@ -501,7 +505,7 @@ void PrintFooter(int maxMoveLength, int maxRemoteness,
 	char line[maxPossibleLineLength];
 	int i;
 
-	if (position != -1)
+	if (position != (POSITION)(-1))
 		PrintPosition(position, gPlayerName[whoseTurn], whoseTurn);
 	strcpy(line, "*");
 	for (i = 0; i < lineLength-2; i++)
@@ -751,7 +755,7 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 	int drawDash = 1;
 
 	int comment;
-	STRING moveString;
+	char moveStringBuffer[maxPossibleMoveLength];
 	int moveLen;
 
 	char moveToPrint[maxPossibleMoveLength];
@@ -786,83 +790,53 @@ void printLine(moveList* moveInfo, int whoseTurn, int maxMoveLen,
 	                     position);
 
 	if (whoseTurn == playerOne) {
-		if (gMoveToStringFunPtr == NULL) {
-			if (comment == 0)
-				printf("         ");
-			if (comment == 1)
-				printf("?        ");
-			if (comment == 2)
-				printf("?!       ");
-			PrintMove(moveInfo->move);
-			printf("%s\n", line);
-		} else {
-			moveString = gMoveToStringFunPtr(moveInfo->move);
-			moveLen = strlen(moveString);
-			if (comment == 0)
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen);
-			if (comment == 1) {
-				strcat(moveToPrint, "?");
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
-			}
-			if (comment == 2) {
-				strcat(moveToPrint, "?!");
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
-			}
-			strcat(moveToPrint, moveString);
-			printf("%s%s\n", moveToPrint, line);
-			SafeFree(moveString);
+		MoveToString(moveInfo->move, moveStringBuffer);
+		moveLen = strlen(moveStringBuffer);
+		if (comment == 0)
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen);
+		if (comment == 1) {
+			strcat(moveToPrint, "?");
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
 		}
+		if (comment == 2) {
+			strcat(moveToPrint, "?!");
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+		}
+		strcat(moveToPrint, moveStringBuffer);
+		printf("%s%s\n", moveToPrint, line);
 	} else {
-		if (gMoveToStringFunPtr == NULL) {
-			printf("          %s", line);
-			PrintMove(moveInfo->move);
-			if (comment == 0)
-				printf("\n");
-			if (comment == 1)
-				printf("        ?\n");
-			if (comment == 2)
-				printf("       ?!\n");
-		} else {
-			addSpacePadding(moveToPrint, maxMoveLen);
-			printf("%s%s",moveToPrint,line);
-			moveString = gMoveToStringFunPtr(moveInfo->move);
-			moveLen = strlen(moveString);
-			strcpy(moveToPrint, moveString);
-			if (comment == 0)
-				strcat(moveToPrint, "\n");
-			if (comment == 1) {
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
-				strcat(moveToPrint, "?");
-			}
-			if (comment == 2) {
-				addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
-				strcat(moveToPrint, "?!");
-			}
-			printf("%s", moveToPrint);
-			SafeFree(moveString);
+		addSpacePadding(moveToPrint, maxMoveLen);
+		printf("%s%s",moveToPrint,line);
+		MoveToString(moveInfo->move, moveStringBuffer);
+		moveLen = strlen(moveStringBuffer);
+		strcpy(moveToPrint, moveStringBuffer);
+		if (comment == 0)
+			strcat(moveToPrint, "\n");
+		if (comment == 1) {
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 1);
+			strcat(moveToPrint, "?");
 		}
-
+		if (comment == 2) {
+			addSpacePadding(moveToPrint, maxMoveLen - moveLen - 2);
+			strcat(moveToPrint, "?!");
+		}
+		printf("%s", moveToPrint);
 	}
 }
 
 int getMaxMoveLength()
 {
 
-	STRING move;
+	char moveStringBuffer[40];
 	moveList* mlist = mList;
 	int result = 0;
 	int newLen = 0;
 
-	if (gMoveToStringFunPtr == NULL)
-		return maxN;
-
 	while(mlist != 0) {
-
-		move = gMoveToStringFunPtr(mlist->move);
-		newLen = strlen(move);
+		MoveToString(mlist->move, moveStringBuffer);
+		newLen = strlen(moveStringBuffer);
 		if (newLen > result)
 			result = newLen;
-		SafeFree(move);
 		mlist = mlist->next;
 	}
 
@@ -902,7 +876,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 {
 	// if using TinumMoveser-Gamesman, save the current tier
 	TIERPOSITION currentTP; TIER currentTier;
-	if (gHashWindowInitialized && position != -1) {
+	if (gHashWindowInitialized && position != (POSITION)(-1)) {
 		gUnhashToTierPosition(position, &currentTP, &currentTier);
 	}
 
@@ -968,7 +942,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	// Print header
 
-	PrintHeader(maxMoveLength, maxR, maxTR, position, kPlayerOneTurn);
+	PrintHeader(maxMoveLength, maxR, maxTR, kPlayerOneTurn);
 
 	// Determine players' names
 
@@ -1031,7 +1005,7 @@ void PrintVisualValueHistory(POSITION position, int showAllMoves)
 
 	// Print footer
 	tmp = position;
-	if (gHashWindowInitialized && position != -1) {         //Tier-Gamesman
+	if (gHashWindowInitialized && position != (POSITION)(-1)) {         //Tier-Gamesman
 		gInitializeHashWindow(currentTier, !usingLookupTierDB);         // If playing Tier-Gamesman,
 		tmp = currentTP;         // this returns to current hash window before exiting
 	}
@@ -1234,15 +1208,17 @@ UNDO *Stalemate(UNDO* undo, POSITION stalematePosition, BOOLEAN* abort)
 BOOLEAN PrintPossibleMoves(POSITION thePosition)
 {
 	MOVELIST *ptr, *head;
+	char moveStringBuffer[32];
 
 	head = ptr = GenerateMoves(thePosition);
-	printf("\nValid Moves : [ ");
+	printf("\nValid Moves: ");
 	while (ptr != NULL) {
-		PrintMove(ptr->move);
+		MoveToString(ptr->move, moveStringBuffer);
+		printf("[%s]", moveStringBuffer);
 		printf(" ");
 		ptr = ptr->next;
 	}
-	printf("]\n\n");
+	printf("\n\n");
 	FreeMoveList(head);
 	return(TRUE); /* This should always return true for GetAndPrintPlayersMove */
 }
@@ -1250,9 +1226,11 @@ BOOLEAN PrintPossibleMoves(POSITION thePosition)
 /* Jiong */
 void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 {
+	char moveStringBuffer[32];
 	while (ptr != NULL) {
 		printf("\n\t\t");
-		PrintMove(ptr->move);
+		MoveToString(ptr->move, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf(" \t");
 		if((remoteptr->remoteness) == REMOTENESS_MAX)
 			printf("Draw");
@@ -1270,12 +1248,14 @@ void PrintMoves(MOVELIST* ptr, REMOTENESSLIST* remoteptr)
 void PrintMovesWithDelta(POSITION thePosition, MOVELIST* ptr, REMOTENESSLIST* remoteptr, VALUE val)
 {
 	REMOTENESSLIST* rl_copy = CopyRemotenesslist(remoteptr);
+	char moveStringBuffer[32];
 
 	while (ptr != NULL) {
 		int winBy;
 		MOVE theMove = ptr->move;
 		printf("\n\t\t");
-		PrintMove(theMove);
+		MoveToString(theMove, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf(" \t");
 		if (gWinBy) {
 			POSITION child = DoMove(thePosition, theMove);
@@ -1330,7 +1310,7 @@ STRING GetPrediction(POSITION position, STRING playerName, BOOLEAN usersTurn)
 		value = GetValueOfPosition(position);
 		if (gWinBy && value != tie) {
 			int winBy = (int) WinByLoad(position);
-			sprintf(winByString, " by %d", ((winBy < 0) ? -winBy : winBy));
+			sprintf(winByString, " by %d", winBy);
 		}
 		if (value == tie && Remoteness(position) == REMOTENESS_MAX) {
 			(void) sprintf(prediction, "(%s %s draw) %s",
@@ -1528,8 +1508,10 @@ MOVE GetSEvalMove(POSITION thePosition) {
 	float SEvalValue = 0.0;
 	MOVE theMove = 0;
 	MOVELIST* moves = GenerateMoves(thePosition);
-	if( moves == NULL )
-		ExitStageRight("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
+	if( moves == NULL ) {
+		printf("GetSEvalMoves got NULL from GenerateMoves! Shun... SHUN!");
+		ExitStageRight();
+	}
 
 
 	if(gSEvalPerfect) {
@@ -1691,7 +1673,7 @@ VALUE_MOVES* SortMoves (POSITION thePosition, MOVE move, VALUE_MOVES* valueMoves
 	}
 	if (childValue == lose || childValue == drawlose) {  //winning moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  WINMOVE);
-	} else if (childValue == tie || childValue == drawtie) {  //tie moves
+	} else if (childValue == tie || childValue == drawdraw) {  //tie moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves,  TIEMOVE);
 	} else if (childValue == win || childValue == drawwin) {  //lose moves
 		valueMoves = StoreMoveInList(move, Remoteness(child), valueMoves, LOSEMOVE);
@@ -1775,6 +1757,7 @@ MOVE GetComputersMove(POSITION thePosition)
 	int oldsmartness = smartness;
 	ptr = head = prev = NULL;
 	i = 0;
+	char moveStringBuffer[32];
 
 	moves = GetValueMoves(thePosition);
 
@@ -1797,7 +1780,8 @@ MOVE GetComputersMove(POSITION thePosition)
 		while(ptr->next != NULL)
 			ptr = ptr->next;
 		if(gHints) {
-			PrintMove(ptr->move);
+			MoveToString(ptr->move, moveStringBuffer);
+			printf("%s", moveStringBuffer);
 			printf(" ]\n\n");
 		}
 		oldValueOfPosition++;
@@ -1831,7 +1815,8 @@ MOVE GetComputersMove(POSITION thePosition)
 
 		if(gHints) {
 			while(ptr != NULL) {
-				PrintMove(ptr->move);
+				MoveToString(ptr->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
 				printf(" ");
 				ptr = ptr->next;
 			}
@@ -1875,7 +1860,8 @@ MOVE GetComputersMove(POSITION thePosition)
 			ptr = moves->moveList[i];
 			while (ptr) {
 				if (gHints) {
-					PrintMove(ptr->move);
+					MoveToString(ptr->move, moveStringBuffer);
+					printf("%s", moveStringBuffer);
 					printf(" ");
 				}
 				head = CreateMovelistNode(ptr->move, head);
@@ -1914,7 +1900,8 @@ MOVE GetComputersMove(POSITION thePosition)
 
 		if (gHints) {
 			while(ptr != NULL) {
-				PrintMove(ptr->move);
+				MoveToString(ptr->move, moveStringBuffer);
+				printf("%s", moveStringBuffer);
 				printf(" ");
 			}
 			printf("]\n\n");
@@ -2068,7 +2055,6 @@ PLAYER NewSEvalPlayer(STRING name, int turn)
 }
 
 USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
-	void sendLocalMove();
 	USERINPUT result = GetAndPrintPlayersMove(position, move, name);
 	sendLocalMove(move, name, gTurnNumber);
 	gTurnNumber++;
@@ -2076,14 +2062,15 @@ USERINPUT LocalPlayersMove(POSITION position, MOVE* move, STRING name) {
 }
 
 USERINPUT RemoteMove(POSITION position, MOVE* move, STRING name) {
-	int getRemoteMove();
-	*move = getRemoteMove(name, gTurnNumber);
-	PrintComputersMove(*move, name);
-	gTurnNumber++;
+	if (position != (POSITION)(-1)) {
+		*move = getRemoteMove(name, gTurnNumber);
+		PrintComputersMove(*move, name);
+		gTurnNumber++;
+	}
 	return Continue;
 }
 
-int SetupNetworkGame(STRING gameName) {
+int SetupNetworkGame(CONST_STRING gameName) {
 	httpreq *req;
 	httpres *res;
 	char *url = malloc(256); //"127.0.0.1:3000/game/request_game_url"; //gMPServerAddress
@@ -2194,10 +2181,6 @@ int getRemoteMove(STRING name, int turnNumber) {
 	free(body);
 	free(url);
 	return result;
-}
-
-void reportGameEnd(int code) {
-	printf("Game ended!\n");
 }
 
 /* END Jiong

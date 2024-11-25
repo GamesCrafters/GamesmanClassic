@@ -29,7 +29,7 @@ FILE *openData;
 static void             DrawParentInitialize                (void);
 static void    			DeterminePure1           			(POSITION pos);
 static void             DrawParentFree                      (void);
-static void             SetDrawParents                      (POSITION bad, POSITION root);
+static void             SetDrawParents                      (POSITION root);
 
 void InitializeOpenPositions(int numPossiblePositions)
 {
@@ -43,7 +43,7 @@ void InitializeOpenPositions(int numPossiblePositions)
 		fringePositions=(char*)malloc(numPossiblePositions*sizeof(char));
 		if(!openPosData) return;
 	}
-	else if(openPosArrLen!=numPossiblePositions)
+	else if(openPosArrLen!=(POSITION)numPossiblePositions)
 	{
 		CleanupOpenPositions();
 		InitializeOpenPositions(numPossiblePositions);
@@ -146,8 +146,8 @@ OPEN_POS_DATA DetermineFreAndCorDown1LevelForWin(POSITION p)
 	MOVELIST* moves=GenerateMoves(p);
 	MOVELIST* temp=moves;
 	int count=0;
-	int minFremoteness=FREMOTENESS_MAX;
-	int minCorruption=CORRUPTION_MAX;
+	unsigned int minFremoteness=FREMOTENESS_MAX;
+	unsigned int minCorruption=CORRUPTION_MAX;
 	for(; moves; moves=moves->next)
 	{
 		POSITION child=DoMove(p,moves->move);
@@ -258,7 +258,7 @@ void AddToParentsChildrenCount(POSITION child, int amt)
 }
 void ComputeOpenPositions()
 {
-	int curLevel=1;
+	unsigned int curLevel=1;
 	POSITION iter;
 	InitializeOpenPositions(gNumberOfPositions);
 	if(!openPosData) return;
@@ -269,8 +269,8 @@ void ComputeOpenPositions()
 	while(1)
 	{
 		int fringePosCount=0;
-		int maxCorruption=0;
-		int i;
+		unsigned int maxCorruption=0;
+		unsigned int i;
 		/* first, find all fringe positions */
 		printf("Get going!\n");
 		for(iter=0; iter<gNumberOfPositions; iter++)
@@ -285,7 +285,7 @@ void ComputeOpenPositions()
 				if(curLevel==1) dat=SetCorruptionLevel(dat,0);
 				else
 				{
-					int maxWinChildCorr=0;
+					unsigned int maxWinChildCorr=0;
 					MOVELIST* moves=GenerateMoves(iter);
 					MOVELIST* temp=moves;
 					for(; moves; moves=moves->next)
@@ -558,7 +558,7 @@ void ComputeOpenPositions()
 	/* One more thing... find loop lengths for fringe positions and label drawdraws */
 	for(iter=0; iter<gNumberOfPositions; iter++)
 	{
-		int maxFremote=0;
+		unsigned int maxFremote=0;
 		OPEN_POS_DATA dat=GetOpenData(iter);
 		MOVELIST* moves;
 		//printf("There%d\n",iter);
@@ -572,7 +572,7 @@ void ComputeOpenPositions()
 			} else {
 				gAnalysis.DetailedOpenSummary[GetLevelNumber(dat)][GetCorruptionLevel(dat)][GetFremoteness(dat)][GetDrawValue(dat)]+=1;
 				gAnalysis.OpenSummary[GetDrawValue(dat)]+=1;
-				if(GetCorruptionLevel(dat)>gAnalysis.LargestFoundCorruption) gAnalysis.LargestFoundCorruption=GetCorruptionLevel(dat);  //MATT/David
+				if(GetCorruptionLevel(dat)>(unsigned int)gAnalysis.LargestFoundCorruption) gAnalysis.LargestFoundCorruption=GetCorruptionLevel(dat);  //MATT/David
 			}
 			if(GetCorruptionLevel(dat)>GetLevelNumber(dat)) PrintSingleOpenData(iter);
 			if(GetDrawValue(dat)==win && GetFremoteness(dat)==0) PrintSingleOpenData(iter);
@@ -607,7 +607,7 @@ void CleanUpBeneathCL(int cl)
 	p=DequeueDP();
 	CleanUpBeneathCL(cl);
 	dat=GetOpenData(p);
-	if(GetDrawValue(dat)==undecided || GetCorruptionLevel(dat)>cl)
+	if(GetDrawValue(dat)==undecided || GetCorruptionLevel(dat)>(unsigned int)cl)
 		EnqueueDP(p);
 }
 
@@ -671,7 +671,7 @@ MOVE ChooseSmartComputerMove(POSITION from, MOVELIST * moves, REMOTENESSLIST * r
 	MOVELIST *wM, *lM, *dM;
 	REMOTENESSLIST *wF, *lF, *dF;
 	char collectingFringes=0;
-	int winCorrMax=0, loseCorrMin=CORRUPTION_MAX;
+	unsigned int winCorrMax=0, loseCorrMin=CORRUPTION_MAX;
 	wM=lM=dM=NULL; wF=lF=dF=NULL;
 	/* If I'm not at a draw position, don't try to handle it like it is, just default */
 	if(!(GetValueOfPosition(from)==tie && Remoteness(from)==REMOTENESS_MAX) || !OpenIsInitialized())
@@ -798,6 +798,7 @@ BOOLEAN SaveOpenPositionsData()
 	return TRUE;
 }
 
+/* DEPRECATED */
 BOOLEAN LoadOpenPositionsData()
 {
 	char openDataFileName[256];
@@ -899,6 +900,7 @@ POSITION 			gNumLoses[101];
 
 BOOLEAN DeterminePure(POSITION position)
 {
+	if (position == -1ULL) return FALSE;
 	BOOLEAN keepgoing = TRUE;
 	BOOLEAN tmp = TRUE;
 
@@ -908,7 +910,7 @@ BOOLEAN DeterminePure(POSITION position)
 	DrawNumberChildrenInitialize();
 	/* Set each positions parent's list */
 	// Robert Shi: in other words, build a backward game tree.
-	SetDrawParents(kBadPosition, gInitialPosition);
+	SetDrawParents(gInitialPosition);
 
 	while(keepgoing) {
 
@@ -924,7 +926,7 @@ BOOLEAN DeterminePure(POSITION position)
 		// 	}
 		// 	// gDrawNumberChildren[i] = gDrawNumberChildrenOriginal[i] = 0;
 		// }
-		// SetDrawParents(kBadPosition, gInitialPosition);
+		// SetDrawParents(gInitialPosition);
 
 		SetNewLevelFringe(); /* Set all undecided positions with winning children to loses */
 		level++;
@@ -958,10 +960,7 @@ void DeterminePure1(POSITION position)
 	POSITION child=kBadPosition, parent;
 	POSITIONLIST *ptr;
 	VALUE childValue;
-	POSITION i;
-	POSITION F0EdgeCount = 0;
-	POSITION F0NodeCount = 0;
-	POSITION F0DrawEdgeCount = 0;
+	//POSITION F0EdgeCount = 0;
 
 	/* Do DFS to set up Parent pointers and initialize KnownList w/Primitives */
 
@@ -1050,7 +1049,7 @@ void DeterminePure1(POSITION position)
 						printf("Parent's Value: %d. Parent: %llu. Child: %llu\n", gPositionValue[parent], parent, child);
 						assert(FALSE);
 					}
-					F0EdgeCount -= (gDrawNumberChildrenOriginal[parent] - 1);
+					//F0EdgeCount -= (gDrawNumberChildrenOriginal[parent] - 1);
 					InsertLoseDR(parent);
 					if(kDebugDetermineValue) printf("Inserting " POSITION_FORMAT " (%s) into DR head\n",parent,"lose");
 					/* We always need to change the remoteness because we examine winning node with
@@ -1061,7 +1060,7 @@ void DeterminePure1(POSITION position)
 						maxLevel = level;
 					}
 				} else if (parent != kBadPosition) {
-					F0EdgeCount++;
+					//F0EdgeCount++;
 				}
 				ptr = ptr->next;
 			} /* while there are still parents */
@@ -1163,7 +1162,7 @@ void DeterminePure1(POSITION position)
 */
 
 /* BFS from root.  */
-void SetDrawParents (POSITION parent, POSITION root)
+void SetDrawParents (POSITION root)
 {
 	MOVELIST*       moveptr = NULL;
 	MOVELIST*       movehead = NULL;
@@ -1439,7 +1438,7 @@ BOOLEAN isPure()
 	POSITION i, parent;
 	POSITIONLIST* ptr;
 
-	SetDrawParents(kBadPosition, gInitialPosition);
+	SetDrawParents(gInitialPosition);
 	for(i=0; i<gNumberOfPositions; i++) {
 		if (gPositionValue[i] == lose) {
 			ptr = gDrawParents[i];
@@ -1493,8 +1492,8 @@ void PrintDrawAnalysis() {
 	printf("Draw Level Analysis:\n");
 	printf("\tDraw Level          Win         Lose          Total\n");
 	printf("\t------------------------------------------------------------------------------\n");
-	printf("\t         0   %10llu   %10llu   %10llu\n", gNumWins[0], gNumLoses[0], gNumWins[0] + gNumLoses[0]);
-	for(k=1; k <= maxLevel; k++) {
+	printf("\t  Non-Draw   %10llu   %10llu   %10llu\n", gNumWins[0], gNumLoses[0], gNumWins[0] + gNumLoses[0]);
+	for(k=0; k <= maxLevel; k++) {
 		printf("\t%10d   %10llu   %10llu   %10llu\n", k, gNumWins[k], gNumLoses[k], gNumWins[k] + gNumLoses[k]);
 		}
 	}

@@ -5,3 +5,4 @@
 #include "core/gamesman.h"
 
 #endif /* GM_GAMESMAN_H */
+

@@ -37,7 +37,7 @@
 
 #define DEFAULTLENGTH MAXINPUTLENGTH
 
-extern int SetupNetworkGame(STRING);
+extern int SetupNetworkGame(CONST_STRING);
 /*
 ** Local function prototypes
 */
@@ -508,7 +508,7 @@ USERINPUT ConfigurationMenu()
 			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
 			// 		   gHumanGoesFirst ? "draw/lose" : "draw and force opponent to a draw-lose",
 			// 		   gHumanGoesFirst ? "draw and force opponent to a draw-lose" : "draw/lose");
-			// } else if (gameValue == drawtie) {
+			// } else if (gameValue == drawdraw) {
 			// 	printf("\t\tNOTE: First - can %s; Second - can %s",
 			// 		   gHumanGoesFirst ? "draw/lose" : "draw",
 			// 		   gHumanGoesFirst ? "draw" : "draw/lose");
@@ -857,11 +857,21 @@ void ParseBeforeEvaluationMenuChoice(char c)
 		} else {
 			MexFormat(gInitialPosition, mexString); /* Mex value not so well-defined for draws */
 			sprintf(tmpString, "in %d", Remoteness(gInitialPosition));
-			printf("\n\nThe Game %s has value: %s %s %s\n\n",
-			       kGameName,
-			       gValueString[(int)gameValue],
-			       gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
-			       mexString);
+			if (gameValue == drawlose || gameValue == drawwin) {
+				printf("\n\nThe Game %s has value: %s %s Level %d\n\n",
+					kGameName,
+					gValueString[(int)gameValue],
+					tmpString, /* TwoBit solvers have no remoteness */
+					DrawLevelLoad(gInitialPosition));
+			} else if (gameValue == drawdraw) {
+				printf("\n\nThe Game %s has value: Draw \n\n", kGameName);
+			} else {
+				printf("\n\nThe Game %s has value: %s %s %s\n\n",
+					kGameName,
+					gValueString[(int)gameValue],
+					gTwoBits ? "" : tmpString, /* TwoBit solvers have no remoteness */
+					mexString);
+			}
 		}
 		gMenuMode = Evaluated;
 		if(gameValue == lose) {
@@ -945,6 +955,7 @@ void ParseEvaluatedMenuChoice(char c)
 			playerTwo->GetMove = RemoteMove;
 		}
 		PlayGame(playerOne, playerTwo);
+		break;
 	case 'p': case 'P':
 		if(gOpponent == AgainstComputer) {
 			if(gHumanGoesFirst) {
@@ -1408,6 +1419,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	MOVELIST* head;
 	int onlyOneMove;
 	int i = 0;
+	char moveStringBuffer[32];
 
 	for (i = 0; i < MAXINPUTLENGTH; ++i) {
 		input[i] = '\0';
@@ -1419,7 +1431,8 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	*theMove = head->move;
 	if ( gSkipInputOnSingleMove && onlyOneMove ) {
 		printf("\n---------- SELECTING THE ONLY MOVE ---------> ");
-		PrintMove(*theMove);
+		MoveToString(*theMove, moveStringBuffer);
+		printf("%s", moveStringBuffer);
 		printf("\n");
 		return (Move);
 	}
@@ -1430,19 +1443,11 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 	if(input[0] == '\0') {
 		/* [DDG 2005-01-09] Check if there is only one move to be made.
 		 * If so, this can be a shortcut for moving, just hitting enter! */
-		/*      head = GenerateMoves(thePosition); What are all moves available? */
-		/* There's exactly one */
-		/*if (onlyOneMove = (head != NULL && head->next == NULL)){
-		 *  *theMove = head->move;
-		 * printf("----- AUTO-MOVE-SELECTED ------------> ");
-		 * PrintMove(*theMove);
-		 * printf("\n");
-		 *}
-		 * FreeMoveList(head);*/
 
 		if ( onlyOneMove ) {
 			printf("\n-------- SELECTING THE ONLY MOVE --------> ");
-			PrintMove(*theMove);
+			MoveToString(*theMove, moveStringBuffer);
+			printf("%s", moveStringBuffer);
 			printf("\n");
 			return(Move);
 		} else
@@ -1505,6 +1510,7 @@ USERINPUT HandleDefaultTextInput(POSITION thePosition, MOVE* theMove, STRING pla
 
 void GamePrintMenu(POSITION thePosition, STRING playerName, BOOLEAN usersTurn, char input)
 {
+	(void) usersTurn;
 	char c;
 
 	do {

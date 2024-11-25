@@ -1,11 +1,3 @@
-// Alex Wallisch
-// $log$
-
-/*
- * The above lines will include the name and log of the last person
- * to commit this file to CVS
- */
-
 /************************************************************************
 **
 ** NAME:        mqland.c
@@ -16,21 +8,6 @@
 **
 ** DATE:        2004-09-13
 **
-** UPDATE HIST: 2004-10-30	Finished GetInitialPosition
-                2004-10-26	Finished helpstrings, finalized PrintPosition
-                2004-10-25      Fixed the last bug in GameSpecificMenu
-**				Wrote ValidTextInput
-**              2004-10-08      Partially wrote GameSpecificMenu
-**		2004-10-03      Wrote Primitive
-**				Wrote ConvertTextInputToMove
-**                              Wrote PrintComputersMove
-**                              Wrote PrintMove
-**              2004-10-02:	Wrote GetMoveList
-**		2004-09-27:     Wrote vcfg
-**				Wrote DoMove
-**		2004-09-26:	Wrote InitializeBoard
-**		2004-09-25:	Wrote PrintPosition
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -39,14 +16,7 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include "hash.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
-#include <ctype.h>
-
 
 /*************************************************************************
 **
@@ -54,9 +24,9 @@
 **
 **************************************************************************/
 
-STRING kGameName            = "Queensland";   /* The name of your game */
-STRING kAuthorName          = "Steven Kusalo and Alex Wallisch";   /* Your name(s) */
-STRING kDBName              = "qland";   /* The name to store the database under */
+CONST_STRING kGameName            = "Queensland";   /* The name of your game */
+CONST_STRING kAuthorName          = "Steven Kusalo and Alex Wallisch";   /* Your name(s) */
+CONST_STRING kDBName              = "qland";   /* The name to store the database under */
 
 BOOLEAN kPartizan            = TRUE;   /* A partizan game is a game where each player has different moves from the same board (chess - different pieces) */
 BOOLEAN kGameSpecificMenu    = TRUE;   /* TRUE if there is a game specific menu. FALSE if there is not one. */
@@ -76,25 +46,25 @@ void*    gGameSpecificTclInit = NULL;
  * Strings than span more than one line should have backslashes (\) at the end of the line.
  */
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, enter the coordinates of a piece you want to move and then the coordinates of where you want to move it to.  Then type the coordinates of an empty position on the board where you'd like to place a piece.  If you don't want to move a piece, you may just type the coordinates of where you want to place a new piece and ignore the first part.  For example, these are both legal moves: [a1 a3 b2] [b2]";
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "If you want to move a piece, type the position of the piece and the position you want to move it to (e.g. \"a1 a3\").  Ignore this if you don't want to move.  Then, type the number of an empty position where you want to place a new piece (e.g. \"b2\").  A complete move will look something like this: \"a1 a3 b2\", or alternatively, if you don't want to move the piece from a1 to a3, you can just type \"b2\"";
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical or diagonal), unbroken line score one point for each empty space they cover.  You win if you score MORE points than your opponent.";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "When all pieces are on the board, the game ends.  Any two pieces of your color that are connected by a straight (horizontal, vertical, or diagonal), unbroken line score one point for each empty space they cover.  You win if you score FEWER points than your opponent.";
 
-STRING kHelpTieOccursWhen =
+CONST_STRING kHelpTieOccursWhen =
         "A tie occurs when each player has played all their pieces and have the same number of points.";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "   Queensland!\n\
 /===============\\\n\
 |   XXXX OOOO   |\n\
@@ -276,12 +246,6 @@ BOOLEAN moveStraight = TRUE;
 **
 *************************************************************************/
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 int vcfg(int* this_cfg);
 int next_player(POSITION position);
 
@@ -292,10 +256,6 @@ void ChangeBoardSize();
 void ChangeNumPieces();
 MOVELIST* add_all_place_moves(int source_pos, int dest_pos, char* board, MOVELIST* moves);
 BOOLEAN valid_move(int source_pos, int dest_pos, char* board);
-
-
-STRING MoveToString(MOVE);
-
 
 /************************************************************************
 **
@@ -320,8 +280,6 @@ void InitializeGame () {
 	}
 	gInitialPosition = generic_hash_hash(board, 1);
 	getOption();
-
-	gMoveToStringFunPtr = &MoveToString;
 }
 
 
@@ -597,43 +555,6 @@ void PrintPosition (POSITION position, STRING playersName, BOOLEAN usersTurn) {
 	SafeFree(board);
 }
 
-
-/************************************************************************
-**
-** NAME:        PrintComputersMove
-**
-** DESCRIPTION: Nicely formats the computers move.
-**
-** INPUTS:      MOVE    computersMove : The computer's move.
-**              STRING  computersName : The computer's name.
-**
-************************************************************************/
-
-void PrintComputersMove (MOVE computersMove, STRING computersName)
-{
-	printf("%8s's move: ", computersName);
-	PrintMove(computersMove);
-	printf("\n");
-}
-
-
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Prints the move in a nice format.
-**
-** INPUTS:      MOVE move         : The move to print.
-**
-************************************************************************/
-
-void PrintMove (MOVE move)
-{
-	STRING m = MoveToString( move );
-	printf( "%s", m );
-	SafeFree( m );
-}
-
 /************************************************************************
 **
 ** NAME:        MoveToString
@@ -644,10 +565,7 @@ void PrintMove (MOVE move)
 **
 ************************************************************************/
 
-STRING MoveToString (move)
-MOVE move;
-{
-	STRING m = (STRING) SafeMalloc( 14 );
+void MoveToString(MOVE move, char *m) {
 	if (get_move_source(move) == 0 && get_move_dest(move) == 0) {
 		sprintf( m,
 		         "[%c%d]",
@@ -664,8 +582,26 @@ MOVE move;
 		         get_x_coord(get_move_place(move)) + 'a',
 		         height - get_y_coord(get_move_place(move)));
 	}
+}
 
-	return m;
+/************************************************************************
+**
+** NAME:        PrintComputersMove
+**
+** DESCRIPTION: Nicely formats the computers move.
+**
+** INPUTS:      MOVE    computersMove : The computer's move.
+**              STRING  computersName : The computer's name.
+**
+************************************************************************/
+
+void PrintComputersMove (MOVE computersMove, STRING computersName)
+{
+	printf("%8s's move: ", computersName);
+	char msb[20];
+	MoveToString(computersMove, msb);
+	printf("%s", msb);
+	printf("\n");
 }
 
 
@@ -692,7 +628,6 @@ MOVE move;
 USERINPUT GetAndPrintPlayersMove (POSITION position, MOVE *move, STRING playersName)
 {
 	USERINPUT input;
-	USERINPUT HandleDefaultTextInput();
 
 	for (;; ) {
 		/***********************************************************
@@ -953,7 +888,7 @@ void GameSpecificMenu () {
 
 void SetTclCGameSpecificOptions (int options[])
 {
-
+	(void)options;
 }
 
 
@@ -1112,6 +1047,7 @@ int getOption ()
 		scoreVal = 2;
 	} else {
 		BadElse("getOption");
+		return 0;
 	}
 
 	return 245*8*2*scoreVal + 8*2*boardSizeVal + 2*moveStyleVal + winConditionVal + 1;
@@ -1442,20 +1378,18 @@ BOOLEAN valid_move(int source_pos, int dest_pos, char* board) {
 	return TRUE;
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return MoveToString(mv);
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

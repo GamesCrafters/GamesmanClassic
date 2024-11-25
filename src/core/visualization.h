@@ -32,11 +32,11 @@ typedef struct edge_list
 /* Public functions */
 BOOLEAN PrepareTree(EDGELIST *);        // Prepare the in-memory write buffer
 void CleanupTree(EDGELIST *);   // Cleanup the in-memory write buffer
-void Visualize();               // Visualize game tree
+void Visualize(void);               // Visualize game tree
 void Write(FILE *, EDGELIST *); // Write a string to a file
 
 /* Private functions */
-FILE *PrepareDOTFile();
+FILE *PrepareDOTFile(void);
 BOOLEAN PrepareRankList(EDGELIST *);
 void CloseDOTFile(FILE *);
 STRING PositionColor(POSITION);
@@ -47,6 +47,6 @@ void PopulateEdgelist(EDGELIST *);
 void WriteLevel(EDGELIST *, int);
 void WriteNode(FILE *, POSITION, int, EDGELIST *);
 void WriteRanks(FILE *, EDGELIST *);
-void WriteBoards();
+void WriteBoards(void);
 void UpdateRankList(EDGELIST *, POSITION, REMOTENESS);
 #endif

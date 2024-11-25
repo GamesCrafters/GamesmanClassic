@@ -9,11 +9,6 @@
 **
 ** DATE:        04/29/92
 **
-** UPDATE HIST:
-**
-** 05-15-95 1.0 : Final release code for M.S.
-** 96-04-20 1.1 : Cleaned up the code (reordered it) and tab-aligned it
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -22,7 +17,6 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
 
 POSITION gNumberOfPositions  = 39366;  /* 3^9 times 2 */
@@ -30,8 +24,9 @@ POSITION gNumberOfPositions  = 39366;  /* 3^9 times 2 */
 POSITION gInitialPosition    = 17524;
 POSITION gMinimalPosition    = 17524;
 
-STRING kAuthorName         = "Dan Garcia";
-STRING kGameName           = "Dodgem";
+CONST_STRING kAuthorName         = "Dan Garcia";
+CONST_STRING kGameName           = "Dodgem";
+CONST_STRING kDBName = "dodgem";
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
@@ -41,14 +36,14 @@ BOOLEAN kDebugDetermineValue = FALSE;
 POSITION kBadPosition           = -1;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "The LEFT button puts a small circle over your piece. This selects\n\
 the FROM slot. The MIDDLE button then selects the TO slot. If you\n\
 wish to remove a piece from the board, click the MIDDLE button on\n\
 the same place as the FROM slot. The RIGHT button is the same as UNDO,\n\
 in that it reverts back to your most recent position."                                                                                                                                                                                                                                                                                                  ;
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "On your turn, use the LEGEND to determine which numbers to choose (between\n\
 1 and 9, with 1 at the upper left and 9 at the lower right) to correspond\n\
 to the location of your piece and the empty orthogonally-adjacent position\n\
@@ -56,7 +51,7 @@ you wish to move that piece to. If you wish to move a piece off of the board,\n\
 choose 0 as your destination. Example: '20' moves the piece on location\n\
 2 off of the board. '52' moves your piece from position 5 to position 2."                                                                                                                                                                                                                                                                                                                                                                                                              ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "The moves on your turn are different for different players. Here is a summary:\n\
 \n\
 O player:      The O player may move his pieces UP, DOWN and to the RIGHT.\n\
@@ -73,17 +68,17 @@ X player:      The X player may move his pieces LEFT, UP, and to the RIGHT.\n\
  <- X ->       means moving one of your pieces past the UPPER-SIDE of the board.\n\n\
 Note: The circle always goes first."                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "To be the FIRST player to move both your pieces off of the board OR be prevented from moving by your opponent's pieces. ";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "To be the LAST player to move your pieces off of the board OR prevent \n\
 your opponent from moving. "                                                                                   ;
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "         ( 1 2 3 )           : O - -     PLAYER O's turn\n\
 LEGEND:  ( 4 5 6 )  TOTAL:   : O - -                     \n\
          ( 7 8 9 )           : - X X                     \n\n\
@@ -168,16 +163,14 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn);
 void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot);
 MOVE SlotsToMove (SLOT fromSlot, SLOT toSlot);
 SLOT GetToSlot(SLOT fromSlot, int direction,BlankOX whosTurn);
+BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int direction);
+BlankOX OnlyPlayerLeft(BlankOX *theBlankOX);
+BOOLEAN CantMove(POSITION position);
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn);
 
 STRING MToS (MOVE);
 
-void InitializeGame()
-{
-	gMoveToStringFunPtr = &MToS;
-}
-
-void FreeGame()
-{
+void InitializeGame() {
 }
 
 /************************************************************************
@@ -189,9 +182,7 @@ void FreeGame()
 **
 ************************************************************************/
 
-void DebugMenu()
-{
-}
+void DebugMenu() {}
 
 /************************************************************************
 **
@@ -203,10 +194,8 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu()
-{
+void GameSpecificMenu() {
 	char GetMyChar();
-	POSITION GetInitialPosition();
 
 	do {
 		printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
@@ -214,7 +203,6 @@ void GameSpecificMenu()
 		printf("\tCurrent Initial Position:\n");
 		PrintPosition(gInitialPosition, gPlayerName[kPlayerOneTurn], kHumansTurn);
 
-		printf("\tI)\tChoose the (I)nitial position\n");
 		printf("\tT)\t(T)rapping opponent toggle from %s to %s\n",
 		       gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)",
 		       !gToTrapIsToWin ? "GOOD (WINNING)" : "BAD (LOSING)");
@@ -227,11 +215,9 @@ void GameSpecificMenu()
 			return;
 		case 'Q': case 'q':
 			ExitStageRight();
+			break;
 		case 'H': case 'h':
 			HelpMenus();
-			break;
-		case '1':
-			gInitialPosition = GetInitialPosition();
 			break;
 		case 'T': case 't':
 			gToTrapIsToWin = !gToTrapIsToWin;
@@ -253,9 +239,7 @@ void GameSpecificMenu()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions(theOptions)
-int theOptions[];
-{
+void SetTclCGameSpecificOptions(int *theOptions) {
 	gToTrapIsToWin = (BOOLEAN) theOptions[0];
 }
 
@@ -274,10 +258,7 @@ int theOptions[];
 **
 ************************************************************************/
 
-POSITION DoMove(thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove(POSITION thePosition, MOVE theMove) {
 	SLOT fromSlot, toSlot;
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 
@@ -297,54 +278,6 @@ MOVE theMove;
 
 /************************************************************************
 **
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position returned
-**
-************************************************************************/
-
-POSITION GetInitialPosition() /* UNWRITTEN */
-{
-	POSITION BlankOXToPosition();
-	BlankOX theBlankOX[BOARDSIZE], whosTurn;
-	signed char c;
-	int i;
-
-
-	printf("\n\n\t----- Get Initial Position -----\n");
-	printf("\n\tPlease input the position to begin with.\n");
-	printf("\tNote that it should be in the following format:\n\n");
-	printf("O - -\nO - -            <----- EXAMPLE \n- X X\n\n");
-
-	i = 0;
-	getchar();
-	while(i < BOARDSIZE && (c = getchar()) != EOF) {
-		if(c == 'x' || c == 'X')
-			theBlankOX[i++] = x;
-		else if(c == 'o' || c == 'O' || c == '0')
-			theBlankOX[i++] = o;
-		else if(c == '-')
-			theBlankOX[i++] = Blank;
-		else
-			; /* do nothing */
-	}
-
-	getchar();
-	printf("\nNow, whose turn is it? [O/X] : ");
-	scanf("%c",&c);
-	if(c == 'x' || c == 'X')
-		whosTurn = x;
-	else
-		whosTurn = o;
-
-	return(BlankOXToPosition(theBlankOX,whosTurn));
-}
-
-/************************************************************************
-**
 ** NAME:        PrintComputersMove
 **
 ** DESCRIPTION: Nicely format the computers move.
@@ -354,10 +287,7 @@ POSITION GetInitialPosition() /* UNWRITTEN */
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove,computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	SLOT fromSlot,toSlot;
 	MoveToSlots(computersMove,&fromSlot,&toSlot);
 	printf("%8s's move              : %d%d\n", computersName,
@@ -388,11 +318,8 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive(position)
-POSITION position;
-{
-	BOOLEAN CantMove(), OkMove();
-	BlankOX theBlankOX[BOARDSIZE],whosTurn,OnlyPlayerLeft();
+VALUE Primitive(POSITION position) {
+	BlankOX theBlankOX[BOARDSIZE],whosTurn;
 
 	PositionToBlankOX(position,theBlankOX,&whosTurn);
 
@@ -404,10 +331,8 @@ POSITION position;
 		return(undecided);        /* no one has won yet */
 }
 
-BOOLEAN CantMove(position)
-POSITION position;
-{
-	MOVELIST *ptr, *GenerateMoves();
+BOOLEAN CantMove(POSITION position) {
+	MOVELIST *ptr;
 	BOOLEAN cantMove;
 
 	ptr = GenerateMoves(position);
@@ -417,9 +342,7 @@ POSITION position;
 }
 
 
-BlankOX OnlyPlayerLeft(theBlankOX)
-BlankOX *theBlankOX;
-{
+BlankOX OnlyPlayerLeft(BlankOX *theBlankOX) {
 	int i;
 	BOOLEAN sawO = FALSE, sawX = FALSE;
 	for(i = 0; i < BOARDSIZE; i++) {
@@ -455,11 +378,7 @@ BlankOX *theBlankOX;
 **
 ************************************************************************/
 
-void PrintPosition(position,playerName,usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	//  VALUE GetValueOfPosition();
 	BlankOX theBlankOx[BOARDSIZE], whosTurn;
 
@@ -499,12 +418,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves(position)
-POSITION position;
-{
-	BOOLEAN OkMove();
+MOVELIST *GenerateMoves(POSITION position) {
 	MOVELIST *head = NULL;
-	MOVELIST *CreateMovelistNode();
 	BlankOX theBlankOX[BOARDSIZE], whosTurn;
 	int i,j; /* Values for J: 0=left,1=straight,2=right */
 
@@ -519,11 +434,7 @@ POSITION position;
 	return(head);
 }
 
-BOOLEAN OkMove(theBlankOX,whosTurn,fromSlot,direction)
-BlankOX *theBlankOX, whosTurn;
-SLOT fromSlot;
-int direction;
-{
+BOOLEAN OkMove(BlankOX *theBlankOX, BlankOX whosTurn, SLOT fromSlot, int direction) {
 	SLOT toSlot;
 	toSlot = GetToSlot(fromSlot,direction,whosTurn);
 	return((theBlankOX[fromSlot] == whosTurn) &&
@@ -531,8 +442,7 @@ int direction;
 	       (theBlankOX[toSlot] == Blank || toSlot == OFFTHEBOARD));
 }
 
-SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
-{
+SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn) {
 	if((fromSlot < 3 && whosTurn == x && direction == 1) ||
 	   (((fromSlot % 3) == 2) && whosTurn == o && direction == 1))
 		return(OFFTHEBOARD);
@@ -586,12 +496,8 @@ SLOT GetToSlot(SLOT fromSlot, int direction, BlankOX whosTurn)
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%8s's move [(u)ndo/1-9] : ", playerName);
@@ -621,9 +527,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(input)
-STRING input;
-{
+BOOLEAN ValidTextInput(STRING input) {
 	char fromChar, toChar;
 	SLOT fromSlot, toSlot;
 	int ret;
@@ -649,15 +553,10 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(input)
-STRING input;
-{
-	MOVE SlotsToMove();
+MOVE ConvertTextInputToMove(STRING input) {
 	SLOT fromSlot, toSlot;
 	char fromChar, toChar;
-	int ret;
-	// ret = sscanf(input,"%d %d", &fromSlot, &toSlot);
-	ret = sscanf(input,"%c%c", &fromChar, &toChar);
+	(void)sscanf(input,"%c%c", &fromChar, &toChar);
 	fromSlot = fromChar - '0';
 	toSlot   = toChar   - '0';
 
@@ -670,33 +569,10 @@ STRING input;
 	return(SlotsToMove(fromSlot,toSlot));
 }
 
-/************************************************************************
-**
-** NAME:        PrintMove
-**
-** DESCRIPTION: Print the move in a nice format.
-**
-** INPUTS:      MOVE *theMove         : The move to print.
-**
-************************************************************************/
-
-void PrintMove(theMove)
-MOVE theMove;
-{
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
 	SLOT fromSlot, toSlot;
 	MoveToSlots(theMove,&fromSlot,&toSlot);
-	/* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-	printf("%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
-}
-
-STRING MToS(theMove)
-MOVE theMove;
-{
-	SLOT fromSlot, toSlot;
-	STRING move = (STRING) SafeMalloc(3);
-	MoveToSlots(theMove,&fromSlot,&toSlot);
-	sprintf(move, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
-	return move;
+	sprintf(moveStringBuffer, "%d%d", fromSlot + 1, toSlot==9 ? 0 : toSlot + 1);
 }
 
 /************************************************************************
@@ -718,11 +594,7 @@ MOVE theMove;
 **
 ************************************************************************/
 
-void PositionToBlankOX(thePos,theBlankOX,whosTurn)
-POSITION thePos;
-BlankOX *theBlankOX;
-BlankOX *whosTurn;
-{
+void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, BlankOX *whosTurn) {
 	int i;
 
 	if (thePos >= POSITION_OFFSET) { /* X moves first <==> pos >= offset */
@@ -733,17 +605,17 @@ BlankOX *whosTurn;
 		*whosTurn = o;
 
 	for(i = 8; i >= 0; i--) {
-		if(thePos >= ((int)x * g3Array[i])) {
+		if(thePos >= (POSITION)(x * g3Array[i])) {
 			theBlankOX[i] = x;
-			thePos -= (int)x * g3Array[i];
+			thePos -= x * g3Array[i];
 		}
-		else if(thePos >= ((int)o * g3Array[i])) {
+		else if(thePos >= (POSITION)(o * g3Array[i])) {
 			theBlankOX[i] = o;
-			thePos -= (int)o * g3Array[i];
+			thePos -= o * g3Array[i];
 		}
-		else if(thePos >= ((int)Blank * g3Array[i])) {
+		else if(thePos >= (POSITION)(Blank * g3Array[i])) {
 			theBlankOX[i] = Blank;
-			thePos -= (int)Blank * g3Array[i];
+			thePos -= Blank * g3Array[i];
 		}
 		else
 			BadElse("PositionToBlankOX");
@@ -762,10 +634,7 @@ BlankOX *whosTurn;
 **
 ************************************************************************/
 
-void MoveToSlots(theMove, fromSlot, toSlot)
-MOVE theMove;
-SLOT *fromSlot, *toSlot;
-{
+void MoveToSlots(MOVE theMove, SLOT *fromSlot, SLOT *toSlot) {
 	*fromSlot = theMove % (BOARDSIZE+1);
 	*toSlot   = theMove / (BOARDSIZE+1);
 }
@@ -783,9 +652,7 @@ SLOT *fromSlot, *toSlot;
 **
 ************************************************************************/
 
-MOVE SlotsToMove (fromSlot, toSlot)
-SLOT fromSlot, toSlot;
-{
+MOVE SlotsToMove(SLOT fromSlot, SLOT toSlot) {
 	return ((MOVE) toSlot*(BOARDSIZE+1) + fromSlot);
 }
 
@@ -801,9 +668,7 @@ SLOT fromSlot, toSlot;
 **
 ************************************************************************/
 
-POSITION BlankOXToPosition(theBlankOX,whosTurn)
-BlankOX *theBlankOX,whosTurn;
-{
+POSITION BlankOXToPosition(BlankOX *theBlankOX, BlankOX whosTurn) {
 	int i;
 	POSITION position = 0;
 
@@ -815,8 +680,6 @@ BlankOX *theBlankOX,whosTurn;
 
 	return(position);
 }
-
-STRING kDBName = "dodgem";
 
 int NumberOfOptions() {
 	return 4;
@@ -858,44 +721,38 @@ void setOption(int option) {
 	}
 }
 
-
-POSITION InteractStringToPosition(STRING string) {
-	enum UWAPI_Turn turn;
-	unsigned int num_rows, num_columns;
-	STRING board;
-	if (!UWAPI_Board_Regular2D_ParsePositionString(string, &turn, &num_rows, &num_columns, &board)) {
-    	// Failed to parse string
-    	return INVALID_POSITION;
-  	}
-	POSITION position = 0;
-	for (int i = 0; i < BOARDSIZE; i += 1) {
-		int offset = i / 3 + 4;
-		if (board[i + offset] == 'x') {
-			position += g3Array[i] * (int) x;
-		} else if (board[i + offset] == 'o') {
-			position += g3Array[i] * (int) o;
-		} else {
-			position += g3Array[i] * (int) Blank;
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		POSITION position = 0;
+		for (int i = 0; i < BOARDSIZE; i += 1) {
+			int offset = i / 3 + 4;
+			if (board[i + offset] == 'x') {
+				position += g3Array[i] * (int) x;
+			} else if (board[i + offset] == 'o') {
+				position += g3Array[i] * (int) o;
+			} else {
+				position += g3Array[i] * (int) Blank;
+			}
 		}
+		// Player X in Dodgem is Player 2
+		if (turn == 2) {
+			position += POSITION_OFFSET;
+		}
+		return position;
 	}
-	// Player X in Dodgem is same as player B in UWAPI
-	if (turn == UWAPI_TURN_B) {
-		position += POSITION_OFFSET;
-	}
-    SafeFree(board);
-	return position;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
 	char oxboard[INTERACT_BOARDSIZE + 1];
-	enum UWAPI_Turn turn;
-
-	if (pos >= POSITION_OFFSET) {
-		turn = UWAPI_TURN_B;
-		pos -= POSITION_OFFSET;
+	int turn;
+	if (position >= POSITION_OFFSET) {
+		turn = 2;
+		position -= POSITION_OFFSET;
 	} else {
-		turn = UWAPI_TURN_A;
+		turn = 1;
 	}
 
 	for (int i = BOARDSIZE - 1; i >= 0; i -= 1) {
@@ -907,58 +764,45 @@ STRING InteractPositionToString(POSITION pos) {
 		// 0    1    2    3 
 		// Therefore, we need to add offset of i/4 when putting it onto a 4x4 board
 		int offset = i / 3 + 4;
-		if (pos >= ((int) x * g3Array[i])) {
+		if (position >= (POSITION)(x * g3Array[i])) {
 			oxboard[i + offset] = 'x';
-			pos -= (int) x * g3Array[i];
-		} else if (pos >= ((int) o * g3Array[i])) {
+			position -= x * g3Array[i];
+		} else if (position >= (POSITION)(o * g3Array[i])) {
 			oxboard[i + offset] = 'o';
-			pos -= (int) o * g3Array[i];
-		} else if (pos >= ((int) Blank * g3Array[i])) {
+			position -= o * g3Array[i];
+		} else if (position >= (POSITION)(Blank * g3Array[i])) {
 			oxboard[i + offset] = '-';
-			pos -= (int) Blank * g3Array[i];
+			position -= Blank * g3Array[i];
 		} else {
-			BadElse("InteractPositionToString");
+			BadElse("PositionToAutoGUIString");
 		}
 	}
-
 	for (int j = 0; j < INTERACT_BOARDSIZE; j += 1) {
 		if (j % 4 == 3 || j / 4 == 0) {
-			oxboard[j] = '*';
+			oxboard[j] = '-';
 		}
 	}
-
 	oxboard[INTERACT_BOARDSIZE] = '\0';
-
-	return UWAPI_Board_Regular2D_MakePositionString(turn, INTERACT_ROWS, INTERACT_COLS, oxboard);
+	AutoGUIMakePositionString(turn, oxboard, autoguiPositionStringBuffer);
 }
 
-STRING MoveToString(MOVE theMove) {
-	return NULL;
-}
-
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
-}
-
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-
-	enum UWAPI_Turn turn;
-
-	if (pos >= POSITION_OFFSET) { // Player X
-		turn = UWAPI_TURN_B;
-	} else { // Player O
-		turn = UWAPI_TURN_A;
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	int turn = 0;
+	if (position >= POSITION_OFFSET) { // Player X i.e. Player 2
+		turn = 2;
+	} else { // Player O i.e. Player 1
+		turn = 1;
 	}
 
 	SLOT fromSlot, toSlot;
-	MoveToSlots(mv, &fromSlot, &toSlot);
+	MoveToSlots(move, &fromSlot, &toSlot);
 
 	fromSlot = fromSlot / 3 + 4 + fromSlot;
-
 	if (toSlot == OFFTHEBOARD) {
 		if (fromSlot / 4 == 1 || fromSlot % 4 == 2) {
 			// If the piece is moving off the board from the top row
-			if (turn == UWAPI_TURN_A) {
+			if (turn == 1) {
 				toSlot = fromSlot + 1;
 			} else {
 				toSlot = fromSlot - 4;
@@ -967,6 +811,5 @@ STRING InteractMoveToString(POSITION pos, MOVE mv) {
 	} else {
 		toSlot = toSlot / 3 + 4 + toSlot;
 	}
-
-	return UWAPI_Board_Regular2D_MakeMoveString(fromSlot, toSlot);
+	AutoGUIMakeMoveButtonStringM(fromSlot, toSlot, 'x', autoguiMoveStringBuffer);
 }

@@ -69,8 +69,7 @@ GWISH_OBJ		= tkAppInit$(OBJSUFFIX)
 # This notice and the comments should go away eventually..
 
 GAMESMAN_A		= gamesman.a
-#GAMESMAN_OBJ		= gamesman$(OBJSUFFIX)
-GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h \
+GAMESMAN_INCLUDE	:= gamesman.h core/gamesman.h core/analysis.h core/autoguistrings.h \
 			  core/constants.h core/globals.h core/debug.h \
 			  core/gameplay.h core/misc.h core/memdb.h \
 			  core/bpdb.h core/bpdb_bitlib.h core/bpdb_schemes.h core/bpdb_misc.h \
@@ -83,26 +82,9 @@ GAMESMAN_DEPS		:= $(GAMESMAN_INCLUDE) $(shell ls core/*.c)
 GAMESDB_A 		= gamesdb.a
 GAMESDB_DEPS		:= $(shell ls core/filedb/*.c)
 
-#HASH_OBJ		= hash$(OBJSUFFIX)
-#HASH_INCLUDE		= hash.h
-
-#LOOPYGASOLVER_OBJ	= loopygasolver$(OBJSUFFIX)
-#LOOPYGASOLVER_INCLUDE	= loopygasolver.h
-
-#LOOPYUPSOLVER_OBJ	= loopyupsolver$(OBJSUFFIX)
-#LOOPYUPSOLVER_INCLUDE	= loopyupsolver.h
-
-LIBUWAPI_A		= libUWAPI_boardstrings.a
-LIBUWAPI_INCLUDE	:= $(shell ls ../extern/libUWAPI/*.h)
-LIBUWAPI_DEPS		:= $(LIBUWAPI_INCLUDE) $(shell ls ../extern/libUWAPI/*.c)
-
 1210_EXE		= $(BINDIR)/m1210$(EXESUFFIX)	# The wonderful game of 1,2,...,10
 1210_OBJ		= m1210$(OBJSUFFIX)
 1210_SO			= $(LIBDIR)/libm1210$(LIBSUFFIX)
-
-#TIGERS_EXE		= $(BINDIR)/mtigers$(EXESUFFIX) # The game of Tigers and Buffalo
-#TIGERS_OBJ		= mtigers$(OBJSUFFIX)
-#TIGERS_SO		= $(LIBDIR)/libmtigers$(LIBSUFFIX)
 
 1TON_EXE		= $(BINDIR)/m1ton$(EXESUFFIX) #yay
 1TON_OBJ		= m1ton$(OBJSUFFIX)
@@ -125,8 +107,15 @@ ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
 ACHI_OBJ		= machi$(OBJSUFFIX)
 ACHI_SO			= $(LIBDIR)/libmachi$(LIBSUFFIX)
 
+ADUGO_EXE		= $(BINDIR)/madugo$(EXESUFFIX)
+ADUGO_OBJ		= madugo$(OBJSUFFIX)
+ADUGO_SO		= $(LIBDIR)/libmadugo$(LIBSUFFIX)
+
 AGO_EXE			= $(BINDIR)/mago$(EXESUFFIX)	# The infectious(c) game of Atari Go
 AGO_OBJ			= mago$(OBJSUFFIX)
+
+ALLQUEENS_EXE = $(BINDIR)/mallqueenschess$(EXESUFFIX) # all queens chess
+ALLQUEENS_OBJ = mallqueenschess$(OBJSUFFIX)
 
 ATAXX_EXE		= $(BINDIR)/mataxx$(EXESUFFIX)	# The infectious game of Ataxx
 ATAXX_OBJ		= mataxx$(OBJSUFFIX)
@@ -138,6 +127,10 @@ ASALTO_SO		= $(LIBDIR)/libmasalto$(LIBSUFFIX)
 BAGHCHAL_EXE		= $(BINDIR)/mbaghchal$(EXESUFFIX)
 BAGHCHAL_OBJ		= mbaghchal$(OBJSUFFIX)
 BAGHCHAL_SO		= $(LIBDIR)/libmbaghchal$(LIBSUFFIX)
+
+BEELINE_EXE		= $(BINDIR)/mbeeline$(EXESUFFIX)	# Beeline
+BEELINE_OBJ		= mbeeline$(OBJSUFFIX)
+BEELINE_SO		= $(LIBDIR)/libmbeeline$(LIBSUFFIX)
 
 BLOCKING_EXE		= $(BINDIR)/mblocking$(EXESUFFIX)	# The awesome game of blocking
 BLOCKING_OBJ		= mblocking$(OBJSUFFIX) 
@@ -151,6 +144,10 @@ CHANGE_EXE		= $(BINDIR)/mchange$(EXESUFFIX)
 CHANGE_OBJ		= mchange$(OBJSUFFIX)
 CHANGE_SO		= $(LIBDIR)/libmchange$(LIBSUFFIX)
 
+CHOPSTICKS_EXE		= $(BINDIR)/mchopsticks$(EXESUFFIX)
+CHOPSTICKS_OBJ		= mchopsticks$(OBJSUFFIX)
+CHOPSTICKS_SO		= $(LIBDIR)/libmchopsticks$(LIBSUFFIX)
+
 CMASS_EXE		= $(BINDIR)/mcmass$(EXESUFFIX)	# The explosive game of critical mass
 CMASS_OBJ		= mcmass$(OBJSUFFIX)
 CMASS_SO		= $(LIBDIR)/libmcmass$(LIBSUFFIX)
@@ -159,13 +156,16 @@ COMBS_EXE		= $(BINDIR)/mcombs$(EXESUFFIX)	# The explosive game of critical mass
 COMBS_OBJ		= mcombs$(OBJSUFFIX)
 COMBS_SO		= $(LIBDIR)/libmcombs$(LIBSUFFIX)
 
-CONNECTIONS_EXE			= $(BINDIR)/mconnections$(EXESUFFIX)	# Connections
-CONNECTIONS_OBJ			= mconnections$(OBJSUFFIX)
-CONNECTIONS_SO			= $(LIBDIR)/libmconnections$(LIBSUFFIX)
+CON_EXE			= $(BINDIR)/mcon$(EXESUFFIX)	# The cool game of Connections!
+CON_OBJ			= mcon$(OBJSUFFIX)
+CON_SO			= $(LIBDIR)/libmcon$(LIBSUFFIX)
 
 CONNECT4_EXE			= $(BINDIR)/mconnect4$(EXESUFFIX)	# Connect4
 CONNECT4_OBJ			= mconnect4$(OBJSUFFIX)
 CONNECT4_SO			= $(LIBDIR)/libmconnect4$(LIBSUFFIX)
+
+CHOMP_EXE		= $(BINDIR)/mchomp$(EXESUFFIX)	# The Delicious Game of Chomp
+CHOMP_OBJ		= mchomp$(OBJSUFFIX)
 
 CTOI_EXE		= $(BINDIR)/mctoi$(EXESUFFIX)	# The Amazing game of Chung-Toi
 CTOI_OBJ		= mctoi$(OBJSUFFIX)
@@ -178,6 +178,9 @@ DAO_SO			= $(LIBDIR)/libmdao$(LIBSUFFIX)
 DINODODGEM_EXE		= $(BINDIR)/mdinododgem$(EXESUFFIX) # The prehistoric game of Dino Dodgem
 DINODODGEM_OBJ		= mdinododgem$(OBJSUFFIX)
 DINODODGEM_SO		= $(LIBDIR)/libmdinododgem$(LIBSUFFIX)
+
+DOMINEERING_EXE   = $(BINDIR)/mdomineering$(EXESUFFIX) # The rich game of domineering
+DOMINEERING_OBJ	  = mdomineering$(OBJSUFFIX)
 
 ## Warning: DNB uses Deprecated API
 DNB_EXE			= $(BINDIR)/mdnb$(EXESUFFIX)	# The awesome game of Dots-and-Boxes
@@ -192,22 +195,23 @@ DODGEM_SO		= $(LIBDIR)/libmdodgem$(LIBSUFFIX)
 FANDAN_EXE		= $(BINDIR)/mfandan$(EXESUFFIX) 
 FANDAN_OBJ		= mfandan$(OBJSUFFIX)
 
-FIVEFIELDKONO_EXE		= $(BINDIR)/mfivefieldkono$(EXESUFFIX)	# Five-field kono
-FIVEFIELDKONO_OBJ		= mfivefieldkono$(OBJSUFFIX)
+FIVEFIELDKONO_EXE = $(BINDIR)/mfivefieldkono$(EXESUFFIX)
+FIVEFIELDKONO_OBJ = mfivefieldkono$(OBJSUFFIX)
+
+FORESTFOX_EXE			= $(BINDIR)/mforestfox$(EXESUFFIX)	# The game Fox!
+FORESTFOX_OBJ			= mforestfox$(OBJSUFFIX)
+FORESTFOX_SO			= $(LIBDIR)/libmforestfox$(LIBSUFFIX)
 
 ## Warning: uses computec, and therefore a different tkAppInit.c
 ## Warning: Foxes uses Deprecated API
 ## The above warning does not apply anymore as of 11-10-2005. The C code uses current API now.
 FOXES_EXE		= $(BINDIR)/mfoxes$(EXESUFFIX)	# The unreasonably witty game of foxes & geese
 FOXES_OBJ		= mfoxes$(OBJSUFFIX)
-#FOXES_TCL_OBJ		= tkAppInitFoxes$(OBJSUFFIX)
 FOXES_SO		= $(LIBDIR)/libmfoxes$(LIBSUFFIX)
 
-## this is the new version of Foxes adapted to the current core API
-#FOXES_NEW_EXE           = $(BINDIR)/mfoxes_new$(EXESUFFIX)
-#FOXES_NEW_OBJ           = mfoxes_new$(OBJSUFFIX)
-#FOXES_NEW_TCL_OBJ	= tkAppInitFoxes$#(OBJSUFFIX)
-#FOXES_NEW_SO            = $(LIBDIR)/libmfoxes_new$(LIBSUFFIX)
+GAMEOFY_EXE			= $(BINDIR)/mgameofy$(EXESUFFIX)	# Game Of Y
+GAMEOFY_OBJ			= mgameofy$(OBJSUFFIX)
+GAMEOFY_SO			= $(LIBDIR)/libmgameofy$(LIBSUFFIX)
 
 GO_EXE			= $(BINDIR)/migo$(EXESUFFIX)    # The incomporably ancient game of go
 GO_OBJ			= migo$(OBJSUFFIX)
@@ -219,6 +223,9 @@ GOBBLET_SO		= $(LIBDIR)/libmgobblet$(LIBSUFFIX)
 
 GRAPH_EXE		= $(BINDIR)/mgraph$(EXESUFFIX)	# The generic graph game
 GRAPH_OBJ		= mgraph$(OBJSUFFIX)
+
+GRAPHGAME_EXE		= $(BINDIR)/mgraphgame$(EXESUFFIX)	# The sample game to demo draw level and remoteness
+GRAPHGAME_OBJ		= mgraphgame$(OBJSUFFIX)
 
 HAREGAME_EXE		= $(BINDIR)/mharegame$(EXESUFFIX) # The game of Hounds and Hares
 HAREGAME_OBJ		= mharegame$(OBJSUFFIX)
@@ -243,11 +250,15 @@ JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
 JOUST_OBJ		= mjoust$(OBJSUFFIX)
 JOUST_SO		= $(LIBDIR)/libmjoust$(LIBSUFFIX)
 
+KONANE_EXE		= $(BINDIR)/mkonane$(EXESUFFIX)
+KONANE_OBJ		= mkonane$(OBJSUFFIX)
+KONANE_SO		= $(LIBDIR)/libmkonane$(LIBSUFFIX)
+
 KONO_EXE		= $(BINDIR)/mkono$(EXESUFFIX)
 KONO_OBJ		= mkono$(OBJSUFFIX)
 KONO_SO			= $(LIBDIR)/libmkono$(LIBSUFFIX)
 
-LEWTH_EXE		= $(BINDIR)/mlewth$(EXESUFFIX) # The game of lewth
+LEWTH_EXE		= $(BINDIR)/mlewth$(EXESUFFIX) # Lewthwaite's game
 LEWTH_OBJ		= mlewth$(OBJSUFFIX)
 LEWTH_SO		= $(LIBDIR)/libmlewth$(LIBSUFFIX)
 
@@ -266,17 +277,25 @@ MANCALA_EXE		= $(BINDIR)/mmancala$(EXESUFFIX) # The manic game of Mancala
 MANCALA_OBJ		= mmancala$(OBJSUFFIX)
 MANCALA_SO		= $(LIBDIR)/libmmancala$(LIBSUFFIX)
 
-NIM_EXE			= $(BINDIR)/mnim$(EXESUFFIX)	# The interesting game of NIM!
-NIM_OBJ			= mnim$(OBJSUFFIX)
-NIM_SO			= $(LIBDIR)/libmnim$(LIBSUFFIX)
+NOTAKTO_EXE			= $(BINDIR)/mnotakto$(EXESUFFIX)	# Notakto
+NOTAKTO_OBJ			= mnotakto$(OBJSUFFIX)
+NOTAKTO_SO			= $(LIBDIR)/libmnotakto$(LIBSUFFIX)
 
 NUTTT_EXE		= $(BINDIR)/mnuttt$(EXESUFFIX) # sliding version of tic-tac-toe
 NUTTT_OBJ		= mnuttt$(OBJSUFFIX)
 NUTTT_SO		= $(LIBDIR)/libmnuttt$(LIBSUFFIX)
 
+OANDC_EXE   = $(BINDIR)/moandc$(EXESUFFIX)
+OANDC_OBJ   = moandc$(OBJSUFFIX)
+OANDC_SO    = $(LIBDIR)/libmoandc$(LIBSUFFIX)
+
 OOE_EXE			= $(BINDIR)/mooe$(EXESUFFIX) # ooe
 OOE_OBJ			= mooe$(OBJSUFFIX)
 OOE_SO			= $(LIBDIR)/libmooe$(LIBSUFFIX)
+
+ONEDCHESS_EXE	= $(BINDIR)/m1dchess$(EXESUFFIX) # 1D Chess
+ONEDCHESS_OBJ	= m1dchess$(OBJSUFFIX)
+ONEDCHESS_SO	= $(LIBDIR)/libm1dchess$(LIBSUFFIX)
 
 OTHELLO_EXE		= $(BINDIR)/mothello$(EXESUFFIX)	# The Out-Of-The-Blue game of Othello
 OTHELLO_OBJ		= mothello$(OBJSUFFIX)
@@ -314,9 +333,9 @@ RINFIN_EXE    	= $(BINDIR)/mrInfin2$(EXESUFFIX)
 RINFIN_OBJ		= mrInfin2$(OBJSUFFIX)
 RINFIN_SO		= $(LIBDIR)/libmrInfin2$(LIBSUFFIX)
 
-RUBIX_EXE		= $(BINDIR)/mrubix$(EXESUFFIX)
-RUBIX_OBJ		= mrubix$(OBJSUFFIX)
-RUBIX_SO		= $(LIBDIR)/libmrubix$(LIBSUFFIX)
+RUBIKSMAGIC_EXE		= $(BINDIR)/mrubiksmagic$(EXESUFFIX)
+RUBIKSMAGIC_OBJ		= mrubiksmagic$(OBJSUFFIX)
+RUBIKSMAGIC_SO		= $(LIBDIR)/libmrubiksmagic$(LIBSUFFIX)
 
 SANTORINI_EXE   = $(BINDIR)/msantorini$(EXESUFFIX)
 SANTORINI_OBJ   = msantorini$(OBJSUFFIX)
@@ -333,6 +352,11 @@ SHOGI_SO		= $(LIBDIR)/libmhshogi$(LIBSUFFIX)
 SIM_EXE			= $(BINDIR)/msim$(EXESUFFIX)	# The simple game of sim
 SIM_OBJ			= msim$(OBJSUFFIX)
 SIM_SO			= $(LIBDIR)/libmsim$(LIBSUFFIX)
+
+SLIDE5_EXE   = $(BINDIR)/mslide5$(EXESUFFIX) # The sliding game of slide-5
+SLIDE5_OBJ   = mslide5$(OBJSUFFIX)
+SLIDE5_SO    = $(LIBDIR)/libmslide5$(LIBSUFFIX)
+
 
 SLIDEN_EXE		= $(BINDIR)/mslideN$(EXESUFFIX)	# The mysterious game of slide-N
 SLIDEN_OBJ		= mslideN$(OBJSUFFIX)
@@ -412,6 +436,10 @@ XIGUA_EXE		= $(BINDIR)/mxigua$(EXESUFFIX)	# Kono
 XIGUA_OBJ		= mxigua$(OBJSUFFIX)
 XIGUA_SO		= $(LIBDIR)/libmxigua$(LIBSUFFIX)
 
+YOTE_EXE		= $(BINDIR)/myote$(EXESUFFIX)
+YOTE_OBJ		= myote$(OBJSUFFIX)
+YOTE_SO			= $(LIBDIR)/libmyote$(LIBSUFFIX)
+
 ############                       IMPORTANT!
 ### Please Ensure that all games are added in ALPHABETICAL order to the section above.
 ############
@@ -455,9 +483,9 @@ CGAMES =  $(1210_EXE) $(TIGERS_EXE) $(TTTIER_EXE) $(BAGHCHAL_EXE) $(ATAXX_EXE) \
 	  $(CONNECTIONS_EXE) $(SANTORINI_EXE) $(HOBAGGONU_EXE)
 
 # Tcl/Tk libraries
-CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_SO) $(SIM_SO) $(STT_SO) \
-	$(DODGEM_SO) $(LGAME_SO) $(3SPOT_SO) $(BLOCKING_SO) \
-	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIX_SO) \
+CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(SIM_SO) $(STT_SO) \
+    $(DODGEM_SO) $(LGAME_SO) $(3SPOT_SO) $(BLOCKING_SO) \
+	$(CMASS_SO) $(LITE3_SO) $(CTOI_SO) $(WIN4_SO) $(RUBIKSMAGIC_SO) \
 	$(QX_SO) $(SLIDEN_SO) $(SNAKE_SO) $(CHANGE_SO) $(HORSE_SO) \
 	$(DINODODGEM_SO) $(MANCALA_SO) $(RINFIN_SO) $(SWANS_SO) $(WUZHI_SO) \
 	$(QLAND_SO) $(SEEGA_SO) $(KONO_SO) $(OOE_SO) $(TORE_SO) $(COMBS_SO) \
@@ -468,7 +496,13 @@ CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(NIM_S
 
 ### Games written in C++ that work with the current gamesman core:
 # Object files
-CCGAMEOBJS = $(DNB_OBJ)
+CCGAMEOBJS = $(CON_OBJ) $(DNB_OBJ)
+
+# Binary files
+CCGAMES = $(CON_EXE)
+
+# Tcl/Tk libraries
+CCTCL = $(CON_SO)
 
 ### Games that need special attention
 SPECIALGAMES = $(TTT_EXE) $(GRAPH_EXE) $(9MM_EXE) $(ACHI_EXE) $(ABALONE_EXE) $(DNB_EXE) $(TACTIX_EXE)
@@ -495,18 +529,17 @@ dist-clean:		clean
 
 clean:		clean-bins
 		@$(MAKE) -w -C core clean
-		@$(MAKE) -w -C ../extern/libUWAPI clean
-		rm -rf $(CTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
+		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
 		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A) \
-		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ) \
-		$(LIBUWAPI_A)
+		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ)
 
 clean-bins:
-		rm -rf $(CGAMES) $(SPECIALGAMES)
+		rm -rf $(CGAMES) $(CCGAMES) $(SPECIALGAMES)
 
-text_all:	$(CGAMES) $(SPECIALGAMES)
-so_all:		text_all $(CTCL) $(SPECIALTCL)
+#text_all:	$(CGAMES) $(CCGAMES) $(SPECIALGAMES)
+text_all: $(CGAMES)
+so_all:		text_all $(CTCL) $(CCTCL) $(SPECIALTCL)
 gameline:	$(GAMELINE_EXE)
 
 
@@ -548,78 +581,70 @@ $(LOOPYUPSOLVER_OBJ): %$(OBJSUFFIX): %.c $(LOOPYUPSOLVER_INCLUDE)
 $(ANOTO_PEN_DIR)/%$(OBJSUFFIX) : $(ANOTO_PEN_DIR)/%.c
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-$(LIBUWAPI_A): $(LIBUWAPI_DEPS)
-	@$(MAKE) -w -C ../extern/libUWAPI all
-
 ##############################################################################
 ### Generic rules for games:
 
-$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
+$(CGAMEOBJS): %$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+$(CGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
+test-%$(OBJSUFFIX): %.c $(GAMESMAN_INCLUDE)
 	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
 
-test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+test-%: test-%$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ)
-	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+$(CTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+	$(CC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
+$(CCGAMEOBJS): %$(OBJSUFFIX): %.cc $(GAMESMAN_INCLUDE)
 	$(CCC) $(CCFLAGS) $(TCLCFLAGS) -c -o $@ $<
+
+$(CCGAMES): $(BINDIR)/%$(EXESUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
+
+$(CCTCL): $(LIBDIR)/lib%$(LIBSUFFIX): %$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) 
+	$(CCC) -o $@ $< $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 ##############################################################################
 ### Special rules for deprecated games and others that need special attention
 
-$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(ACHI_EXE): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+#	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+#$(ACHI_SO): $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+#	$(CC) -o $@ $(ACHI_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(ABALONE_EXE): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+#	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(ABALONE_TCL_OBJ)
-	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+#$(ABALONE_SO): $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(ABALONE_TCL_OBJ)
+#	$(CC) -o $@ $(ABALONE_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(ABALONE_TCL_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(QUARTO_OBJ): mquarto.c $(GAMESMAN_INCLUDE) $(LIBUWAPI_INCLUDE)
-	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -std=c99 -o $@ $<
+#$(QUARTO_OBJ): mquarto.c $(GAMESMAN_INCLUDE)
+#	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -std=c99 -o $@ $<
 
-$(TTT_EXE): $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(TTT_EXE): $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+#	$(CC) -o $@ $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(TTT_SO): $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+#$(TTT_SO): $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+#	$(CC) -o $@ $(TTT_OBJ) $(TTT_PEN_OBJ) $(ANOTO_PEN_OBJ) $(TTTPPM_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(DNB_EXE): $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CCC) -o $@ $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(DNB_EXE): $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+#	$(CCC) -o $@ $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(DNB_SO): $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ)
-	$(CCC) -o $@ $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
+#$(DNB_SO): $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+#	$(CCC) -o $@ $(DNB_OBJ) $(DNB_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
-$(TACTIX_EXE): $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A)
-	$(CC) -o $@ $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(LDFLAGS) $(TCLEXEFLAGS)
+#$(TACTIX_EXE): $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A)
+#	$(CC) -o $@ $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LDFLAGS) $(TCLEXEFLAGS)
 
-$(TACTIX_SO): $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ)
-	$(CC) -o $@ $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(LIBUWAPI_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
-
-#$(FOXES_TCL_OBJ) $(FOXES_OBJ): %$(OBJSUFFIX): %.c $(DEP_INCLUDE)
-#	$(CC) $(CFLAGS) $(TCLCFLAGS) -c -o $@ $<
-
-#$(FOXES_EXE): $(FOXES_OBJ) $(DEP_OBJS)
-#	$(CC) -o $@ $< $(DEP_OBJS) $(LDFLAGS) $(TCLEXEFLAGS)
-
-#$(FOXES_SO): $(FOXES_OBJ) $(FOXES_TCL_OBJ) $(DEP_OBJS)
-#	$(CC) $(DEP_OBJS) $(FOXES_TCL_OBJ) -o $@ $< $(LDFLAGS) $(TCLSOFLAGS)
-
+#$(TACTIX_SO): $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ)
+#	$(CC) -o $@ $(TACTIX_OBJ) $(TACTIX_PEN_OBJ) $(ANOTO_PEN_OBJ) $(GAMESMAN_A) $(GAMESDB_A) $(GWISH_OBJ) $(LDFLAGS) $(TCLSOFLAGS)
 
 
 pygamesman: $(GAMESMAN_A) $(GAMESDB_A)
 	$(CC) -o pygamesman$(OBJSUFFIX) $(PYTHONCFLAGS) pygamesman.c
 	$(CC) -o pygamesman$(LIBSUFFIX) $(PYTHONLIBFLAGS) pygamesman$(OBJSUFFIX) $(GAMESMAN_A) $(GAMESDB_A)
-

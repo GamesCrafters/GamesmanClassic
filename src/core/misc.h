@@ -2,6 +2,8 @@
 #ifndef GMCORE_MISC_H
 #define GMCORE_MISC_H
 
+#include <stddef.h>
+
 size_t          MoveListLength                  (MOVELIST *ptr);
 void            FreeMoveList                    (MOVELIST* ptr);
 void            FreeRemotenessList              (REMOTENESSLIST* ptr);
@@ -16,10 +18,10 @@ BOOLEAN         ValidMove                       (POSITION pos, MOVE move);
 
 int             GetRandomNumber                 (int max);
 int             GetSmallRandomNumber            (int n);
-int             randSafe                        ();
+int             randSafe                        (void);
 
-unsigned int    Stopwatch                       ();
-void            ExitStageRight                  ();
+unsigned int    Stopwatch                       (void);
+void            ExitStageRight                  (void);
 void            ExitStageRightErrorString       (STRING msg);
 
 void ifprintf(BOOLEAN, char*, ...);
@@ -39,6 +41,7 @@ MOVELIST*       CreateMovelistNode              (MOVE move, MOVELIST* tail);
 MOVELIST*       CopyMovelist                    (MOVELIST* list);
 
 POSITIONLIST*   StorePositionInList             (POSITION pos, POSITIONLIST* head);
+POSITIONLIST*   AppendToTailOfPositionList      (POSITION pos, POSITIONLIST* tail);
 POSITIONLIST*   CopyPositionList                (POSITIONLIST* list);
 
 IPOSITIONLIST*  StorePositionInIList(POSITION thePosition, IPOSITIONLIST* thePositionList);
@@ -58,12 +61,12 @@ BOOLEAN         TierInList                              (TIER theTier, TIERLIST*
 BOOLEAN         RemoveTierFromList              (TIER theTier, TIERLIST** theTierlist);
 
 UNDOMOVELIST*   CreateUndoMovelistNode          (UNDOMOVE theUndoMove, UNDOMOVELIST* theNextUndoMove);
-MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, BOOLEAN isTerminal, MULTIPARTEDGELIST* next);
+MULTIPARTEDGELIST* CreateMultipartEdgeListNode(POSITION from, POSITION to, MOVE partMove, MOVE fullMove, MULTIPARTEDGELIST* next);
 
 void            FoundBadPosition                (POSITION pos, POSITION parent, MOVE move);
 
 BOOLEAN         DefaultGoAgain                  (POSITION pos, MOVE move);
-POSITION        GetNextPosition                 ();             // TODO: Move to solve
+POSITION        GetNextPosition                 (void);             // TODO: Move to solve
 
 MEXCALC         MexAdd                          (MEXCALC calc, MEX mex);
 MEX             MexCompute                      (MEXCALC calc);
@@ -72,7 +75,7 @@ MEXCALC         MexCalcInit                     (void);
 void            MexFormat                       (POSITION pos, STRING str);
 MEX             MexPrimitive                    (VALUE value);
 
-STRING get_var_string();
-STRING kHelpStarWritten();
+STRING get_var_string(void);
+STRING kHelpStarWritten(void);
 
 #endif /* GMCORE_MISC_H */

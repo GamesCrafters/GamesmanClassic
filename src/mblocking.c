@@ -8,28 +8,6 @@
 **
 ** DATE:        Start: ~ Jan 28, 2004
 **
-** UPDATE HIST:
-**              16 Mar, 04: Tentatively added structs, defines, globals,
-**                          DoMove, PrintComputersMove,
-**                          PrintPosition (depends on parser),
-**                          GetAndPrintPlayersMove, ConvertTextInputToMove,
-**                          and several auxillary functions.
-**              19 Mar, 04: Added parsing and printing code.
-**              06 Apr, 04: Added the rest of the functions, fixed
-**                          compiler errors.
-**              10 Apr, 04: Many bugfixes throughout the code, changes in
-**                          output functions, and (untested) support for
-**                          node classes.
-**              11 Apr, 04: Changed handling of the image array to work
-**                          with changing the graph file.
-**                          Added error-catching to the parser and put in
-**                          kHelpExample.
-**              19 Apr, 04: Fixed more bugs, changed the output format.
-**              23 Apr, 04: Minor changes in primitive and output,
-**                          a little more error checking.
-**
-**
-**
 **************************************************************************/
 
 /*************************************************************************
@@ -38,15 +16,8 @@
 **
 **************************************************************************/
 
-#include <stdio.h>
 #include "gamesman.h"
-#include <stdlib.h>
-#include <unistd.h>
-#include <limits.h>
 #include <dirent.h>
-#include "hash.h"
-
-extern STRING gValueString[];
 
 POSITION gNumberOfPositions  = 0;
 
@@ -54,9 +25,10 @@ POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 POSITION kBadPosition        = -1;
 
-STRING kAuthorName         = "Greg Bonin and Tanya Gordeeva";
-STRING kGameName           = "Blocking";
-STRING kDBName             = "blocking";
+CONST_STRING kAuthorName         = "Greg Bonin and Tanya Gordeeva";
+CONST_STRING kGameName           = "Blocking";
+CONST_STRING kDBName             = "blocking";
+STRING kDBNameVolatile			 = NULL;
 BOOLEAN kPartizan           = TRUE;
 BOOLEAN kSupportsHeuristic  = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
@@ -68,29 +40,29 @@ BOOLEAN kLoopy              = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
-STRING kHelpGraphicInterface =
+CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
-STRING kHelpTextInterface    =
+CONST_STRING kHelpTextInterface    =
         "Type in first the number of the node your piece is moving from and\n\
 second the number of the node your piece is moving to.\n\
 Ex: 1 2 to move a piece in node 1 to node 2.\n"                                                                                                                                         ;
 
-STRING kHelpOnYourTurn =
+CONST_STRING kHelpOnYourTurn =
         "Move one of your pieces to an empty spot on the board.\n\
 Some graphs may have restrictions on what nodes your piece may visit,\n\
 see the graph file for more details (the default has no such restrictions).\n"                                                                                                                                            ;
 
-STRING kHelpStandardObjective =
+CONST_STRING kHelpStandardObjective =
         "Move your pieces such that your opponent is trapped (ie, cannot move).\n";
 
-STRING kHelpReverseObjective =
+CONST_STRING kHelpReverseObjective =
         "Move your pieces such that your opponent is forced to trap you.\n";
 
-STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
+CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "";
 
-STRING kHelpExample =
+CONST_STRING kHelpExample =
         "Black (B)'s turn:\n\n\
 BOARD                                   LEGEND\n\
 B   B                                   1   2\n\
@@ -320,12 +292,6 @@ int hashLookup(char* token, classes node_classes, nodes board);
 /* Addition to list the contents of a directory. -JJ */
 void    PrettyPrintDir (const char*, const char*);
 
-/* External */
-#ifndef MEMWATCH
-extern GENERIC_PTR      SafeMalloc ();
-extern void             SafeFree ();
-#endif
-
 
 /************************************************************************
 **
@@ -366,11 +332,10 @@ void InitializeGame ()
 	hash_array[7] = hash_array[8] = num_nodes - num_black - num_white;
 	hash_array[9] = -1;
 
-	if (kDBName && strcmp(kDBName, "blocking") != 0)
-		SafeFree(kDBName);
-
-	kDBName = (STRING) SafeMalloc(sizeof(char)*100);
-	sprintf(kDBName, "%.6s", g_name);
+	if (kDBNameVolatile) SafeFree(kDBNameVolatile);
+	kDBNameVolatile = (STRING) SafeMalloc(sizeof(char)*100);
+	sprintf(kDBNameVolatile, "%.6s", g_name);
+	kDBName = kDBNameVolatile;
 
 	gNumberOfPositions = generic_hash_init(num_nodes, hash_array, NULL, 0);
 	gInitialPosition = generic_hash_hash(string_board, 1);
@@ -405,7 +370,7 @@ void DebugMenu ()
 
 void GameSpecificMenu ()
 {
-	char file_name[100];
+	char file_name[160];
 	char tmp[100];
 	BOOLEAN no_errors;
 
@@ -420,7 +385,7 @@ void GameSpecificMenu ()
 
 		printf("\nLoad Graph from : ");
 		scanf("%s", tmp);
-		(void) sprintf((char *)file_name, "../meta/%s.blk", tmp);
+		(void) sprintf(file_name, "../meta/%s.blk", tmp);
 
 		g_file = fopen(file_name, "r");
 
@@ -451,9 +416,9 @@ void GameSpecificMenu ()
 **
 ************************************************************************/
 
-void SetTclCGameSpecificOptions (options)
-int options[];
+void SetTclCGameSpecificOptions(int options[])
 {
+	(void)options;
 }
 
 
@@ -474,10 +439,7 @@ int options[];
 **
 *************************************************************************/
 
-POSITION DoMove (thePosition, theMove)
-POSITION thePosition;
-MOVE theMove;
-{
+POSITION DoMove (POSITION thePosition, MOVE theMove) {
 
 	int to, from;
 	int player;
@@ -497,57 +459,6 @@ MOVE theMove;
 	return generic_hash_hash(string_board, player);
 }
 
-
-/************************************************************************
-**
-** NAME:        GetInitialPosition
-**
-** DESCRIPTION: Ask the user for an initial position for testing. Store
-**              it in the space pointed to by initialPosition;
-**
-** OUTPUTS:     POSITION initialPosition : The position to fill.
-**
-************************************************************************/
-
-POSITION GetInitialPosition()
-{
-	POSITION initialPosition;
-	int current_node, i, player;
-	char* string_board = (char*)SafeMalloc(sizeof(char)*MAX_NODES);
-
-	for(i = 0; i < num_nodes; i++)
-		string_board[i] = '_';
-
-	printBoard(global_board, FALSE);
-	printf("Enter the nodes of the black pieces, ending with -1:\n");
-
-	scanf("%d", &current_node);
-	while(current_node != -1) {
-		string_board[current_node-1] = global_black[0].pic;
-		scanf("%d", &current_node);
-	}
-
-	printf("Enter the nodes of the white pieces, ending with -1:\n");
-
-	scanf("%d", &current_node);
-	while(current_node != -1) {
-		string_board[current_node-1] = global_white[0].pic;
-		scanf("%d", &current_node);
-	}
-
-	printf("Enter the number of the player:\n");
-	scanf("%d", &player);
-
-	string_board[num_nodes] = '\0';
-
-	initialPosition = generic_hash_hash(string_board, player);
-
-	free(string_board);
-
-	return initialPosition;
-}
-
-
 /************************************************************************
 **
 ** NAME:        PrintComputersMove
@@ -559,10 +470,7 @@ POSITION GetInitialPosition()
 **
 ************************************************************************/
 
-void PrintComputersMove(computersMove, computersName)
-MOVE computersMove;
-STRING computersName;
-{
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
 	int to, from;
 
 	moveUnHash(computersMove, &to, &from);
@@ -594,10 +502,7 @@ STRING computersName;
 **
 ************************************************************************/
 
-VALUE Primitive (pos)
-POSITION pos;
-{
-	int generic_hash_turn();
+VALUE Primitive (POSITION pos) {
 
 	char string_board[MAX_NODES];
 	int player = generic_hash_turn(pos);
@@ -650,11 +555,7 @@ POSITION pos;
 **
 ************************************************************************/
 
-void PrintPosition (position, playerName, usersTurn)
-POSITION position;
-STRING playerName;
-BOOLEAN usersTurn;
-{
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char string_board[MAX_NODES];
 
 	generic_hash_unhash(position, string_board);
@@ -693,12 +594,8 @@ BOOLEAN usersTurn;
 **
 ************************************************************************/
 
-MOVELIST *GenerateMoves (position)
-POSITION position;
-{
-	MOVELIST *CreateMovelistNode(), *head = NULL;
-	int generic_hash_turn();
-	VALUE Primitive();
+MOVELIST *GenerateMoves (POSITION position) {
+	MOVELIST *head = NULL;
 
 	char string_board[MAX_NODES];
 	int player, i, j, max_pieces;
@@ -791,13 +688,8 @@ BOOLEAN checkNodeAndClass(struct GraphNode* to_node, struct GraphNode* from_node
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove (thePosition, theMove, playerName)
-POSITION thePosition;
-MOVE *theMove;
-STRING playerName;
-{
-	BOOLEAN ValidMove();
-	USERINPUT ret, HandleDefaultTextInput();
+USERINPUT GetAndPrintPlayersMove (POSITION thePosition, MOVE *theMove, STRING playerName) {
+	USERINPUT ret;
 
 	do {
 		printf("%s's move [1-%d 1-%d/u(undo)]: ", playerName, num_nodes,
@@ -830,9 +722,7 @@ STRING playerName;
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput (input)
-STRING input;
-{
+BOOLEAN ValidTextInput (STRING input) {
 	int from, to;
 
 	sscanf(input, "%d %d", &from, &to);
@@ -858,9 +748,7 @@ STRING input;
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove (input)
-STRING input;
-{
+MOVE ConvertTextInputToMove (STRING input) {
 	int to, from;
 
 	sscanf(input, "%d %d", &from, &to);
@@ -881,10 +769,7 @@ STRING input;
 **
 ************************************************************************/
 
-void PrintMove (move)
-MOVE move;
-{
-	void moveUnHash();
+void PrintMove (MOVE move) {
 
 	int to, from;
 	moveUnHash(move, &to, &from);
@@ -977,8 +862,10 @@ void moveUnHash(int move, int* to, int* from) {
 
 char* boardToString(char* s, nodes board, pieces black_pieces,
                     pieces white_pieces) {
-	int i;
+	(void)black_pieces;
+	(void)white_pieces;
 
+	int i;
 	for(i = 0; i < num_nodes; i++) {
 		s[i] = (board[i].game_piece ? board[i].game_piece->pic :
 		        '_');
@@ -1428,7 +1315,7 @@ int handleNodeDef(char* token, int* pos, nodes board) {
 int handleImage(char* token, int* pos, nodes board) {
 	char* c_line;
 	char name[2];
-	int i, j, hash_lookup, order_counter;
+	int i, j, hash_lookup;
 
 	if(isspace(token[*pos]))
 		(*pos)++;
@@ -1439,7 +1326,6 @@ int handleImage(char* token, int* pos, nodes board) {
 	i = 0;
 	c_line = stringGetLine(token + *pos);
 
-	order_counter = 0;
 	name[1] = '\0';
 	while(c_line && (i < 20)) {
 		sprintf(image[i], "%.35s", c_line);
@@ -1749,20 +1635,23 @@ void PrettyPrintDir (const char* dir, const char* extension)
 	SafeFree(tmp);
 }
 
-POSITION InteractStringToPosition(STRING board) {
-	// FIXME: this is just a stub
-	return atoi(board);
+void MoveToString(MOVE move, char *moveStringBuffer) {
+	(void) move;
+	(void) moveStringBuffer;
 }
 
-STRING InteractPositionToString(POSITION pos) {
-	// FIXME: this is just a stub
-	return "Implement Me";
+POSITION StringToPosition(char *positionString) {
+	(void) positionString;
+	return NULL_POSITION;
 }
 
-STRING InteractPositionToEndData(POSITION pos) {
-	return NULL;
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	(void) position;
+	(void) autoguiPositionStringBuffer;
 }
 
-STRING InteractMoveToString(POSITION pos, MOVE mv) {
-	return "Implement MoveToString";
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void) position;
+	(void) move;
+	(void) autoguiMoveStringBuffer;
 }

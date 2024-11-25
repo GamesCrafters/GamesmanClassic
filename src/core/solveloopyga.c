@@ -90,9 +90,7 @@ VALUE lgas_DetermineValue(POSITION position)
 }
 
 
-VALUE lgas_DetermineLoopyValue1(position)
-POSITION position;
-{
+VALUE lgas_DetermineLoopyValue1(POSITION position) {
 	POSITION child=kBadPosition, parent;
 	MOVE move;
 	POSITIONMOVELIST *ptr;

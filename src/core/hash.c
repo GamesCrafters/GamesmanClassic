@@ -207,7 +207,7 @@ POSITION generic_hash_init(int boardsize, int *pieces_array, int (*fn)(int *), i
 	temp = 0;
 	cCon->numCfgs = 1;
 	for (i = 0; i < cCon->numPieces; i++) {
-		if(cCon->numCfgs < temp)
+		if((POSITION)(cCon->numCfgs) < temp)
 			ExitStageRightErrorString("Generic Hash: Number of Cfg's wrap on current POSITION type");
 		cCon->numCfgs *= cCon->nums[i];
 		temp = cCon->numCfgs;
@@ -498,10 +498,9 @@ char* generic_hash_unhash_tcl(POSITION pos)
 char* generic_hash_unhash(POSITION hashed, char* dest)
 {
 	POSITION offst;
-	int i, j, boardSize;
+	int i, j;
 	hashed %= cCon->maxPos; //accomodates generic_hash_turn
 
-	boardSize = cCon->boardSize;
 	j = searchOffset(hashed);
 	offst = cCon->hashOffset[j];
 	hashed -= offst;
@@ -783,7 +782,7 @@ int searchOffset(POSITION h)
 POSITION combiCount(int* tc)
 {
 	POSITION sum = 0, prod = 1, ind = 0,old=1,hold=0;
-	for (ind = 0; ind < cCon->numPieces - 1; ind++) {
+	for (ind = 0; ind < (POSITION)(cCon->numPieces - 1); ind++) {
 		sum += tc[ind];
 		hold = nCr(sum+tc[ind+1], sum);
 		prod *= hold;
@@ -872,7 +871,7 @@ void generic_hash_destroy()
 
 void initializeHashtable() {
 	generic_hash_hashtable = (MOVELIST**) SafeMalloc(HASHTABLE_BUCKETS * sizeof(MOVELIST*));
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		generic_hash_hashtable[i] = NULL;
 	hashtableInitialized = TRUE;
@@ -937,7 +936,7 @@ int hashtableGet(int context) {
 }
 
 void freeHashtable() {
-	int i;
+	unsigned int i;
 	for (i = 0; i < HASHTABLE_BUCKETS; i++)
 		FreeMoveList(generic_hash_hashtable[i]);
 	if (generic_hash_hashtable != NULL)
@@ -948,7 +947,7 @@ void freeHashtable() {
 // should be called after generic_hash_init
 void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflections, int numReflects, int* rotations, int numRots, int flippable) {
 
-	int i,j,k,numDiags;
+	int i,j,k;
 	int boardSize = 0;
 	int *hex60Rot = NULL, *tempSym = NULL, *hex0Ref;
 	struct symEntry *symIndex = NULL;
@@ -971,8 +970,6 @@ void generic_hash_init_sym(int boardType, int numRows, int numCols, int* reflect
 			if (j >= numRows/2 && j < numRows-1)
 				numCols--;
 		}
-		// FIGURE THIS OUT
-		numDiags = 0;
 	}
 	symBoardRows = numRows;
 	symBoardCols = numCols;

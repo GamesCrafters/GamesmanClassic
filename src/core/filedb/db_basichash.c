@@ -53,9 +53,9 @@ static gamesdb_bhashin* gamesdb_basichash_lookupchunk(gamesdb_bhash* hash, games
 
 	while(place != NULL) {
 		for(i=0; i<hash->chunk_size; i++) {
-			if(place->id[i] == myid)
+			if(place->id[i] == (gamesdb_pageid) myid)
 				return place;
-			if(place->id[i] == -1 && firstempty == NULL)
+			if(place->id[i] == -1ULL && firstempty == NULL)
 				firstempty = place;
 		}
 		prev = place;
@@ -110,7 +110,7 @@ gamesdb_frameid gamesdb_basichash_get(gamesdb_bhash* hash, gamesdb_pageid id){
 	int i;
 	int myid = id >> hash->index_bits;
 	for(i=0; i<hash->chunk_size; i++) {
-		if(mychunk->id[i] == myid)
+		if(mychunk->id[i] == (gamesdb_pageid) myid)
 			return mychunk->loc[i];
 	}
 
@@ -127,8 +127,8 @@ int gamesdb_basichash_put(gamesdb_bhash* hash, gamesdb_pageid id, gamesdb_framei
 	int firstempty = -1;
 
 	int myid = id >> hash->index_bits;
-	for(i=0; i < hash->chunk_size && place->id[i] != myid; i++) {
-		if (place->id[i] == -1 && firstempty == -1) {
+	for(i=0; i < hash->chunk_size && place->id[i] != (gamesdb_pageid) myid; i++) {
+		if (place->id[i] == -1ULL && firstempty == -1) {
 			firstempty = i;
 		}
 	};
@@ -153,7 +153,7 @@ gamesdb_frameid gamesdb_basichash_remove(gamesdb_bhash* hash, gamesdb_pageid id)
 
 	place = gamesdb_basichash_lookupchunk(hash,id);
 	int myid = id >> hash->index_bits;
-	for(i=0; i < hash->chunk_size && place->id[i] != myid; i++) ;
+	for(i=0; i < hash->chunk_size && place->id[i] != (gamesdb_pageid) myid; i++) ;
 	if(i < hash->chunk_size) {
 		place->id[i] = -1;
 		return place->loc[i];

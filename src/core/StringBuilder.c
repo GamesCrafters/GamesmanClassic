@@ -62,7 +62,7 @@ char sbGetChar(STRINGBUILDER *sb, unsigned int loc)
 char *sbToString(STRINGBUILDER *sb)
 {
 	char *returnString = (char *)malloc((sbLength(sb) + 1) * sizeof(char));
-	int i = 0;
+	unsigned int i = 0;
 
 	for (i = 0; i < sbLength(sb); i++)
 	{
@@ -79,7 +79,7 @@ void sbEnsureCapacity(STRINGBUILDER *sb, unsigned int additions)
 {
 	char *newString;
 	char *oldString;
-	int i = 0;
+	unsigned int i = 0;
 	unsigned int newCapacity = sbCurrentCapacity(sb);
 
 	if(sbLength(sb) + additions >= newCapacity)
