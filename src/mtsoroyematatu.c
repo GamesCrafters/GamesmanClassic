@@ -27,7 +27,7 @@ CONST_STRING kDBName = "tsoroyematatu";
  */
 
 
-POSITION gNumberOfPositions = 6561; // > 3^7
+POSITION gNumberOfPositions = 6561; // 3^8
 
 /**
  * @brief The hash value of the initial position of the default
@@ -142,11 +142,6 @@ BOOLEAN ThreeInARow(BlankOX*, int, int, int);
 char *gBlankOXString[] = { " ", "o", "x" };
 
 BlankOX gBoard[BOARDSIZE]; //board of the game
-
-int g3Array[] = {1, 3, 9, 27, 81, 243, 729};
-
-int X_placed = 0; // changes game from placing to moving when second player places third piece
-
 
 
 /**
@@ -389,15 +384,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 	PositionToBlankOX(position,theBlankOx);
 
-	printf("\n             1              :        %s         \n",
+	printf("\n             1               :        %s         \n",
 	       gBlankOXString[(int)theBlankOx[0]]);
-    printf("            /|\\             :       /|\\        \n");
-	printf("LEGEND:    2-3-4    BOARD:  :      %s-%s-%s       \n",
+    printf("            /|\\              :       /|\\        \n");
+	printf("LEGEND:    2-3-4    BOARD:   :      %s-%s-%s       \n",
 	       gBlankOXString[(int)theBlankOx[1]],
 	       gBlankOXString[(int)theBlankOx[2]],
 	       gBlankOXString[(int)theBlankOx[3]] );
-    printf("          /  |  \\           :     /  |  \\      \n");
-	printf("         5---6---7          :    %s---%s---%s   %s\n\n",
+    printf("          /  |  \\            :     /  |  \\      \n");
+	printf("         5---6---7           :    %s---%s---%s   %s\n\n",
 	       gBlankOXString[(int)theBlankOx[4]],
 	       gBlankOXString[(int)theBlankOx[5]],
 	       gBlankOXString[(int)theBlankOx[6]],
@@ -420,7 +415,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     do {
         /* List of available moves */
         // Modify the player's move prompt as you wish
-        printf("%8s's move: ", playerName);
+        printf("%8s's move [(u)ndo/1-7] : ", playerName);
         ret = HandleDefaultTextInput(position, move, playerName);
         if (ret != Continue) return ret;
     } while (TRUE);
@@ -499,7 +494,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
     char *moveStringBuffer[32];
     MoveToString(computersMove, moveStringBuffer);
-    printf("%s's move: %s\n", computersName, moveStringBuffer);
+    printf("  %s's move                : %s\n", computersName, moveStringBuffer);
 }
 
 /**
