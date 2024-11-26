@@ -132,7 +132,7 @@ typedef enum possibleBoardPieces {
 	Blank, o, x
 } BlankOX;
 
-char *gBlankOXString[] = { "-", "o", "x" };
+char *gBlankOXString[] = { "-", "O", "X" };
 
 /* Powers of 3 - this is the way I encode the position, as an integer */
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
@@ -194,31 +194,7 @@ int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
 ************************************************************************/
 
 void InitializeGame() {
-	/**************************************************/
-	/**************** SYMMETRY FUN BEGIN **************/
-	/**************************************************/
-
-	gCanonicalPosition = GetCanonicalPosition;
-
-	int i, j, temp; /* temp is used for debugging */
-
-	if(kSupportsSymmetries) { /* Initialize gSymmetryMatrix[][] */
-		for(i = 0; i < BOARDSIZE; i++) {
-			temp = i;
-			for(j = 0; j < NUMSYMMETRIES; j++) {
-				if(j == NUMSYMMETRIES/2)
-					temp = gFlipNewPosition[i];
-				if(j < NUMSYMMETRIES/2)
-					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-				else
-					temp = gSymmetryMatrix[j][i] = gRotate90CWNewPosition[temp];
-			}
-		}
-	}
-
-	/**************************************************/
-	/**************** SYMMETRY FUN END ****************/
-	/**************************************************/
+	//Ignore all Symmetry
 
 	PositionToBlankOX(gInitialPosition, gPosition.board);
 	gPosition.nextPiece = x;
@@ -428,7 +404,9 @@ VALUE Primitive(POSITION position) {
 		if (FourOfTheSame(gPosition.board, 1, 4, 6, 9) || 
 			FourOfTheSame(gPosition.board, 2, 5, 7, 10) || 
 			FourOfTheSame(gPosition.board, 5, 8, 10, 13) || 
-			FourOfTheSame(gPosition.board, 6, 9, 11, 14))
+			FourOfTheSame(gPosition.board, 6, 9, 11, 14) || 
+			FourOfTheSame(gPosition.board, 1, 7, 8, 14) || //Tilted
+			FourOfTheSame(gPosition.board, 2, 4, 11, 13)) // Tilted
 			return gStandardGame ? lose : win;
 	}
 
@@ -630,7 +608,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 	USERINPUT ret;
 
 	do {
-		printf("%8s's move [(u)ndo/1-16] :  ", playerName);
+		printf("%8s's move [(u)ndo/1-16] : ", playerName);
 
 		ret = HandleDefaultTextInput(thePosition, theMove, playerName);
 		if(ret != Continue)
@@ -841,7 +819,7 @@ BlankOX WhoseTurn(BlankOX *theBlankOX) {
 }
 
 int NumberOfOptions() {
-	return 3;
+	return 2;
 }
   
 
@@ -849,8 +827,6 @@ int getOption()
 {
 	int option = 0;
 	option += gStandardGame;
-	option *= 2;
-	option += gSymmetries;
 	option *= 2;
 	option += (int)Diamond;
 	return option+1;
@@ -860,8 +836,6 @@ void setOption(int option)
 {
 	option -= 1;
 	Diamond = (BOOLEAN) (option % 2);
-	option /= 2;
-	gSymmetries = option % 2;
 	option /= 2;
 	gStandardGame = option;
 }
@@ -877,9 +851,9 @@ POSITION StringToPosition(char *positionString) {
 	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
 		BlankOX oxboard[BOARDSIZE];
 		for (int i = 0; i < BOARDSIZE; i++) {
-			if (board[i] == 'o') {
+			if (board[i] == 'O') {
 				oxboard[i] = o;
-			} else if (board[i] == 'x') {
+			} else if (board[i] == 'X') {
 				oxboard[i] = x;
 			} else if (board[i] == '-') {
 				oxboard[i] = Blank;
@@ -898,9 +872,9 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 	char board[BOARDSIZE + 1];
 	for (int i = 0; i < BOARDSIZE; i++) {
 		if (oxboard[i] == o) {
-			board[i] = 'o';
+			board[i] = 'O';
 		} else if (oxboard[i] == x) {
-			board[i] = 'x';
+			board[i] = 'X';
 		} else {
 			board[i] = '-';
 		}
@@ -917,6 +891,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 	BlankOX oxboard[BOARDSIZE];
 	PositionToBlankOX(position, oxboard);
 	char token = (WhoseTurn(oxboard) == x) ? 'x' : 'o';
-	AutoGUIMakeMoveButtonStringA(token, move, '-', autoguiMoveStringBuffer);
+	AutoGUIMakeMoveButtonStringA(token, move, 'x', autoguiMoveStringBuffer);
 }
 
