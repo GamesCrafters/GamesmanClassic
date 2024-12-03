@@ -18,29 +18,29 @@
 ##############################################################################
 
 # @WARNGC@ Makefile.in
-# src/Makefile.  Generated from Makefile.in by configure.
+# @configure_input@
 
-CC		= gcc
-CCC		= g++ -std=gnu++11
+CC		= @CC@
+CCC		= @CXX@
 
 TOPDIR		= ..
 BINDIR		= $(TOPDIR)/bin
 LIBDIR		= $(TOPDIR)/lib
 
-CFLAGS		=  -Wall -Wextra -DNDEBUG -g  -DMACOSX -DNO_GRAPHICS  -std=gnu99
-CCFLAGS 	=  -Wall -Wextra -DNDEBUG -g  -DMACOSX -DNO_GRAPHICS 
-LDFLAGS		=  -lz  $(GMPLIBFLAGS) $(XMLLIBFLAGS)
-TCLSOFLAGS	= 
-TCLEXEFLAGS	= 
-TCLDBGX		= 
-PYTHONCFLAGS	= -pthread -fno-strict-aliasing -DNDEBUG -fPIC -c -g
-PYTHONLIBFLAGS  = -pthread 
-GMPLIBFLAGS    = 
-XMLLIBFLAGS    = 
+CFLAGS		= @CFLAGS@ @TCLCFLAGS@ -std=gnu99
+CCFLAGS 	= @CFLAGS@ @TCLCFLAGS@
+LDFLAGS		= @LDFLAGS@ $(GMPLIBFLAGS) $(XMLLIBFLAGS)
+TCLSOFLAGS	= @TCLSOFLAGS@
+TCLEXEFLAGS	= @TCLEXEFLAGS@
+TCLDBGX		= @TCLDBGX@
+PYTHONCFLAGS	= @PYTHONCFLAGS@
+PYTHONLIBFLAGS  = @PYTHONLIBFLAGS@
+GMPLIBFLAGS    = @GMPLIBFLAGS@
+XMLLIBFLAGS    = @XMLLIBFLAGS@
 
-LIBSUFFIX	= .dylib
-OBJSUFFIX	= .o
-EXESUFFIX	= 
+LIBSUFFIX	= @LIBSUFFIX@
+OBJSUFFIX	= @OBJSUFFIX@
+EXESUFFIX	= @EXESUFFIX@
 
 ANOTO_PEN_DIR   = core/pen
 ANOTO_PEN_OBJ   = $(ANOTO_PEN_DIR)/loader$(OBJSUFFIX) $(ANOTO_PEN_DIR)/stroke$(OBJSUFFIX)
@@ -102,9 +102,6 @@ ABALONE_EXE		= $(BINDIR)/mabalone$(EXESUFFIX) #The TITillating game of abalone!
 ABALONE_OBJ		= mabalone$(OBJSUFFIX)
 ABALONE_TCL_OBJ		= tkAppInitAbalone$(OBJSUFFIX)
 ABALONE_SO		= $(LIBDIR)/libmabalone$(LIBSUFFIX)
-
-ABROBAD_EXE = $(BINDIR)/mabrobad$(EXESUFFIX)
-ABROBAD_OBJ = mabrobad$(OBJSUFFIX)
 
 ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
 ACHI_OBJ		= machi$(OBJSUFFIX)
@@ -243,6 +240,10 @@ HORSE_SO		= $(LIBDIR)/libmhorse$(LIBSUFFIX)
 ICEBLOCKS_EXE		= $(BINDIR)/miceblocks$(EXESUFFIX)
 ICEBLOCKS_OBJ		= miceblocks$(OBJSUFFIX)
 ICEBLOCKS_SO		= $(LIBDIR)/libmiceblocks$(LIBSUFFIX)
+
+JAN4X4_EXE = $(BINDIR)/mjan$(EXESUFFIX) # A simple games
+JAN4X4_OBJ = mjan$(OBJSUFFIX)
+JAN4X4_SO  = $(LIBDIR)/libmjan$(LIBSUFFIX)
 
 JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
 JOUST_OBJ		= mjoust$(OBJSUFFIX)
@@ -447,11 +448,11 @@ YOTE_SO			= $(LIBDIR)/libmyote$(LIBSUFFIX)
 
 ### Games written in C that work with the current gamesman core:
 # Object files
-CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ABROBAD_OBJ) $(ACHI_OBJ) $(ADUGO_OBJ) \
+CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ACHI_OBJ) $(ADUGO_OBJ) \
             $(ALLQUEENS_OBJ) $(BAGHCHAL_OBJ) $(BEELINE_OBJ) $(CHANGE_OBJ) $(CHOMP_OBJ) \
 			$(CHOPSTICKS_OBJ) $(CONNECT4_OBJ) $(CTOI_OBJ) $(DAO_OBJ) $(DINODODGEM_OBJ) \
 			$(DODGEM_OBJ) $(DOMINEERING_OBJ) $(FIVEFIELDKONO_OBJ) $(FORESTFOX_OBJ) $(FOXES_OBJ) \
-			$(GAMEOFY_OBJ) $(GRAPHGAME_OBJ) $(HAREGAME_OBJ) $(HORSE_OBJ) $(JOUST_OBJ) \
+			$(GAMEOFY_OBJ) $(GRAPHGAME_OBJ) $(HAREGAME_OBJ) $(HORSE_OBJ) $(JAN4X4_OBJ) $(JOUST_OBJ) \
 			$(KONANE_OBJ) $(KONO_OBJ) $(LEWTH_OBJ) $(LGAME_OBJ) $(LITE3_OBJ) $(MANCALA_OBJ) \
 			$(NOTAKTO_OBJ) $(NUTTT_OBJ) $(ONEDCHESS_OBJ) $(OOE_OBJ) $(OTHELLO_OBJ) $(QUARTO_OBJ) \
 			$(QUICKCHESS_OBJ) $(QX_OBJ) $(SIM_OBJ) $(SLIDE5_OBJ) $(SQUAREDANCE_OBJ) $(STT_OBJ) \
@@ -465,11 +466,11 @@ CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ABROBAD_OBJ) 
 			$(WINKERS_OBJ) $(WUZHI_OBJ) $(XIGUA_OBJ)
 
 # Binary files
-CGAMES =    $(1210_EXE) $(369MM_EXE) $(3SPOT_EXE) $(ABALONE_EXE) $(ABROBAD_EXE) $(ACHI_EXE) $(ADUGO_EXE) \
+CGAMES =    $(1210_EXE) $(369MM_EXE) $(3SPOT_EXE) $(ABALONE_EXE) $(ACHI_EXE) $(ADUGO_EXE) \
             $(ALLQUEENS_EXE) $(BAGHCHAL_EXE) $(BEELINE_EXE) $(CHANGE_EXE) $(CHOMP_EXE) \
             $(CHOPSTICKS_EXE) $(CONNECT4_EXE) $(CTOI_EXE) $(DAO_EXE) $(DINODODGEM_EXE) \
             $(DODGEM_EXE) $(DOMINEERING_EXE) $(FIVEFIELDKONO_EXE) $(FORESTFOX_EXE) $(FOXES_EXE) \
-            $(GAMEOFY_EXE) $(GRAPHGAME_EXE) $(HAREGAME_EXE) $(HORSE_EXE) $(JOUST_EXE) \
+            $(GAMEOFY_EXE) $(GRAPHGAME_EXE) $(HAREGAME_EXE) $(HORSE_EXE) $(JAN4X4_EXE) $(JOUST_EXE) \
             $(KONANE_EXE) $(KONO_EXE) $(LEWTH_EXE) $(LGAME_EXE) $(LITE3_EXE) $(MANCALA_EXE) \
 			$(NOTAKTO_EXE) $(NUTTT_EXE) $(ONEDCHESS_EXE) $(OOE_EXE) $(OTHELLO_EXE) $(QUARTO_EXE) \
             $(QUICKCHESS_EXE) $(QX_EXE) $(SIM_EXE) $(SLIDE5_EXE) $(SQUAREDANCE_EXE) $(STT_EXE) \
@@ -513,7 +514,7 @@ SPECIALTCL = $(TTT_SO) $(ACHI_SO) $(ABALONE_SO) $(DNB_SO) $(TACTIX_SO)
 ##############################################################################
 ### Global build rules
 
-all: 		text_all 
+all: 		text_all @COMPILEGRAPHICS@
 
 all-memdebug:	CFLAGS+= -DMEMWATCH
 all-memdebug:	all
@@ -531,7 +532,7 @@ dist-clean:		clean
 clean:		clean-bins
 		@$(MAKE) -w -C core clean
 		rm -rf $(CTCL) $(CCTCL) $(SPECIALTCL) $(GAMELINE_EXE) \
-		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ *.o $(DEP_OBJS) \
+		$(LIBDIR)/*~ $(BINDIR)/solve $(BINDIR)/*~ @RMOBJS@ $(DEP_OBJS) \
 		$(DEP_GWISH_OBJ) *~ $(GAMESMAN_A) $(GAMESDB_A) \
 		$(ANOTO_PEN_OBJ) $(TTT_PEN_OBJ) $(TACTIX_EXE) $(DNB_PEN_OBJ) $(TACTIX_PEN_OBJ)
 
