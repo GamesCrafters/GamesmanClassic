@@ -1,0 +1,285 @@
+[Config]
+
+[Colors]
+green=0
+
+
+
+
+
+gold=1
+grey=2
+brown=3
+black=4
+
+[1,2,...,10]
+color=0
+basename=1210
+
+[Abalone]
+color=1
+basename=abalone
+
+[Achi]
+color=0
+basename=achi
+
+[Asalto]
+color=1
+basename=asalto
+
+[Cambio]
+color=4
+basename=cambio
+
+[Change!]
+color=1
+basename=change
+
+[Chung-Toi]
+color=0
+basename=ctoi
+
+[Connect-4]
+color=1
+basename=win4
+
+[Dao]
+color=0
+basename=dao
+
+[Dino Dodgem]
+color=1
+basename=dinododgem
+
+[Dodgem]
+color=1
+basename=dodgem
+
+[Dots and Boxes]
+color=1
+basename=dnb
+
+[Foxes and Geese]
+color=1
+basename=foxes
+
+[Hasami Shogi]
+color=1
+basename=hshogi
+
+[Ice Blocks]
+color=1
+basename=iceblocks
+
+[Lewthwaite's Game]
+color=1
+basename=lewth
+
+[Lite-3]
+color=1
+basename=lite3
+
+[Mancala]
+color=0
+basename=mancala
+
+[Mu Torere]
+color=1
+basename=tore
+
+[Nim]
+color=1
+basename=nim
+
+[Odd or Even]
+color=0
+basename=ooe
+
+[Othello]
+color=0
+basename=othello
+
+[QuickCross]
+color=1
+basename=qx
+
+[Rubix Magic]
+color=1
+basename=rubix
+
+[Seega]
+color=1
+basename=seega
+
+[Sim]
+color=0
+basename=sim
+
+[Slide-N]
+color=1
+basename=slideN
+
+[Snake]
+color=1
+basename=snake
+
+[Tac Tix]
+color=1
+basename=tactix
+
+[Tic-Tac-Toe]
+color=0
+basename=ttt3
+
+[Wuzhi]
+color=1
+basename=wuzhi
+
+[L Game]
+color=0
+basename=lgame
+
+[3-Spot]
+color=3
+basename=3spot
+
+[Connections!]
+color=1
+basename=con
+
+[Critical Mass]
+color=3
+basename=cmass
+
+[Shift-Tac-Toe]
+color=1
+basename=stt
+
+[1 TO N]
+color=4
+basename=1ton
+
+[3, 6, 9 Men's Morris]
+color=4
+basename=9mm
+
+[Atari Go]
+color=4
+basename=ago
+
+[Ataxx]
+color=4
+basename=ataxx
+
+[Bagh Chal]
+color=0
+basename=baghchal
+
+[Blocking]
+color=4
+basename=blocking
+
+[Fandango]
+color=4
+basename=fandan
+
+[Go]
+color=4
+basename=igo
+
+[Gobblet Jr]
+color=4
+basename=gobblet
+
+[Graph]
+color=4
+basename=graph
+
+[Hex]
+color=4
+basename=hex
+
+[Horseshoe]
+color=4
+basename=horse
+
+[Joust]
+color=4
+basename=joust
+
+[Four Field Kono]
+color=4
+basename=kono
+
+[Lines of Action]
+color=4
+basename=loa
+
+[Nu Tic-Tac-Toe]
+color=4
+basename=nuttt
+
+[Pentago]
+color=4
+basename=pentago
+
+[Paradux]
+color=4
+basename=paradux
+
+[Pylos]
+color=4
+basename=pylos
+
+[Quarto]
+color=4
+basename=quarto
+
+[Queensland]
+color=4
+basename=qland
+
+[Quick Chess]
+color=0
+basename=quickchess
+
+[Rubik's Checkers]
+color=4
+basename=rcheckers
+
+[Rubik's Infinity]
+color=4
+basename=rInfin2
+
+[Square Dance]
+color=4
+basename=squaredance
+
+[Dragons & Swans]
+color=0
+basename=swans
+
+[Tile Chess]
+color=4
+basename=tilechess
+
+[Toot and Otto]
+color=1
+basename=tootnotto
+
+[Topitop]
+color=4
+basename=topitop
+
+[Tic-Tac-Chec]
+color=4
+basename=ttc
+
+[Winkers]
+color=4
+basename=winkers
+
+[XiGua]
+color=4
+basename=xigua
