@@ -230,7 +230,7 @@ POSITION kBadPosition = -1;
  * is set to FALSE, then those solvers do not print the debugging
  * statements.
  */
-BOOLEAN kDebugDetermineValue = TRUE;
+BOOLEAN kDebugDetermineValue = FALSE;
 
 /**
  * @brief Declaration of optional functions.
