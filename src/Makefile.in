@@ -380,7 +380,6 @@ TACTIX_PEN_OBJ		= $(ANOTO_PEN_DIR)/ptactix$(OBJSUFFIX)
 
 TANTFANT_EXE		= $(BINDIR)/mtantfant$(EXESUFFIX)	# Tant Fant
 TANTFANT_OBJ		= mtantfant$(OBJSUFFIX)
-TANTFANT_SO		= $(LIBDIR)/libmtantfant$(LIBSUFFIX)
 
 TILECHESS_EXE		= $(BINDIR)/mtilechess$(EXESUFFIX) # The intense game of Tile Chess
 TILECHESS_OBJ		= mtilechess$(OBJSUFFIX)
