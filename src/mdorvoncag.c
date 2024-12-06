@@ -16,13 +16,14 @@
 
 #include "gamesman.h"
 
-#define BOARD_SIZE 7
-#define MAX_MOVE_STRING_SIZE (20 * 2 + 2)
+#define BOARD_SIZE 5
+#define MAX_MOVE_STRING_SIZE (4096)
 
 #define ENCODE_MOVE(start, end) ((start) << 16 | (end))
 #define DECODE_MOVE_START(move) ((move) >> 16)
 #define DECODE_MOVE_END(move) (0xffff & (move))
 #define NEXT_PLAYER(player) (1 + (player  % 2))
+#define PLACE_PIECE(pos) (pos)
 
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
@@ -80,9 +81,9 @@ BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
 void InitializeGame()
 {
-  int hash_data[] = {' ', 1, 5, 'O', 1, 3, 'X', 1, 3, -1};
+  int hash_data[] = {' ', 1, 5, 'O', 0, 5, 'X', 0, 5, -1};
   gNumberOfPositions = generic_hash_init(BOARD_SIZE, hash_data, NULL, 0);
-  char start[] = "     XO";
+  char start[] = "     ";
   gInitialPosition = generic_hash_hash(start, 1);
   /* This game is the same game as Blocking and is known to be pure draw. */
   kUsePureDraw = TRUE;
@@ -152,14 +153,20 @@ POSITION DoMove(POSITION position, MOVE move)
   int end = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
+  int piecesOnBoard = 0;
+  for (int i = 0; i < 5; i++) {
+    if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
+      piecesOnBoard++;
+    }
+  }
+
   //printf("DoMove called with start: %d, end: %d, player: %d\n", start, end, player);
   
-  if (start == 5 || start == 6) {
+  if (move < 5 && move >= 0 && piecesOnBoard<4) {
     // 放置棋子
     //printf("I love jasmine\n");
-    assert(board[end] == ' ');
-    assert(board[start] != ' ');
-    board[end] = board[start];
+    assert(board[move] == ' ');
+    board[move] = playerPiece[player];
   } else {
     // 正常移动
     assert(board[end] == ' ');
@@ -287,25 +294,27 @@ MOVELIST *GenerateMoves(POSITION position)
   MOVELIST *moves = NULL;
 
   int piecesOnBoard = 0;
-  for (int i = 0; i < 7; i++) {
+  for (int i = 0; i < 5; i++) {
     if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
       piecesOnBoard++;
     }
   }
 
-  if (piecesOnBoard < 6 && player == 1)
+  if (piecesOnBoard < 4 && player == 1)
   {
     for (int i = 0; i < 5; i++) {
       if (board[i] == ' ') {  
-        moves = CreateMovelistNode(ENCODE_MOVE(5, i), moves); 
+        MOVE place = PLACE_PIECE(i);
+        moves = CreateMovelistNode(place, moves); 
       }
   }
   }
-  else if (piecesOnBoard < 6 && player == 2)
+  else if (piecesOnBoard < 4 && player == 2)
   {
     for (int i = 0; i < 5; i++) {
       if (board[i] == ' ') {  
-        moves = CreateMovelistNode(ENCODE_MOVE(6, i), moves); 
+        MOVE place = PLACE_PIECE(i);
+        moves = CreateMovelistNode(place, moves); 
       }
   }
   }
@@ -489,13 +498,19 @@ BOOLEAN ValidTextInput(STRING input)
 
 MOVE ConvertTextInputToMove(STRING input)
 {
-  char * c = input;
-  long start = strtol(c, &c, 10);
-  while (*c == ' ' || *c == ',') {
-    c++;
-  }
-  long end = strtol(c, &c, 10);
-  return ENCODE_MOVE(start, end);
+  char *c = input;
+    long start = strtol(c, &c, 10); // 提取第一个数字 (start)
+    while (*c == ' ' || *c == ',') { // 跳过空格和逗号
+        c++;
+    }
+
+    // 检查是否有第二个数字
+    if (*c == '\0') { 
+        return PLACE_PIECE(start); // 如果只有一个数字，返回放置操作
+    }
+
+    long end = strtol(c, &c, 10); // 提取第二个数字 (end)
+    return ENCODE_MOVE(start, end); // 使用宏将 start 和 end 编码为 MOVE
 }
 
 /************************************************************************
@@ -510,9 +525,14 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE move)
 {
+  if (move<5 && move >= 0)
+  {
+    printf("%d", move);
+  } else{
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d,%d", start, end);
+  printf("%d,", start, end);}
+  
 }
 
 
