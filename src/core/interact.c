@@ -307,6 +307,7 @@ void ServerInteractLoop(void) {
 							}
 
 							if (currEdge->to != NULL_POSITION) {
+								PositionToAutoGUIString(currEdge->to, positionStringBuffer);
 								printf(",\"to\":\"%s\"", positionStringBuffer);
 							} else {
 								MoveToString(currEdge->fullMove, moveStringBuffer);
