@@ -103,6 +103,9 @@ ABALONE_OBJ		= mabalone$(OBJSUFFIX)
 ABALONE_TCL_OBJ		= tkAppInitAbalone$(OBJSUFFIX)
 ABALONE_SO		= $(LIBDIR)/libmabalone$(LIBSUFFIX)
 
+ABROBAD_EXE   = $(BINDIR)/mabrobad$(EXESUFFIX)
+ABROBAD_OBJ		= mabrobad$(OBJSUFFIX)
+
 ACHI_EXE		= $(BINDIR)/machi$(EXESUFFIX)	# The interesting game of achi!
 ACHI_OBJ		= machi$(OBJSUFFIX)
 ACHI_SO			= $(LIBDIR)/libmachi$(LIBSUFFIX)
@@ -352,7 +355,6 @@ SLIDE5_EXE   = $(BINDIR)/mslide5$(EXESUFFIX) # The sliding game of slide-5
 SLIDE5_OBJ   = mslide5$(OBJSUFFIX)
 SLIDE5_SO    = $(LIBDIR)/libmslide5$(LIBSUFFIX)
 
-
 SLIDEN_EXE		= $(BINDIR)/mslideN$(EXESUFFIX)	# The mysterious game of slide-N
 SLIDEN_OBJ		= mslideN$(OBJSUFFIX)
 SLIDEN_SO		= $(LIBDIR)/libmslideN$(LIBSUFFIX)
@@ -378,6 +380,9 @@ TACTIX_OBJ		= mtactix$(OBJSUFFIX)
 TACTIX_SO		= $(LIBDIR)/libmtactix$(LIBSUFFIX)
 TACTIX_PEN_OBJ		= $(ANOTO_PEN_DIR)/ptactix$(OBJSUFFIX)
 
+TANTFANT_EXE		= $(BINDIR)/mtantfant$(EXESUFFIX)
+TANTFANT_OBJ		= mtantfant$(OBJSUFFIX)
+
 TILECHESS_EXE		= $(BINDIR)/mtilechess$(EXESUFFIX) # The intense game of Tile Chess
 TILECHESS_OBJ		= mtilechess$(OBJSUFFIX)
 TILECHESS_SO		= $(LIBDIR)/libmtilechess$(LIBSUFFIX)
@@ -393,6 +398,10 @@ TOPTIOP_SO		= $(LIBDIR)/libmtopitop$(LIBSUFFIX)
 TORE_EXE		= $(BINDIR)/mtore$(EXESUFFIX)	# The great game of Tac Tix
 TORE_OBJ		= mtore$(OBJSUFFIX)
 TORE_SO			= $(LIBDIR)/libmtore$(LIBSUFFIX)
+
+TSOROYEMATATU_EXE		= $(BINDIR)/mtsoroyematatu$(EXESUFFIX) #The tantalizing game of tsoroyematatu
+TSOROYEMATATU_OBJ		= mtsoroyematatu$(OBJSUFFIX)
+TSOROYEMATATU_SO		= $(LIBDIR)/libmtsoroyematatu$(LIBSUFFIX)
 
 TTC_EXE			= $(BINDIR)/mttc$(EXESUFFIX) #The tantalizing game of tic-tac-chec
 TTC_OBJ			= mttc$(OBJSUFFIX)
@@ -449,7 +458,7 @@ YOTE_SO			= $(LIBDIR)/libmyote$(LIBSUFFIX)
 
 ### Games written in C that work with the current gamesman core:
 # Object files
-CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ACHI_OBJ) $(ADUGO_OBJ) \
+CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ABROBAD_OBJ) $(ACHI_OBJ) $(ADUGO_OBJ) \
             $(ALLQUEENS_OBJ) $(BAGHCHAL_OBJ) $(BEELINE_OBJ) $(CHANGE_OBJ) $(CHOMP_OBJ) \
 			$(CHOPSTICKS_OBJ) $(CONNECT4_OBJ) $(CTOI_OBJ) $(DAO_OBJ) $(DINODODGEM_OBJ) \
 			$(DODGEM_OBJ) $(DOMINEERING_OBJ) $(FIVEFIELDKONO_OBJ) $(FORESTFOX_OBJ) $(FOXES_OBJ) \
@@ -466,8 +475,9 @@ CGAMEOBJS = $(1210_OBJ) $(369MM_OBJ) $(3SPOT_OBJ) $(ABALONE_OBJ) $(ACHI_OBJ) $(A
 			$(TOOTNOTTO_OBJ) $(TT2_OBJ) $(TTC_OBJ) $(TTTPPM_OBJ) $(TTTIER_OBJ) $(WIN4_OBJ) \
 			$(WINKERS_OBJ) $(WUZHI_OBJ) $(XIGUA_OBJ) $(TTT4_OBJ)
 
+
 # Binary files
-CGAMES =    $(1210_EXE) $(369MM_EXE) $(3SPOT_EXE) $(ABALONE_EXE) $(ACHI_EXE) $(ADUGO_EXE) \
+CGAMES =    $(1210_EXE) $(369MM_EXE) $(3SPOT_EXE) $(ABALONE_EXE) $(ABROBAD_EXE) $(ACHI_EXE) $(ADUGO_EXE) \
             $(ALLQUEENS_EXE) $(BAGHCHAL_EXE) $(BEELINE_EXE) $(CHANGE_EXE) $(CHOMP_EXE) \
             $(CHOPSTICKS_EXE) $(CONNECT4_EXE) $(CTOI_EXE) $(DAO_EXE) $(DINODODGEM_EXE) \
             $(DODGEM_EXE) $(DOMINEERING_EXE) $(FIVEFIELDKONO_EXE) $(FORESTFOX_EXE) $(FOXES_EXE) \
@@ -483,6 +493,7 @@ CGAMES =    $(1210_EXE) $(369MM_EXE) $(3SPOT_EXE) $(ABALONE_EXE) $(ACHI_EXE) $(A
             $(SEEGA_EXE) $(SHOGI_EXE) $(SLIDEN_EXE) $(SNAKE_EXE) $(TILECHESS_EXE) \
 			$(TOOTNOTTO_EXE) $(TT2_EXE) $(TTC_EXE) $(TTT4_EXE) $(TTTPPM_EXE) $(TTTIER_EXE) $(WIN4_EXE) \
 			$(WINKERS_EXE) $(WUZHI_EXE) $(XIGUA_EXE) 
+
 
 # Tcl/Tk libraries
 CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(SIM_SO) $(STT_SO) \
