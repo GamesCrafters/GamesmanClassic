@@ -81,7 +81,7 @@ occupy each corner or any 2x2 square also loses. Enable Diamond option to add oc
 
 
 CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
-                            "the board fills up without either player getting four-in-a-row, one in each corner, or a two-by-two square.";
+                            "The board fills up without either player getting four-in-a-row, one in each corner, or a two-by-two square.";
 
 
 CONST_STRING kHelpExample =
@@ -187,34 +187,6 @@ POSITION ActualNumberOfPositions(int variant);
 
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
-
-#define NUMSYMMETRIES 8   /*  4 rotations, 4 flipped rotations */
-
-
-int gSymmetryMatrix[NUMSYMMETRIES][BOARDSIZE];
-
-
-/* Proofs of correctness for the below arrays:
-**
-** FLIP                     ROTATE
-**
-** 0 1 2    2 1 0       0 1 2       6 3 0       8 7 6       2 5 8
-** 3 4 5  ->    5 4 3       3 4 5   ->  7 4 1  ->   5 4 3   ->  1 4 7
-** 6 7 8    8 7 6       6 7 8       8 5 2       2 1 0       0 3 6
-*/
-
-
-/* This is the array used for flipping along the N-S axis */
-int gFlipNewPosition[] = { 2, 1, 0, 5, 4, 3, 8, 7, 6 };
-
-
-/* This is the array used for rotating 90 degrees clockwise */
-int gRotate90CWNewPosition[] = { 6, 3, 0, 7, 4, 1, 8, 5, 2 };
-
-
-/**************************************************/
-/**************** SYMMETRY FUN END ****************/
-/**************************************************/
 
 
 /************************************************************************
