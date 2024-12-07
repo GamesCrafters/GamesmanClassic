@@ -180,10 +180,6 @@ int tttppm(int x, int y);
 POSITION ActualNumberOfPositions(int variant);
 
 
-/**************************************************/
-/**************** SYMMETRY FUN BEGIN **************/
-/**************************************************/
-
 
 BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
@@ -199,9 +195,6 @@ BOOLEAN kSupportsSymmetries = FALSE; /* Whether we support symmetries */
 
 
 void InitializeGame() {
-    //Ignore all Symmetry
-
-
     PositionToBlankOX(gInitialPosition, gPosition.board);
     gPosition.nextPiece = x;
     gPosition.piecesPlaced = 0;
@@ -577,65 +570,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 ************************************************************************/
 
 
-POSITION DoSymmetry(POSITION position, int symmetry) {
-    int i;
-    BlankOX theBlankOx[BOARDSIZE], symmBlankOx[BOARDSIZE];
 
-
-    PositionToBlankOX(position,theBlankOx);
-    PositionToBlankOX(position,symmBlankOx); /* Make copy */
-
-
-    /* Copy from the symmetry matrix */
-
-
-    for(i = 0; i < BOARDSIZE; i++)
-        symmBlankOx[i] = theBlankOx[gSymmetryMatrix[symmetry][i]];
-
-
-    return(BlankOXToPosition(symmBlankOx));
-}
-
-
-/************************************************************************
-**
-** NAME:        GetCanonicalPosition
-**
-** DESCRIPTION: Go through all of the positions that are symmetrically
-**              equivalent and return the SMALLEST, which will be used
-**              as the canonical element for the equivalence set.
-**
-** INPUTS:      POSITION position : The position return the canonical elt. of.
-**
-** OUTPUTS:     POSITION          : The canonical element of the set.
-**
-************************************************************************/
-
-
-POSITION GetCanonicalPosition(POSITION position) {
-    POSITION newPosition, theCanonicalPosition;
-    int i;
-
-
-    theCanonicalPosition = position;
-
-
-    for(i = 0; i < NUMSYMMETRIES; i++) {
-
-
-        newPosition = DoSymmetry(position, i); /* get new */
-        if(newPosition < theCanonicalPosition) /* THIS is the one */
-            theCanonicalPosition = newPosition; /* set it to the ans */
-    }
-
-
-    return(theCanonicalPosition);
-}
-
-
-/**************************************************/
-/**************** SYMMETRY FUN END ****************/
-/**************************************************/
 
 
 /************************************************************************
