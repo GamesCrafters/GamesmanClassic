@@ -244,6 +244,10 @@ ICEBLOCKS_EXE		= $(BINDIR)/miceblocks$(EXESUFFIX)
 ICEBLOCKS_OBJ		= miceblocks$(OBJSUFFIX)
 ICEBLOCKS_SO		= $(LIBDIR)/libmiceblocks$(LIBSUFFIX)
 
+JAN4X4_EXE = $(BINDIR)/mjan$(EXESUFFIX) # A simple games
+JAN4X4_OBJ = mjan$(OBJSUFFIX)
+JAN4X4_SO  = $(LIBDIR)/libmjan$(LIBSUFFIX)
+
 JOUST_EXE		= $(BINDIR)/mjoust$(EXESUFFIX)
 JOUST_OBJ		= mjoust$(OBJSUFFIX)
 JOUST_SO		= $(LIBDIR)/libmjoust$(LIBSUFFIX)
