@@ -36,7 +36,7 @@ CONST_STRING kAuthorName         = "Edward Cheng and Ijin Yu";
 CONST_STRING kGameName           = "Four Square Tic-Tac-Toe";
 CONST_STRING kDBName = "ttt4";
 BOOLEAN kPartizan           = TRUE;
-BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = TRUE;
 BOOLEAN kLoopy               = FALSE;
@@ -154,7 +154,7 @@ typedef enum possibleBoardPieces {
 char *gBlankOXString[] = { "-", "O", "X" };
 
 
-/* Powers of 3 - this is the way I encode the position, as an integer */
+/* Powers of 3 - this is weight for each square when it's hashed: 16 total */
 int g3Array[] = { 1, 3, 9, 27, 81, 243, 729, 2187, 6561, 19683, 59049, 177147, 531441, 1594323, 4782969, 14348907};
 
 
@@ -215,49 +215,6 @@ void InitializeGame() {
 
 void DebugMenu()
 {
-
-
-    do {
-        printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
-
-
-        printf("\tc)\tWrite PPM to s(C)reen\n");
-        printf("\ti)\tWrite PPM to f(I)le\n");
-        printf("\ts)\tWrite Postscript to (S)creen\n");
-        printf("\tf)\tWrite Postscript to (F)ile\n");
-        printf("\n\n\tb)\t(B)ack = Return to previous activity.\n");
-        printf("\n\nSelect an option: ");
-
-
-        switch(GetMyChar()) {
-        case 'Q': case 'q':
-            ExitStageRight();
-            break;
-        case 'H': case 'h':
-            HelpMenus();
-            break;
-        case 'C': case 'c': /* Write PPM to s(C)reen */
-            //tttppm(0,0);
-            break;
-        case 'I': case 'i': /* Write PPM to f(I)le */
-            //tttppm(0,1);
-            break;
-        case 'S': case 's': /* Write Postscript to (S)creen */
-            //tttppm(1,0);
-            break;
-        case 'F': case 'f': /* Write Postscript to (F)ile */
-            //tttppm(1,1);
-            break;
-        case 'B': case 'b':
-            return;
-        default:
-            BadMenuChoice();
-            HitAnyKeyToContinue();
-            break;
-        }
-    } while(TRUE);
-
-
 }
 
 
@@ -273,10 +230,10 @@ void DebugMenu()
 
 
 void GameSpecificMenu() {
-    BOOLEAN tryagain = TRUE;
+    BOOLEAN tryAgain = TRUE;
     char c;
     char* diamondLabel;
-    while (tryagain) {
+    while (tryAgain) {
         // Display whether diamond win condition is enabled or not
         diamondLabel = (Diamond) ? "ENABLED" : "DISABLED";
        
@@ -295,7 +252,7 @@ void GameSpecificMenu() {
             Diamond = (Diamond) ? FALSE : TRUE;
         } else if ((c == 'B') || (c == 'b')) {
             // Exit the options menu
-            tryagain = FALSE;
+            tryAgain = FALSE;
         } else {
             // Invalid input
             printf("Invalid option, please try again.\n");
@@ -320,15 +277,9 @@ extern void gPenHandleTclMessage(int options[], char *filename, Tcl_Interp *tclI
 ************************************************************************/
 
 
-#ifndef NO_GRAPHICS
 void SetTclCGameSpecificOptions(int theOptions[]) {
-    // Anoto pen support
-    if ((gPenFile != NULL) && (gTclInterp != NULL)) {
-        gPenHandleTclMessage(theOptions, gPenFile, gTclInterp, gPenDebug);
-    }
+    (void)theOptions;
 }
-#endif
-
 
 /************************************************************************
 **
@@ -837,7 +788,7 @@ BlankOX WhoseTurn(BlankOX *theBlankOX) {
 
 
 int NumberOfOptions() {
-    return 2;
+    return 4;
 }
  
 
@@ -863,6 +814,7 @@ void setOption(int option)
 
 POSITION ActualNumberOfPositions(int variant) {
     (void)variant;
+    // Actual number of positions for 4 by 4 Regular mode. Serves as a upperbound for other variants as well.
     return 3287691;
 }
 
