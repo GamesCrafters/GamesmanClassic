@@ -867,6 +867,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
     BlankOX oxboard[BOARDSIZE];
     PositionToBlankOX(position, oxboard);
     char token = (WhoseTurn(oxboard) == x) ? 'x' : 'o';
-    AutoGUIMakeMoveButtonStringA(token, move, 'x', autoguiMoveStringBuffer);
+    AutoGUIMakeMoveButtonStringA('t', move, 'x', autoguiMoveStringBuffer);
 }
 
