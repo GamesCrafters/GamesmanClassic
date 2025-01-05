@@ -20,7 +20,7 @@ CONST_STRING kDBName = "hobaggonu";
 POSITION gNumberOfPositions = 0;
 POSITION gInitialPosition = 0;
 BOOLEAN kPartizan = FALSE;
-BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kTieIsPossible = FALSE;
 BOOLEAN kLoopy = TRUE;
 BOOLEAN kSupportsSymmetries = FALSE;
 
@@ -57,9 +57,9 @@ void GameSpecificMenu() {}
 #define MAX_ITEMS 11 // Maximum number of key-value pairs
 #define MAX_KEY_SIZE 50
 #define MAX_VALUE_SIZE 50
-#define ENCODE_MOVE(start, end) ((start) * 10 + end)
-#define DECODE_MOVE_START(move) (move / 10)
-#define DECODE_MOVE_END(move) (move % 10)
+#define ENCODE_MOVE(start, end) ((start) * 11 + end)
+#define DECODE_MOVE_START(move) (move / 11)
+#define DECODE_MOVE_END(move) (move % 11)
 // Based on mponghauki, player is either 1 or 2.
 #define NEXT_PLAYER(player) (1 + (player % 2))
 #define BOARDSIZE 11
@@ -134,12 +134,12 @@ void InitializeGame() {
   
   
 
-  char board[] = "XXX     OOO";
+  char board[] = "XXX-----OOO";
   char player1 = 'X';
   char player2 = 'O';
   
 
-  int hash_data[] = {' ', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
+  int hash_data[] = {'-', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
   gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
   gInitialPosition = generic_hash_hash(board, 1);
 
@@ -204,7 +204,7 @@ MOVELIST *GenerateMoves(POSITION position) {
               continue;
             }
           }
-          if (board[targetPos] != ' ') {
+          if (board[targetPos] != '-') {
             token = strtok(NULL, ", ");
             continue;
           }
@@ -236,13 +236,8 @@ POSITION DoMove(POSITION position, MOVE move) {
   int npos = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
-  if (move == 100) {
-    spos = 9;
-    npos = 10;
-  }
-
   assert(board[spos] == pieces[player]);
-  assert(board[npos] == ' ');
+  assert(board[npos] == '-');
 
 
   // printf("DO MOVES Player: %d\n", player);
@@ -251,7 +246,7 @@ POSITION DoMove(POSITION position, MOVE move) {
 
 
   // Perform the move
-  board[spos] = ' ';
+  board[spos] = '-';
   board[npos] = pieces[player];
 
   // Create the new position
@@ -330,7 +325,9 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   /* YOUR CODE HERE */
-  printf("%8s's move              : %2d\n", computersName, computersMove);
+  char moveStringBuffer[32];
+  MoveToString(computersMove, moveStringBuffer);
+  printf("%s's move: %s\n", computersName, moveStringBuffer);
 }
 
 // referenced from mharegame.c
@@ -455,6 +452,11 @@ POSITION StringToPosition(char *positionString) {
 	char *board;
 
 	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+    // for (int i=0; i<BOARDSIZE; i+=1) {
+    //   if (board[i] == '-') {
+    //     board[i] = ' ';
+    //   }
+    // }
 		return generic_hash_hash(board, turn);
 	}
 
@@ -465,13 +467,6 @@ POSITION StringToPosition(char *positionString) {
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
   char board[BOARDSIZE+1];
   generic_hash_unhash(position, board);
-  board[BOARDSIZE] = '\0';
-
-  for (int i=0; i<BOARDSIZE; i+=1) {
-    if (board[i] == ' ') {
-      board[i] = '-';
-    }
-  }
   
   AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
@@ -483,11 +478,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
   int npos = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
-  if (move == 100) {
-    spos = 9;
-    npos = 10;
-  }
-
   AutoGUIMakeMoveButtonStringM(spos, npos, 's', autoguiMoveStringBuffer);
 }
 
@@ -497,9 +487,5 @@ void MoveToString (MOVE move, char *moveStringBuffer) {
   int spos = DECODE_MOVE_START(move);
   int npos = DECODE_MOVE_END(move);
 
-  if (move == 100) {
-    spos = 9;
-    npos = 10;
-  }
   AutoGUIMakeMoveButtonStringM(spos, npos, 's', moveStringBuffer);
 }
