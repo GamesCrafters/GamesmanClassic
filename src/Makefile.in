@@ -238,11 +238,6 @@ HEX_OBJ			= mhex$(OBJSUFFIX)
 
 HOBAGGONU_EXE		= $(BINDIR)/mhobaggonu$(EXESUFFIX) # The game of Horseshoe
 HOBAGGONU_OBJ		= mhobaggonu$(OBJSUFFIX)
-HOBAGGONU_SO		= $(LIBDIR)/libmhobaggonu$(LIBSUFFIX)
-
-HORSE_EXE		= $(BINDIR)/mhorse$(EXESUFFIX) # The game of Horseshoe
-HORSE_OBJ		= mhorse$(OBJSUFFIX)
-HORSE_SO		= $(LIBDIR)/libmhorse$(LIBSUFFIX)
 
 HORSE_EXE		= $(BINDIR)/mhorse$(EXESUFFIX) # The game of Horseshoe
 HORSE_OBJ		= mhorse$(OBJSUFFIX)
@@ -515,7 +510,7 @@ CTCL =  $(1210_SO) $(TIGERS_SO) $(WINKERS_SO) $(ASALTO_SO) $(OTHELLO_SO) $(SIM_S
 	$(FOXES_SO) $(NUTTT_SO) $(QUARTO_SO) $(XIGUA_SO) $(SHOGI_SO) \
 	$(ICEBLOCKS_SO) $(LEWTH_SO) $(DAO_SO) $(TOOTNOTTO_SO) $(CAMBIO_SO) $(BAGHCHAL_SO) \
 	$(TTTIER_SO) $(369MM_SO) $(TOPITOP_SO) \
-	$(TTTWO_SO) $(CONNECT4_SO) $(GAMEOFY_SO) $(SANTORINI_SO) $(HOBAGGONU_SO) $(BEELINE_SO) $(ONEDCHESS_SO) $(NOTAKTO_SO) \
+	$(TTTWO_SO) $(CONNECT4_SO) $(GAMEOFY_SO) $(SANTORINI_SO) $(BEELINE_SO) $(ONEDCHESS_SO) $(NOTAKTO_SO) \
 	$(FORESTFOX_SO) $(SLIDE5_SO) $(KONANE_SO) $(YOTE_SO) $(ADUGO_SO) $(OANDC_SO) $(CHOPSTICKS_SO) $(TTT4_SO)
 
 ### Games written in C++ that work with the current gamesman core:

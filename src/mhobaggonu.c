@@ -4,14 +4,9 @@
 ** AUTHOR:      Nakul Srikanth, Ryan Lee, Alec Van Kerckhove
 ** DATE:        2004-10-18
 ** UPDATE HIST: Version 1.0
-** testing
 **************************************************************************/
 
-
-#include <stdio.h>
 #include "gamesman.h"
-
-
 
 /* IMPORTANT GLOBAL VARIABLES */
 CONST_STRING kAuthorName = "Nakul Srikanth, Ryan Lee, Alec Van Kerckhove";
@@ -49,8 +44,7 @@ CONST_STRING kHelpExample = "";
 
 /* You don't have to change this. */
 void DebugMenu() {}
-/* Ignore this function. */
-void SetTclCGameSpecificOptions(int theOptions[]) {}
+
 /* Do not worry about this yet because you will only be supporting 1 variant for now. */
 void GameSpecificMenu() {}
 
@@ -135,8 +129,6 @@ void InitializeGame() {
   
 
   char board[] = "XXX-----OOO";
-  char player1 = 'X';
-  char player2 = 'O';
   
 
   int hash_data[] = {'-', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
@@ -417,34 +409,10 @@ int getOption() {
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  /* YOUR CODE HERE  */
+  (void)option;
 }
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
-
-
-/* Don't worry about these Interact functions below yet.
-They are used for the AutoGUI which eventually we would
-want to implement, but they are not needed for solving. */
-POSITION InteractStringToPosition(STRING board) {
-  /* YOUR CODE HERE */
-  return 0;
-}
-
-STRING InteractPositionToString(POSITION position) {
-  /* YOUR CODE HERE */
-  return NULL;
-}
-
-/* Optional. */
-STRING InteractPositionToEndData(POSITION position) {
-  return NULL;
-}
-
-// STRING InteractMoveToString(POSITION position, MOVE move) {
-//   /* YOUR CODE HERE */
-//   return MoveToString(move);
-// }
 
 // converts formal position strings to position hashes
 POSITION StringToPosition(char *positionString) {
@@ -473,10 +441,10 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
 
 // converts internal representations of moves to AutoGUI move strings
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+  (void)position;
   // Get start and end position
   int spos = DECODE_MOVE_START(move);
   int npos = DECODE_MOVE_END(move);
-  int player = generic_hash_turn(position);
 
   AutoGUIMakeMoveButtonStringM(spos, npos, 's', autoguiMoveStringBuffer);
 }
