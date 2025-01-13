@@ -531,7 +531,7 @@ void PrintMove(MOVE move)
   } else{
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d,", start, end);}
+  printf("%d,%d\n", start, end);}
   
 }
 
