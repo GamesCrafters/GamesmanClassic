@@ -37,7 +37,6 @@ class Game:
         if not option_str:
             option = self.get_option(query)
         else:
-            print("Debug: ", option_str)
             option = int(option_str)
         if processes := self.option_to_processes[option]:
             process = processes[0]
