@@ -164,7 +164,6 @@ POSITION DoMove(POSITION position, MOVE move)
   
   if (move < 5 && move >= 0 && piecesOnBoard<4) {
     // 放置棋子
-    //printf("I love jasmine\n");
     assert(board[move] == ' ');
     board[move] = playerPiece[player];
   } else {
@@ -434,14 +433,31 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
-  USERINPUT ret = Continue;
-  do {
-    printf(":  ", playerName);
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
+	USERINPUT ret;
+	MOVELIST *movesList = GenerateMoves(position);
+	MOVELIST *currMove;
 
-    ret = HandleDefaultTextInput(thePosition, theMove, playerName);
-  } while (ret == Continue);
-  return ret;
+	do {
+		currMove = movesList;
+		while (currMove != NULL) {
+			char moveString[MAX_MOVE_STRING_LENGTH];
+			MoveToString(currMove->move, moveString);
+			currMove = currMove->next;
+		}
+		printf("\n");
+		printf("%s's move: ", playerName);
+		ret = HandleDefaultTextInput(position, move, playerName);
+
+		if (ret != Continue) {
+			FreeMoveList(movesList);
+			return ret; 
+		}
+
+	} while (TRUE);
+
+	FreeMoveList(movesList);
+	return Continue;
 }
 
 /************************************************************************
@@ -545,11 +561,11 @@ void PrintMove(MOVE move)
   {
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d\n", end);
+  printf("%d\n,jjj", end);
   } else{
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d,%d\n","iiiiiii", start, end);}
+  printf("%d,%d\n,jjj","iiiiiii", start, end);}
   
 }
 
