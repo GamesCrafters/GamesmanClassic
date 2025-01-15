@@ -47,7 +47,7 @@ CONST_STRING kHelpGraphicInterface = "";
 
 CONST_STRING kHelpTextInterface = "";
 
-CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 0-4,0-4";
+CONST_STRING kHelpOnYourTurn = "Please enter your move in the format 0,4";
 
 CONST_STRING kHelpStandardObjective = "Slide your pieces along the lines to prevent your opponent from moving.";
 
@@ -437,7 +437,7 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
   USERINPUT ret = Continue;
   do {
-    printf("%s's move [(u)ndo/0-4,0-4] :  ", playerName);
+    printf(":  ", playerName);
 
     ret = HandleDefaultTextInput(thePosition, theMove, playerName);
   } while (ret == Continue);
@@ -463,25 +463,33 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 
 BOOLEAN ValidTextInput(STRING input)
 {
-  int i = 0;
-  while (input[i] && isdigit(input[i])) {
-    i++;
-  }
-  while (input[i] == ' ') {
-    i++;
-  }
-  if (input[i] != ',') {
-    return FALSE;
-  } else {
-    i++;
-  }
-  while (input[i] == ' ') {
-    i++;
-  }
-  while (input[i] && isdigit(input[i])) {
-    i++;
-  }
-  return !input[i];
+  while (isspace(*input)) input++;
+
+	if (strcmp(input, "0") == 0) { return TRUE; }
+
+	int len = strlen(input);
+	if (len == 0) return FALSE;
+
+	char *endPtr;
+	int firstNum = strtol(input, &endPtr, 10);
+	if (endPtr == input) { return FALSE; }
+
+	if (*endPtr == '\0') { return (firstNum >= 1 && firstNum <= 5); }
+
+	char *dashPtr = strchr(input, ',');
+	if (!dashPtr || dashPtr == input || *(dashPtr + 1) == '\0') { return FALSE; }
+
+	char firstNumStr[16], secondNumStr[16];
+	size_t firstNumLen = dashPtr - input;
+	strncpy(firstNumStr, input, firstNumLen);
+	firstNumStr[firstNumLen] = '\0';
+	strcpy(secondNumStr, dashPtr + 1); 
+
+	firstNum = atoi(firstNumStr);
+	int secondNum = atoi(secondNumStr);
+
+	return (firstNum >= 1 && firstNum <= 5 && secondNum >= 1 && secondNum <= 5 && secondNum != firstNum);
+
 }
 
 /************************************************************************
@@ -525,13 +533,23 @@ MOVE ConvertTextInputToMove(STRING input)
 
 void PrintMove(MOVE move)
 {
-  if (move<5 && move >= 0)
+  char board[BOARD_SIZE];
+  int piecesOnBoard = 0;
+  for (int i = 0; i < 5; i++) {
+    if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
+      piecesOnBoard++;
+    }
+  }
+
+  if (piecesOnBoard < 5)
   {
-    printf("%d", move);
+  int start = DECODE_MOVE_START(move);
+  int end = DECODE_MOVE_END(move);
+  printf("%d\n", end);
   } else{
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d,%d\n", start, end);}
+  printf("%d,%d\n","iiiiiii", start, end);}
   
 }
 
