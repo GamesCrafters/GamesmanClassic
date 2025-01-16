@@ -190,7 +190,7 @@ MOVELIST *GenerateMoves(POSITION position) {
               token = strtok(NULL, ", ");
               continue;
             }
-            if(targetPos == 0 || targetPos == 1 || targetPos == 2){
+            else if(targetPos == 0 || targetPos == 1 || targetPos == 2){
               token = strtok(NULL, ", ");
               continue;
             }
@@ -199,7 +199,7 @@ MOVELIST *GenerateMoves(POSITION position) {
               token = strtok(NULL, ", ");
               continue;
             }
-            if(targetPos == 8 || targetPos == 9 || targetPos == 10){
+            else if(targetPos == 8 || targetPos == 9 || targetPos == 10){
               token = strtok(NULL, ", ");
               continue;
             }
