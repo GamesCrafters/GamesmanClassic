@@ -265,8 +265,17 @@ POSITION DoMove(POSITION position, MOVE move) {
 VALUE Primitive(POSITION position) {
   /* YOUR CODE HERE */
   //if generate moves on position is null, then return lose
-  if(GenerateMoves(position) == NULL)
+  char board[BOARDSIZE];
+  generic_hash_unhash(position, board);
+  int player = generic_hash_turn(position);
+
+  if(GenerateMoves(position) == NULL){
     return lose;
+  } else if(board[8] == 'X' && board[9] == 'X' && board[10] == 'X') {
+    return lose;
+  } else if(board[0] == 'O' && board[1] == 'O' && board[2] == 'O') {
+    return lose;
+  }
   return undecided;
   
 }
