@@ -186,12 +186,20 @@ MOVELIST *GenerateMoves(POSITION position) {
           int targetPos = atoi(token);
 
           if (cpos >= 3 && pieces[player] == 'X'){
-            if(targetPos == 0 || targetPos == 1 || targetPos == 2){
+            if (cpos >= 8 && pieces[player] == 'X') {
+              token = strtok(NULL, ", ");
+              continue;
+            }
+            else if(targetPos == 0 || targetPos == 1 || targetPos == 2){
               token = strtok(NULL, ", ");
               continue;
             }
           } else if (cpos <= 7 && pieces[player] == 'O') {
-            if(targetPos == 8 || targetPos == 9 || targetPos == 10){
+            if (cpos <= 2 && pieces[player] == 'O') {
+              token = strtok(NULL, ", ");
+              continue;
+            }
+            else if(targetPos == 8 || targetPos == 9 || targetPos == 10){
               token = strtok(NULL, ", ");
               continue;
             }
