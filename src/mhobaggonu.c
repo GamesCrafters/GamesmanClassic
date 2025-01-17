@@ -186,7 +186,7 @@ MOVELIST *GenerateMoves(POSITION position) {
           int targetPos = atoi(token);
 
           if (cpos >= 3 && pieces[player] == 'X'){
-            if (cpos >= 8 && pieces[player] == 'X') {
+            if (cpos >= 8 && pieces[player] == 'X' && targetPos < 8) {
               token = strtok(NULL, ", ");
               continue;
             }
@@ -195,7 +195,7 @@ MOVELIST *GenerateMoves(POSITION position) {
               continue;
             }
           } else if (cpos <= 7 && pieces[player] == 'O') {
-            if (cpos <= 2 && pieces[player] == 'O') {
+            if (cpos <= 2 && pieces[player] == 'O' && targetPos > 2) {
               token = strtok(NULL, ", ");
               continue;
             }
@@ -267,7 +267,6 @@ VALUE Primitive(POSITION position) {
   //if generate moves on position is null, then return lose
   char board[BOARDSIZE];
   generic_hash_unhash(position, board);
-  int player = generic_hash_turn(position);
 
   if(GenerateMoves(position) == NULL){
     return lose;
