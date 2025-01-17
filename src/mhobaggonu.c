@@ -15,7 +15,7 @@ CONST_STRING kDBName = "hobaggonu";
 POSITION gNumberOfPositions = 0;
 POSITION gInitialPosition = 0;
 BOOLEAN kPartizan = FALSE;
-BOOLEAN kTieIsPossible = FALSE;
+BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = TRUE;
 BOOLEAN kSupportsSymmetries = FALSE;
 
