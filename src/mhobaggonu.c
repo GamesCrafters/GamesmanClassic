@@ -274,7 +274,7 @@ VALUE Primitive(POSITION position) {
     return lose;
   } else if(board[0] == 'O' && board[1] == 'O' && board[2] == 'O') {
     return lose;
-  } else if(board[0] == 'O' && board[1] == 'X' && board[2] == 'O' && board[8] == 'X' && board[9] == 'O' && board[10] == 'X') {
+  } else if(board[0] == 'X' && board[1] == 'O' && board[2] == 'X' && board[8] == 'O' && board[9] == 'X' && board[10] == 'O') {
     return lose;
   }
   return undecided;
