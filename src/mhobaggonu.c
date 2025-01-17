@@ -13,9 +13,9 @@ CONST_STRING kAuthorName = "Nakul Srikanth, Ryan Lee, Alec Van Kerckhove";
 CONST_STRING kGameName = "Ho Bag Gonu";
 CONST_STRING kDBName = "hobaggonu";
 POSITION gNumberOfPositions = 0;
-POSITION gInitialPosition = 0;
+POSITION gInitialPosition = 9184;
 BOOLEAN kPartizan = FALSE;
-BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kTieIsPossible = FALSE;
 BOOLEAN kLoopy = TRUE;
 BOOLEAN kSupportsSymmetries = FALSE;
 
@@ -126,10 +126,10 @@ void InitializeGame() {
   addItem(&moves_lookup, "9", "7,8,10");
   addItem(&moves_lookup, "10", "9");
   
-  
+
 
   char board[] = "XXX-----OOO";
-  
+
 
   int hash_data[] = {'-', 5, 5, 'X', 3, 3, 'O', 3, 3, -1};
   gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
@@ -274,6 +274,8 @@ VALUE Primitive(POSITION position) {
     return lose;
   } else if(board[0] == 'O' && board[1] == 'O' && board[2] == 'O') {
     return lose;
+  } else if(board[0] == 'X' && board[1] == 'O' && board[2] == 'X' && board[8] == 'O' && board[9] == 'X' && board[10] == 'O') {
+    return lose;
   }
   return undecided;
   
@@ -303,26 +305,26 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
   generic_hash_unhash(position, board);
   int player = generic_hash_turn(position);
 
-  printf("\n          0-1-2          :     ");
+  printf("\n          0-1-2                     :     ");
   printf("%c-", board[0]);
   printf("%c-", board[1]);
   printf("%c", board[2]);
-  printf("\n            |                    |");
-  printf("\nLEGEND:     3       BOARD:       ");
+  printf("\n            |                               |");
+  printf("\nLEGEND:     3                  BOARD:       ");
   printf("%c", board[3]);
 
   printf("     %s", GetPrediction(position, playerName, usersTurn));
-  printf("\n           /|\\                  /|\\ ");
-  printf("\n          4-5-6          :     ");
+  printf("\n           /|\\                             /|\\ ");
+  printf("\n          4-5-6                     :     ");
   printf("%c ", board[4]);
   printf("%c ", board[5]);
   printf("%c", board[6]);
-  printf("\n           \\|/                  \\|/ ");
-  printf("\nLEGEND:     7       BOARD:       ");
+  printf("\n           \\|/                             \\|/ ");
+  printf("\nLEGEND:     7                  BOARD:       ");
   printf("%c", board[7]);
-  printf("\n            |                    |");
+  printf("\n            |                               |");
 
-  printf("\n          8-9-10         :     ");
+  printf("\n          8-9-10                    :     ");
   printf("%c-", board[8]);
   printf("%c-", board[9]);
   printf("%c", board[10]);
@@ -402,7 +404,9 @@ type when they specify moves. */
 /* Basically just print the move. */
 void PrintMove(MOVE move) {
   /* YOUR CODE HERE */
-  printf  ("%02d", move);
+  int start = DECODE_MOVE_START(move);
+  int end = DECODE_MOVE_END(move);
+  printf("%d%d", start, end);
 }
 
 /*********** END TEXTUI FUNCTIONS ***********/
@@ -471,5 +475,6 @@ void MoveToString (MOVE move, char *moveStringBuffer) {
   int spos = DECODE_MOVE_START(move);
   int npos = DECODE_MOVE_END(move);
 
-  AutoGUIMakeMoveButtonStringM(spos, npos, 's', moveStringBuffer);
+  snprintf(moveStringBuffer, MAX_MOVE_STRING_LENGTH, "%d%d", spos, npos);
+  moveStringBuffer[MAX_MOVE_STRING_LENGTH - 1] = '\0';
 }
