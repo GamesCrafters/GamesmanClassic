@@ -434,31 +434,34 @@ POSITION DoSymmetry(POSITION position, int symmetry) {
 ************************************************************************/
 
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
-	USERINPUT ret;
-	MOVELIST *movesList = GenerateMoves(position);
-	MOVELIST *currMove;
+    USERINPUT ret;
+    MOVELIST *movesList = GenerateMoves(position);
 
-	do {
-		currMove = movesList;
-		while (currMove != NULL) {
-			char moveString[MAX_MOVE_STRING_LENGTH];
-			MoveToString(currMove->move, moveString);
-			currMove = currMove->next;
-		}
-		printf("\n");
-		printf("%s's move: ", playerName);
-		ret = HandleDefaultTextInput(position, move, playerName);
+    while (TRUE) {
+        // 1) PRINT VALID MOVES
+        printf("\nValid Moves: ");
+        MOVELIST *curr = movesList; 
+        while (curr != NULL) {
+            char moveString[MAX_MOVE_STRING_LENGTH];
+            MoveToString(curr->move, moveString);
+            printf("[%s] ", moveString);w
+            curr = curr->next;
+        }
+        printf("\n");
 
-		if (ret != Continue) {
-			FreeMoveList(movesList);
-			return ret; 
-		}
+        // 2) ASK FOR USER'S MOVE
+        printf("\n%s's move: ", playerName);
+        ret = HandleDefaultTextInput(position, move, playerName);
+        if (ret != Continue) {
+            FreeMoveList(movesList);
+            return ret; 
+        }
+    }
 
-	} while (TRUE);
-
-	FreeMoveList(movesList);
-	return Continue;
+    FreeMoveList(movesList);
+    return Continue;
 }
+
 
 /************************************************************************
 **
@@ -580,9 +583,15 @@ void PrintMove(MOVE move)
 **
 ************************************************************************/
 
-void MoveToString (MOVE move, char *moveStringBuffer)
+void MoveToString(MOVE move, char *moveStringBuffer)
 {
-  snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%u,%u", DECODE_MOVE_START(move), DECODE_MOVE_END(move));
+    int start = DECODE_MOVE_START(move);
+    int end   = DECODE_MOVE_END(move);
+    if (start == 0) {
+        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d", end);
+    } else {
+        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d,%d", start, end);
+    }
 }
 
 CONST_STRING kDBName = "dorvoncag";
