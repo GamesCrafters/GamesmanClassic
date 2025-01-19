@@ -444,7 +444,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
         while (curr != NULL) {
             char moveString[MAX_MOVE_STRING_LENGTH];
             MoveToString(curr->move, moveString);
-            printf("[%s] ", moveString);w
+            printf("[%s] ", moveString);
             curr = curr->next;
         }
         printf("\n");
