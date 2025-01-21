@@ -309,7 +309,6 @@ PONGHAUKI_SO		= $(LIBDIR)/libmponghauki$(LIBSUFFIX)
 
 DORCONCAG_EXE		= $(BINDIR)/mdorvoncag$(EXESUFFIX)	# Kono
 DORVONCAG_OBJ		= mdorvoncag$(OBJSUFFIX)
-DORVONCAG_SO		= $(LIBDIR)/libdorvoncag$(LIBSUFFIX)
 
 PYLOS_EXE		= $(BINDIR)/mpylos$(EXESUFFIX)	# The awesome game of pylos
 PYLOS_OBJ		= mpylos$(OBJSUFFIX)
