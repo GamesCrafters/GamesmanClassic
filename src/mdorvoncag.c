@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Dorvon cag
 **
-** AUTHOR:      Yishen, Ethan, Vad
+** AUTHOR:      Yishen Ethan
 **
 **************************************************************************/
 
@@ -19,9 +19,10 @@
 #define BOARD_SIZE 5
 #define MAX_MOVE_STRING_SIZE (4096)
 
-#define ENCODE_MOVE(start, end) ((start) << 16 | (end))
-#define DECODE_MOVE_START(move) ((move) >> 16)
-#define DECODE_MOVE_END(move) (0xffff & (move))
+#define ENCODE_MOVE(start, end) (1 << 31 | (start) << 16 | (end))
+#define IS_ENCODED_MOVE(move) ((move) & (1 << 31))
+#define DECODE_MOVE_START(move) (((move) & ~(1 << 31)) >> 16)
+#define DECODE_MOVE_END(move) ((move) & 0xffff)
 #define NEXT_PLAYER(player) (1 + (player  % 2))
 #define PLACE_PIECE(pos) (pos)
 
@@ -199,7 +200,12 @@ void UndoMove(MOVE move)
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   int start = DECODE_MOVE_START(computersMove);
   int end = DECODE_MOVE_END(computersMove);
-  printf("%s moved: %d, %d\n", computersName, start, end);
+  if (IS_ENCODED_MOVE(computersMove))
+  {
+    printf("%s moved: %d, %d\n", computersName, start, end);
+  } else {
+    printf("%s moved: %d\n", computersName, computersMove);
+    }
 }
 
 /************************************************************************
@@ -268,6 +274,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   printf("\n");
   printf("It is %s's turn (%c).\n", playerName, playerPiece[generic_hash_turn(position)]);
   printf("\n");
+  printf("%s", GetPrediction(position, playerName, usersTurn));
 }
 /************************************************************************
 **
@@ -362,7 +369,16 @@ MOVELIST *GenerateMoves(POSITION position)
     }
   }
   }
-  
+  // MOVELIST *prev = NULL;
+	// MOVELIST *current = moves;
+	// MOVELIST *next = NULL;
+	
+	// while (current != NULL) {
+	// 	next = current->next;
+	// 	current->next = prev;
+	// 	prev = current;
+	// 	current = next;
+	// }
   return moves;
 
 }
@@ -439,6 +455,14 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
     while (TRUE) {
         // 1) PRINT VALID MOVES
+
+        printf("\n%s's move: ", playerName);
+        ret = HandleDefaultTextInput(position, move, playerName);
+        if (ret != Continue) {
+            FreeMoveList(movesList);
+            return ret; 
+        }
+
         printf("\nValid Moves: ");
         MOVELIST *curr = movesList; 
         while (curr != NULL) {
@@ -449,13 +473,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
         }
         printf("\n");
 
-        // 2) ASK FOR USER'S MOVE
-        printf("\n%s's move: ", playerName);
-        ret = HandleDefaultTextInput(position, move, playerName);
-        if (ret != Continue) {
-            FreeMoveList(movesList);
-            return ret; 
-        }
     }
 
     FreeMoveList(movesList);
@@ -587,8 +604,8 @@ void MoveToString(MOVE move, char *moveStringBuffer)
 {
     int start = DECODE_MOVE_START(move);
     int end   = DECODE_MOVE_END(move);
-    if (start == 0) {
-        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d", end);
+    if (!IS_ENCODED_MOVE(move)) {
+        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d", move);
     } else {
         snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d,%d", start, end);
     }
