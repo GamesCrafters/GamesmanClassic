@@ -154,23 +154,23 @@ POSITION DoMove(POSITION position, MOVE move)
   int end = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
-  int piecesOnBoard = 0;
-  for (int i = 0; i < 5; i++) {
-    if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
-      piecesOnBoard++;
-    }
-  }
+  // int piecesOnBoard = 0;
+  // for (int i = 0; i < 5; i++) {
+  //   if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
+  //     piecesOnBoard++;
+  //   }
+  // }
 
   //printf("DoMove called with start: %d, end: %d, player: %d\n", start, end, player);
   
-  if (move < 5 && move >= 0 && piecesOnBoard<4) {
+  if (!IS_ENCODED_MOVE(move)) {
     // 放置棋子
     assert(board[move] == ' ');
     board[move] = playerPiece[player];
   } else {
     // 正常移动
-    assert(board[end] == ' ');
-    assert(board[start] != ' ');
+    // assert(board[end] == ' ');
+    // assert(board[start] != ' ');
     board[end] = board[start];
     board[start] = ' ';
   }
@@ -524,7 +524,7 @@ BOOLEAN ValidTextInput(STRING input)
 	firstNum = atoi(firstNumStr);
 	int secondNum = atoi(secondNumStr);
 
-	return (firstNum >= 1 && firstNum <= 5 && secondNum >= 1 && secondNum <= 5 && secondNum != firstNum);
+	return (firstNum >= 0 && firstNum <= 5 && secondNum >= 1 && secondNum <= 5 && secondNum != firstNum);
 
 }
 
@@ -579,13 +579,13 @@ void PrintMove(MOVE move)
 
   if (piecesOnBoard < 5)
   {
-  int start = DECODE_MOVE_START(move);
+  // int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d\n,jjj", end);
+  printf("%d\n", end);
   } else{
   int start = DECODE_MOVE_START(move);
   int end = DECODE_MOVE_END(move);
-  printf("%d,%d\n,jjj","iiiiiii", start, end);}
+  printf("%d,%d\n", start, end);}
   
 }
 
