@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Dorvon cag
 **
-** AUTHOR:      Yishen, Ethan, Vad
+** AUTHOR:      Yishen Ethan
 **
 **************************************************************************/
 
@@ -19,11 +19,14 @@
 #define BOARD_SIZE 5
 #define MAX_MOVE_STRING_SIZE (4096)
 
-#define ENCODE_MOVE(start, end) ((start) << 16 | (end))
-#define DECODE_MOVE_START(move) ((move) >> 16)
-#define DECODE_MOVE_END(move) (0xffff & (move))
+#define ENCODE_MOVE(start, end) (1 << 31 | (start) << 16 | (end))
+#define IS_ENCODED_MOVE(move) ((move) & (1 << 31))
+#define DECODE_MOVE_START(move) (((move) & ~(1 << 31)) >> 16)
+#define DECODE_MOVE_END(move) ((move) & 0xffff)
 #define NEXT_PLAYER(player) (1 + (player  % 2))
 #define PLACE_PIECE(pos) (pos)
+
+MOVELIST* ReverseMoveList(MOVELIST* head);
 
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
@@ -153,23 +156,23 @@ POSITION DoMove(POSITION position, MOVE move)
   int end = DECODE_MOVE_END(move);
   int player = generic_hash_turn(position);
 
-  int piecesOnBoard = 0;
-  for (int i = 0; i < 5; i++) {
-    if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
-      piecesOnBoard++;
-    }
-  }
+  // int piecesOnBoard = 0;
+  // for (int i = 0; i < 5; i++) {
+  //   if (board[i] == playerPiece[1] || board[i] == playerPiece[2]) {
+  //     piecesOnBoard++;
+  //   }
+  // }
 
   //printf("DoMove called with start: %d, end: %d, player: %d\n", start, end, player);
   
-  if (move < 5 && move >= 0 && piecesOnBoard<4) {
+  if (!IS_ENCODED_MOVE(move)) {
     // 放置棋子
     assert(board[move] == ' ');
     board[move] = playerPiece[player];
   } else {
     // 正常移动
-    assert(board[end] == ' ');
-    assert(board[start] != ' ');
+    // assert(board[end] == ' ');
+    // assert(board[start] != ' ');
     board[end] = board[start];
     board[start] = ' ';
   }
@@ -199,7 +202,12 @@ void UndoMove(MOVE move)
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
   int start = DECODE_MOVE_START(computersMove);
   int end = DECODE_MOVE_END(computersMove);
-  printf("%s moved: %d, %d\n", computersName, start, end);
+  if (IS_ENCODED_MOVE(computersMove))
+  {
+    printf("%s moved: %d, %d\n", computersName, start, end);
+  } else {
+    printf("%s moved: %d\n", computersName, computersMove);
+    }
 }
 
 /************************************************************************
@@ -268,6 +276,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn)
   printf("\n");
   printf("It is %s's turn (%c).\n", playerName, playerPiece[generic_hash_turn(position)]);
   printf("\n");
+  printf("%s", GetPrediction(position, playerName, usersTurn));
 }
 /************************************************************************
 **
@@ -362,7 +371,7 @@ MOVELIST *GenerateMoves(POSITION position)
     }
   }
   }
-  
+  moves = ReverseMoveList(moves);
   return moves;
 
 }
@@ -439,23 +448,29 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
     while (TRUE) {
         // 1) PRINT VALID MOVES
-        printf("\nValid Moves: ");
-        MOVELIST *curr = movesList; 
-        while (curr != NULL) {
-            char moveString[MAX_MOVE_STRING_LENGTH];
-            MoveToString(curr->move, moveString);
-            printf("[%s] ", moveString);
-            curr = curr->next;
-        }
-        printf("\n");
 
-        // 2) ASK FOR USER'S MOVE
         printf("\n%s's move: ", playerName);
         ret = HandleDefaultTextInput(position, move, playerName);
         if (ret != Continue) {
             FreeMoveList(movesList);
             return ret; 
-        }
+        } 
+        // else {
+        //   printf("\nValid Moves: ");
+        // // MOVELIST *curr = ReverseMoveList(movesList); 
+        // while (curr != NULL) {
+        //     char moveString[MAX_MOVE_STRING_LENGTH];
+        //     MoveToString(curr->move, moveString);
+        //     printf("[%s] ", moveString);
+        //     curr = curr->next;
+        // }
+        // printf("\n");
+
+        
+        // }
+
+        
+
     }
 
     FreeMoveList(movesList);
@@ -507,7 +522,7 @@ BOOLEAN ValidTextInput(STRING input)
 	firstNum = atoi(firstNumStr);
 	int secondNum = atoi(secondNumStr);
 
-	return (firstNum >= 1 && firstNum <= 5 && secondNum >= 1 && secondNum <= 5 && secondNum != firstNum);
+	return (firstNum >= 0 && firstNum <= 5 && secondNum >= 1 && secondNum <= 5 && secondNum != firstNum);
 
 }
 
@@ -551,7 +566,9 @@ MOVE ConvertTextInputToMove(STRING input)
 ************************************************************************/
 
 void PrintMove(MOVE move)
+
 {
+  (void)move;
   char board[BOARD_SIZE];
   int piecesOnBoard = 0;
   for (int i = 0; i < 5; i++) {
@@ -562,13 +579,14 @@ void PrintMove(MOVE move)
 
   if (piecesOnBoard < 5)
   {
-  int start = DECODE_MOVE_START(move);
-  int end = DECODE_MOVE_END(move);
-  printf("%d\n,jjj", end);
+  // int start = DECODE_MOVE_START(move);
+  // int end = DECODE_MOVE_END(move);
+  // printf("%d\n", end);
   } else{
-  int start = DECODE_MOVE_START(move);
-  int end = DECODE_MOVE_END(move);
-  printf("%d,%d\n,jjj","iiiiiii", start, end);}
+  // int start = DECODE_MOVE_START(move);
+  // int end = DECODE_MOVE_END(move);
+  // printf("%d,%d\n", start, end);
+  }
   
 }
 
@@ -587,11 +605,25 @@ void MoveToString(MOVE move, char *moveStringBuffer)
 {
     int start = DECODE_MOVE_START(move);
     int end   = DECODE_MOVE_END(move);
-    if (start == 0) {
-        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d", end);
+    if (!IS_ENCODED_MOVE(move)) {
+        snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d", move);
     } else {
         snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d,%d", start, end);
     }
+}
+
+MOVELIST* ReverseMoveList(MOVELIST* head) {
+    MOVELIST* prev = NULL;
+    MOVELIST* current = head;
+
+    while (current != NULL) {
+        MOVELIST* next = current->next; // 保存下一个节点
+        current->next = prev;           // 反转指针
+        prev = current;                 // 前移指针
+        current = next;                 // 前移当前节点
+    }
+
+    return prev; // 返回新头节点
 }
 
 CONST_STRING kDBName = "dorvoncag";
