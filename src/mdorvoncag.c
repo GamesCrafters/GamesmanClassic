@@ -448,7 +448,6 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
     while (TRUE) {
         // 1) PRINT VALID MOVES
-        MOVELIST *curr = ReverseMoveList(movesList); 
 
         printf("\n%s's move: ", playerName);
         ret = HandleDefaultTextInput(position, move, playerName);
@@ -567,7 +566,9 @@ MOVE ConvertTextInputToMove(STRING input)
 ************************************************************************/
 
 void PrintMove(MOVE move)
+
 {
+  (void)move;
   char board[BOARD_SIZE];
   int piecesOnBoard = 0;
   for (int i = 0; i < 5; i++) {
