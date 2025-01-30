@@ -26,6 +26,8 @@
 #define NEXT_PLAYER(player) (1 + (player  % 2))
 #define PLACE_PIECE(pos) (pos)
 
+MOVELIST* ReverseMoveList(MOVELIST* head);
+
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
 
@@ -369,16 +371,7 @@ MOVELIST *GenerateMoves(POSITION position)
     }
   }
   }
-  // MOVELIST *prev = NULL;
-	// MOVELIST *current = moves;
-	// MOVELIST *next = NULL;
-	
-	// while (current != NULL) {
-	// 	next = current->next;
-	// 	current->next = prev;
-	// 	prev = current;
-	// 	current = next;
-	// }
+  moves = ReverseMoveList(moves);
   return moves;
 
 }
@@ -455,23 +448,29 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 
     while (TRUE) {
         // 1) PRINT VALID MOVES
+        MOVELIST *curr = ReverseMoveList(movesList); 
 
         printf("\n%s's move: ", playerName);
         ret = HandleDefaultTextInput(position, move, playerName);
         if (ret != Continue) {
             FreeMoveList(movesList);
             return ret; 
-        }
+        } 
+        // else {
+        //   printf("\nValid Moves: ");
+        // // MOVELIST *curr = ReverseMoveList(movesList); 
+        // while (curr != NULL) {
+        //     char moveString[MAX_MOVE_STRING_LENGTH];
+        //     MoveToString(curr->move, moveString);
+        //     printf("[%s] ", moveString);
+        //     curr = curr->next;
+        // }
+        // printf("\n");
 
-        printf("\nValid Moves: ");
-        MOVELIST *curr = movesList; 
-        while (curr != NULL) {
-            char moveString[MAX_MOVE_STRING_LENGTH];
-            MoveToString(curr->move, moveString);
-            printf("[%s] ", moveString);
-            curr = curr->next;
-        }
-        printf("\n");
+        
+        // }
+
+        
 
     }
 
@@ -580,12 +579,13 @@ void PrintMove(MOVE move)
   if (piecesOnBoard < 5)
   {
   // int start = DECODE_MOVE_START(move);
-  int end = DECODE_MOVE_END(move);
-  printf("%d\n", end);
+  // int end = DECODE_MOVE_END(move);
+  // printf("%d\n", end);
   } else{
-  int start = DECODE_MOVE_START(move);
-  int end = DECODE_MOVE_END(move);
-  printf("%d,%d\n", start, end);}
+  // int start = DECODE_MOVE_START(move);
+  // int end = DECODE_MOVE_END(move);
+  // printf("%d,%d\n", start, end);
+  }
   
 }
 
@@ -609,6 +609,20 @@ void MoveToString(MOVE move, char *moveStringBuffer)
     } else {
         snprintf(moveStringBuffer, MAX_MOVE_STRING_SIZE, "%d,%d", start, end);
     }
+}
+
+MOVELIST* ReverseMoveList(MOVELIST* head) {
+    MOVELIST* prev = NULL;
+    MOVELIST* current = head;
+
+    while (current != NULL) {
+        MOVELIST* next = current->next; // 保存下一个节点
+        current->next = prev;           // 反转指针
+        prev = current;                 // 前移指针
+        current = next;                 // 前移当前节点
+    }
+
+    return prev; // 返回新头节点
 }
 
 CONST_STRING kDBName = "dorvoncag";
