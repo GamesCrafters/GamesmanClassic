@@ -189,16 +189,6 @@ struct {
   int example;
 } gPosition;
 
-/** Function Prototypes **/
-BOOLEAN AllFilledIn(BlankOX theBlankOX[]);
-POSITION BlankOXToPosition(BlankOX *theBlankOX);
-POSITION GetCanonicalPosition(POSITION position);
-void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX);
-BOOLEAN ThreeInARow(BlankOX[], int, int, int);
-void UndoMove(MOVE move);
-BlankOX WhoseTurn(BlankOX *theBlankOX);
-int tttppm(int x, int y);
-
 POSITION ActualNumberOfPositions(int variant);
 
 /**************************************************/
