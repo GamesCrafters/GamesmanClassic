@@ -11,12 +11,6 @@
 ************************************************************************/
 
 #include "gamesman.h"
-#include "autoguistrings.h"
-#include "gameplay.h"
-#include "misc.h"
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
 
 /*----------------------------------------------------------------------
  *  Game Metadata
@@ -35,7 +29,7 @@ BOOLEAN kSupportsSymmetries = FALSE;   /* we skip symmetry canonicalization     
 POSITION kBadPosition       = -1;
 BOOLEAN kDebugDetermineValue= FALSE;
 
-POSITION gNumberOfPositions = 0;       /* not strictly used */
+POSITION gNumberOfPositions = (POSITION)(1ULL << 61);       /* not strictly used */
 POSITION gInitialPosition   = 0;
 
 BOOLEAN kGameSpecificMenu   = FALSE;
@@ -271,49 +265,96 @@ VALUE Primitive(POSITION p){
 
     return undecided;
 }
-
 /*----------------------------------------------------------------------
  *  Simple text interface helpers
  *--------------------------------------------------------------------*/
-void PrintPosition(POSITION p,STRING name,BOOLEAN usersTurn){
-    printf("\n   1  2  3  4  5  6\n");
-    for(int r=0;r<ROWS;r++){
-        printf("|");
-        for(int c=0;c<COLS;c++){
-            int v=cell_get(p,r,c);
-            char ch=(v==CELL_P1?'X':(v==CELL_P2?'O':' '));
-            printf(" %c",ch);
-        }
-        printf(" |\n");
-    }
-    printf("-------------------\n");
-    printf("%s to move.\n",name);
-}
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
 
 BOOLEAN ValidTextInput(STRING s){
-    /* allow forms like "c d r" where c=col(1-6), d=L/R/N, r=row(1-5 optional) */
-    return (strlen(s)>0);
+    /* Accept: "<col> N" or "<col> <L|R> <row>" */
+    int c=0, r=0; char d='N';
+    int n = sscanf(s, "%d %c %d", &c, &d, &r);
+    if (n < 2) return FALSE;
+
+    if (c < 1 || c > COLS) return FALSE;
+    d = (char)toupper((unsigned char)d);
+
+    if (d == 'N') {
+        /* form: "<col> N" (2 tokens ok; third ignored if present) */
+        return TRUE;
+    } else if (d == 'L' || d == 'R') {
+        if (n < 3) return FALSE;       /* need the row */
+        if (r < 1 || r > ROWS) return FALSE;
+        return TRUE;
+    }
+    return FALSE;
 }
 
 MOVE ConvertTextInputToMove(STRING s){
-    int c=0,r=0; char d='N';
-    sscanf(s,"%d %c %d",&c,&d,&r);
-    TwistDir dir=DIR_NONE;
-    if(toupper(d)=='L') dir=DIR_LEFT;
-    else if(toupper(d)=='R') dir=DIR_RIGHT;
-    return MOVE_MAKE(c-1,r-1,dir);
+    int c=0, r=0; char d='N';
+    sscanf(s, "%d %c %d", &c, &d, &r);
+    d = (char)toupper((unsigned char)d);
+    if (d == 'N') r = 1; /* row is ignored for NONE; any in-range value is fine */
+    TwistDir dir = (d=='L')?DIR_LEFT : (d=='R')?DIR_RIGHT : DIR_NONE;
+    return MOVE_MAKE(c-1, r-1, dir);
 }
 
-void MoveToString(MOVE m,char *buf){
-    int c=MOVE_COL(m)+1, r=MOVE_ROW(m)+1;
-    int d=MOVE_DIR(m);
-    char dirChar=(d==DIR_LEFT?'L':(d==DIR_RIGHT?'R':'N'));
-    sprintf(buf,"%d %c %d",c,dirChar,r);
+void MoveToString(MOVE m, char *buf){
+    int c = MOVE_COL(m)+1, r = MOVE_ROW(m)+1;
+    int d = MOVE_DIR(m);
+    char dirChar = (d==DIR_LEFT?'L' : (d==DIR_RIGHT?'R' : 'N'));
+    /* keep it short; buffer from caller is at least ~32 */
+    sprintf(buf, "%d %c %d", c, dirChar, r);
 }
 
-void PrintComputersMove(MOVE mv,STRING name){
-    char buf[32]; MoveToString(mv,buf);
-    printf("%s plays: %s\n",name,buf);
+/* single definition; also silence unused-parameter warning */
+/* neat grid separator like +---+---+... */
+static void print_separator(void){
+    putchar('+');
+    for (int c = 0; c < COLS; c++) printf("---+");
+    putchar('\n');
+}
+
+void PrintPosition(POSITION p, STRING name, BOOLEAN usersTurn){
+    (void)usersTurn;
+
+    /* column header */
+    printf("  ");               
+    for (int c = 0; c < COLS; c++)
+        printf("  %d ", c+1);    
+    printf("\n");
+
+    print_separator();
+    for (int r = 0; r < ROWS; r++){
+        printf("|");
+        for (int c = 0; c < COLS; c++){
+            int v = cell_get(p,r,c);
+            char ch = (v==CELL_P1?'X' : (v==CELL_P2?'O' : ' '));
+            printf(" %c |", ch);
+        }
+        printf(" %d\n", r+1);  
+        print_separator();
+    }
+    printf("%s to move.\n", name);
+}
+
+
+/* REQUIRED: used by TextUI */
+USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName){
+    printf("%s, enter: <col> <L|R|N> [row]\n", playerName);
+    printf("Examples: 3 N   |   4 L 2   |   6 R 5\n> ");
+    return HandleDefaultTextInput(position, move, playerName);
+}
+
+/* REQUIRED even if kDebugMenu==FALSE */
+void DebugMenu(void) { /* no-op */ }
+
+void PrintComputersMove(MOVE mv, STRING name){
+    char buf[32];
+    MoveToString(mv, buf);
+    printf("%s plays: %s\n", name, buf);
 }
 
 /*----------------------------------------------------------------------
