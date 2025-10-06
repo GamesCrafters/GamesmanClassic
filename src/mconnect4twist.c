@@ -15,7 +15,7 @@
 /*----------------------------------------------------------------------
  *  Game Metadata
  *--------------------------------------------------------------------*/
-CONST_STRING kAuthorName = "Your Name";
+CONST_STRING kAuthorName = "Enzo Ribeiro & Weiyi Zhang";
 CONST_STRING kGameName   = "Connect-4 Twist & Turn";
 CONST_STRING kDBName     = "connect4twist";
 
