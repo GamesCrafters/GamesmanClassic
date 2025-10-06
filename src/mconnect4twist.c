@@ -50,7 +50,6 @@ CONST_STRING kHelpExample           =
  *  Board constants and global board
  *--------------------------------------------------------------------*/
 enum { ROWS = 5, COLS = 6, CELLS = ROWS * COLS };
-static char *gBoard; /* linear board of length CELLS: '*', 'x', 'o' */
 
 /*----------------------------------------------------------------------
  *  Move encoding
@@ -68,71 +67,92 @@ typedef enum { DIR_NONE=0, DIR_LEFT=1, DIR_RIGHT=2 } TwistDir;
 /*----------------------------------------------------------------------
  *  Forward decls: generic_hash thin wrappers (non-tier mode)
  *--------------------------------------------------------------------*/
-static void     unhash_pos(POSITION position, int* turn);
-static POSITION hash_pos(int turn);
+static void     unhash_pos(char *B, POSITION position, int* turn);
+static POSITION hash_pos(char *B, int turn);
 
 /*----------------------------------------------------------------------
  *  Helpers on gBoard (no bit-packing)
  *--------------------------------------------------------------------*/
 static inline int  IDX(int r,int c){ return r*COLS + c; }
-static inline char AT (int r,int c){ return gBoard[IDX(r,c)]; }
-static inline void SET(int r,int c,char v){ gBoard[IDX(r,c)] = v; }
+static inline char AT (char *B, int r,int c){ return B[IDX(r,c)]; }
+static inline void SET(char *B, int r,int c,char v){ B[IDX(r,c)] = v; }
 
-static int row_has_piece(int r){
-    for(int c=0;c<COLS;c++) if(AT(r,c)!='*') return 1;
+
+
+/* ===== debug switches ===== */
+static int DBG_ON = 1;      // 置 0 关闭全部调试
+static int DBG_MOVES = 1;   // 打印 GenerateMoves 列表
+static int DBG_DOMOVE = 1;  // 打印 DoMove 前后棋盘
+
+static void dump_board_compact(char *B){
+    for(int r=0;r<ROWS;r++){
+        for(int c=0;c<COLS;c++){
+            char v = AT(B,r,c);
+            fputc(v=='*' ? '.' : v, stderr);
+        }
+        if(r<ROWS-1) fputc('/', stderr);
+    }
+}
+/* ===== debug switches ===== */
+
+
+
+
+static int row_has_piece(char *B, int r){
+    for(int c=0;c<COLS;c++) if(AT(B,r,c)!='*') return 1;
     return 0;
 }
-static int top_full_col(int c){ return AT(0,c)!='*'; }
+static int top_full_col(char *B, int c){ return AT(B,0,c)!='*'; }
 
-static void apply_gravity_col(int c){
+static void apply_gravity_col(char *B, int c){
     for(int r=ROWS-2;r>=0;r--){
-        if(AT(r,c)!='*'){
+        if(AT(B,r,c)!='*'){
             int rr=r;
-            while(rr+1<ROWS && AT(rr+1,c)=='*') rr++;
-            if(rr!=r){ SET(rr,c,AT(r,c)); SET(r,c,'*'); }
+            while(rr+1<ROWS && AT(B,rr+1,c)=='*') rr++;
+            if(rr!=r){ SET(B,rr,c,AT(B,r,c)); SET(B,r,c,'*'); }
         }
     }
 }
 
-static void drop_piece_do(int col, char me){
+static void drop_piece_do(char *B, int col, char me){
     for(int r=ROWS-1;r>=0;r--){
-        if(AT(r,col)=='*'){ SET(r,col,me); return; }
+        if(AT(B,r,col)=='*'){ SET(B,r,col,me); return; }
     }
 }
 
-static void twist_row_do(int row, int dir /* -1=LEFT, +1=RIGHT */){
-    if(!row_has_piece(row)) return;
-    char tmp[COLS]; for(int c=0;c<COLS;c++) tmp[c]=AT(row,c);
-    if(dir<0)  for(int c=0;c<COLS;c++) SET(row,c, tmp[(c+1)%COLS]);
-    else       for(int c=0;c<COLS;c++) SET(row,c, tmp[(c+COLS-1)%COLS]);
-    for(int c=0;c<COLS;c++) apply_gravity_col(c);
+static void twist_row_do(char *B, int row, int dir /* -1=LEFT, +1=RIGHT */){
+    if(!row_has_piece(B, row)) return;
+    char tmp[COLS]; for(int c=0;c<COLS;c++) tmp[c]=AT(B,row,c);
+    if(dir<0)  for(int c=0;c<COLS;c++) SET(B,row,c, tmp[(c+1)%COLS]);
+    else       for(int c=0;c<COLS;c++) SET(B,row,c, tmp[(c+COLS-1)%COLS]);
+    for(int c=0;c<COLS;c++) apply_gravity_col(B, c);
 }
 
-static int has_four(void){
+static int has_four(char *B){
     for(int r=0;r<ROWS;r++) for(int c=0;c<COLS;c++){
-        char v=AT(r,c); if(v=='*') continue;
-        if(r+3<ROWS && v==AT(r+1,c)&&v==AT(r+2,c)&&v==AT(r+3,c)) return 1;                 /* vertical */
-        if(c+3<COLS && v==AT(r,c+1)&&v==AT(r,c+2)&&v==AT(r,c+3)) return 1;                 /* horizontal */
-        if(r+3<ROWS && c+3<COLS && v==AT(r+1,c+1)&&v==AT(r+2,c+2)&&v==AT(r+3,c+3)) return 1; /* diag ↘ */
-        if(r-3>=0  && c+3<COLS && v==AT(r-1,c+1)&&v==AT(r-2,c+2)&&v==AT(r-3,c+3)) return 1; /* diag ↗ */
+        char v=AT(B,r,c); if(v=='*') continue;
+        if(r+3<ROWS && v==AT(B,r+1,c)&&v==AT(B,r+2,c)&&v==AT(B,r+3,c)) return 1;                 /* vertical */
+        if(c+3<COLS && v==AT(B,r,c+1)&&v==AT(B,r,c+2)&&v==AT(B,r,c+3)) return 1;                 /* horizontal */
+        if(r+3<ROWS && c+3<COLS && v==AT(B,r+1,c+1)&&v==AT(B,r+2,c+2)&&v==AT(B,r+3,c+3)) return 1; /* diag ↘ */
+        if(r-3>=0  && c+3<COLS && v==AT(B,r-1,c+1)&&v==AT(B,r-2,c+2)&&v==AT(B,r-3,c+3)) return 1; /* diag ↗ */
     }
     return 0;
 }
 
-static int top_row_full_all_cols(void){
-    for(int c=0;c<COLS;c++) if(AT(0,c)=='*') return 0;
+static int top_row_full_all_cols(char *B){
+    for(int c=0;c<COLS;c++) if(AT(B,0,c)=='*') return 0;
     return 1;
 }
 
 /*----------------------------------------------------------------------
  *  generic_hash wrappers (single global context)
  *--------------------------------------------------------------------*/
-static void unhash_pos(POSITION position, int* turn){
-    *turn = generic_hash_turn(position);       /* 1 or 2 */
-    generic_hash_unhash(position, gBoard);     /* fills gBoard */
+static void unhash_pos(char *B, POSITION position, int* turn){
+    if (turn) *turn = generic_hash_turn(position);       /* 1 or 2 */
+    generic_hash_unhash(position, B);     /* fills B */
 }
-static POSITION hash_pos(int turn){
-    return generic_hash_hash(gBoard, turn);
+static POSITION hash_pos(char *B, int turn){
+    return generic_hash_hash(B, turn);
 }
 
 /*----------------------------------------------------------------------
@@ -150,9 +170,6 @@ static int vcfg_connect4(int pieces[]){
 void InitializeGame(void){
     generic_hash_destroy();
 
-    gBoard = (char*) SafeMalloc(CELLS * sizeof(char));
-    memset(gBoard, '*', CELLS);
-
     /* generous upper bounds; legality by vcfg_connect4 */
     int pieces_arr[10] = {
         'x', 0, 15,   /* up to 15 X */
@@ -163,7 +180,8 @@ void InitializeGame(void){
 
     gNumberOfPositions = generic_hash_init(CELLS, pieces_arr, vcfg_connect4, 0);
     /* empty board, X to move (turn=1) */
-    gInitialPosition = hash_pos(1);
+    char B[CELLS]; memset(B,'*',CELLS);
+    gInitialPosition = generic_hash_hash(B, 1);
 }
 
 /*----------------------------------------------------------------------
@@ -171,17 +189,20 @@ void InitializeGame(void){
  *--------------------------------------------------------------------*/
 MOVELIST *GenerateMoves(POSITION position){
     MOVELIST *list=NULL;
-    int turn; unhash_pos(position, &turn);
+    char B[CELLS]; 
+    int turn; unhash_pos(B, position, &turn);
 
+    if (DBG_ON && DBG_MOVES) {
+        fprintf(stderr, "\n[GM] turn=%d board=", turn); dump_board_compact(B); fputc('\n', stderr);
+    }
     /* count placed pieces to decide whether twists are allowed */
-    int placed=0; for(int i=0;i<CELLS;i++) if(gBoard[i]!='*') placed++;
-
+    int placed=0; for(int i=0;i<CELLS;i++) if(B[i]!='*') placed++;
     for(int c=0;c<COLS;c++){
-        if(!top_full_col(c)){
+        if(!top_full_col(B, c)){
             /* twists only allowed after the very first move (spec per你的描述) */
             if(placed>0){
                 for(int r=0;r<ROWS;r++){
-                    if(row_has_piece(r)){
+                    if(row_has_piece(B, r)){
                         list = CreateMovelistNode(MOVE_MAKE(c,r,DIR_LEFT),  list);
                         list = CreateMovelistNode(MOVE_MAKE(c,r,DIR_RIGHT), list);
                     }
@@ -198,29 +219,31 @@ MOVELIST *GenerateMoves(POSITION position){
  *  Apply a move to produce the child position
  *--------------------------------------------------------------------*/
 POSITION DoMove(POSITION position, MOVE m){
-    int turn; unhash_pos(position, &turn);
+    char B[CELLS]; 
+    int turn; unhash_pos(B, position, &turn);
     char me = (turn==1)?'x':'o';
 
     int col = MOVE_COL(m);
     int row = MOVE_ROW(m);
     TwistDir dir = (TwistDir)MOVE_DIR(m);
 
-    drop_piece_do(col, me);
-    if(dir==DIR_LEFT)  twist_row_do(row, -1);
-    if(dir==DIR_RIGHT) twist_row_do(row, +1);
+    drop_piece_do(B, col, me);
+    if(dir==DIR_LEFT)  twist_row_do(B, row, -1);
+    if(dir==DIR_RIGHT) twist_row_do(B, row, +1);
 
     int next = (turn==1)?2:1;
-    return hash_pos(next);
+    return hash_pos(B, next);
 }
 
 /*----------------------------------------------------------------------
  *  Terminal-state evaluation
  *--------------------------------------------------------------------*/
 VALUE Primitive(POSITION position){
-    int turn; unhash_pos(position, &turn);
+    char B[CELLS]; 
+    int turn; unhash_pos(B, position, &turn);
 
-    if(has_four())               return lose;  /* previous player just made 4 */
-    if(top_row_full_all_cols())  return tie;
+    if(has_four(B))               return lose;  /* previous player just made 4 */
+    if(top_row_full_all_cols(B))  return tie;
 
     return undecided;
 }
@@ -237,7 +260,8 @@ static void print_separator(void){
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn){
     (void)playerName;
     (void)usersTurn;
-    int turn; unhash_pos(position, &turn);
+    int turn; 
+    char B[CELLS]; unhash_pos(B, position, &turn);
 
     printf("  ");
     for (int c = 0; c < COLS; c++) printf("  %d ", c+1);
@@ -247,7 +271,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn){
     for (int r = 0; r < ROWS; r++){
         printf("|");
         for (int c = 0; c < COLS; c++){
-            char v = AT(r,c);
+            char v = AT(B,r,c);
             char ch = (v=='x' ? 'X' : (v=='o' ? 'O' : ' '));
             printf(" %c |", ch);
         }
@@ -294,7 +318,8 @@ void MoveToString(MOVE m, char *buf){
 
 USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
     USERINPUT ret;
-    int turn; unhash_pos(thePosition, &turn);
+    char B[CELLS];
+    int turn; unhash_pos(B, thePosition, &turn);
     char whoseTurn = (turn==1)?'x':'o';
 
     do {
