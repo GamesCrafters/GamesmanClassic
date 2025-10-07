@@ -49,7 +49,7 @@ CONST_STRING kHelpExample           =
 /*----------------------------------------------------------------------
  *  Board constants and global board
  *--------------------------------------------------------------------*/
-enum { ROWS = 5, COLS = 6, CELLS = ROWS * COLS };
+enum { ROWS = 4, COLS = 5, CELLS = ROWS * COLS };
 
 /*----------------------------------------------------------------------
  *  Move encoding
@@ -128,13 +128,25 @@ static void twist_row_do(char *B, int row, int dir /* -1=LEFT, +1=RIGHT */){
     for(int c=0;c<COLS;c++) apply_gravity_col(B, c);
 }
 
-static int has_four(char *B){
+static int has_four_for(char *B, char p){
+    for(int r=0;r+3<ROWS;r++)
+        for(int c=0;c<COLS;c++)
+            if(AT(B,r,c)==p && AT(B,r+1,c)==p && AT(B,r+2,c)==p && AT(B,r+3,c)==p)
+                return 1;
+
+    for(int r=0;r<ROWS;r++){
+        for(int c0=0;c0<COLS;c0++){
+            int c1=(c0+1)%COLS, c2=(c0+2)%COLS, c3=(c0+3)%COLS;
+            if(AT(B,r,c0)==p && AT(B,r,c1)==p && AT(B,r,c2)==p && AT(B,r,c3)==p)
+                return 1;
+        }
+    }
+
     for(int r=0;r<ROWS;r++) for(int c=0;c<COLS;c++){
-        char v=AT(B,r,c); if(v=='*') continue;
-        if(r+3<ROWS && v==AT(B,r+1,c)&&v==AT(B,r+2,c)&&v==AT(B,r+3,c)) return 1;                 /* vertical */
-        if(c+3<COLS && v==AT(B,r,c+1)&&v==AT(B,r,c+2)&&v==AT(B,r,c+3)) return 1;                 /* horizontal */
-        if(r+3<ROWS && c+3<COLS && v==AT(B,r+1,c+1)&&v==AT(B,r+2,c+2)&&v==AT(B,r+3,c+3)) return 1; /* diag ↘ */
-        if(r-3>=0  && c+3<COLS && v==AT(B,r-1,c+1)&&v==AT(B,r-2,c+2)&&v==AT(B,r-3,c+3)) return 1; /* diag ↗ */
+        if (r+3<ROWS && c+3<COLS &&
+            AT(B,r,c)==p && AT(B,r+1,c+1)==p && AT(B,r+2,c+2)==p && AT(B,r+3,c+3)==p) return 1;
+        if (r-3>=0  && c+3<COLS &&
+            AT(B,r,c)==p && AT(B,r-1,c+1)==p && AT(B,r-2,c+2)==p && AT(B,r-3,c+3)==p) return 1;
     }
     return 0;
 }
@@ -159,6 +171,7 @@ static POSITION hash_pos(char *B, int turn){
  *  Optional validity filter (vcfg): X first -> x==o or x==o+1
  *--------------------------------------------------------------------*/
 static int vcfg_connect4(int pieces[]){
+    // TODO： check floating pieces
     /* pieces[] aligned with pieces_arr below: 'x','o','*' */
     int x = pieces[0], o = pieces[1];
     return (x == o) || (x == o + 1);
@@ -179,6 +192,8 @@ void InitializeGame(void){
     };
 
     gNumberOfPositions = generic_hash_init(CELLS, pieces_arr, vcfg_connect4, 0);
+    fprintf(stderr, "\n[GM] gnumpos=%d", gNumberOfPositions); 
+
     /* empty board, X to move (turn=1) */
     char B[CELLS]; memset(B,'*',CELLS);
     gInitialPosition = generic_hash_hash(B, 1);
@@ -193,7 +208,7 @@ MOVELIST *GenerateMoves(POSITION position){
     int turn; unhash_pos(B, position, &turn);
 
     if (DBG_ON && DBG_MOVES) {
-        fprintf(stderr, "\n[GM] turn=%d board=", turn); dump_board_compact(B); fputc('\n', stderr);
+        // fprintf(stderr, "\n[GM] turn=%d board=", turn); dump_board_compact(B); fputc('\n', stderr);
     }
     /* count placed pieces to decide whether twists are allowed */
     int placed=0; for(int i=0;i<CELLS;i++) if(B[i]!='*') placed++;
@@ -242,8 +257,19 @@ VALUE Primitive(POSITION position){
     char B[CELLS]; 
     int turn; unhash_pos(B, position, &turn);
 
-    if(has_four(B))               return lose;  /* previous player just made 4 */
-    if(top_row_full_all_cols(B))  return tie;
+    int x4 = has_four_for(B, 'x');
+    int o4 = has_four_for(B, 'o');
+
+    if (x4 && !o4) {
+        return (turn == 2) ? lose : win;
+    }
+    if (o4 && !x4) {
+        return (turn == 1) ? lose : win;
+    }
+    if (x4 && o4) {
+        return lose;
+    }
+    if (top_row_full_all_cols(B)) return tie;
 
     return undecided;
 }
