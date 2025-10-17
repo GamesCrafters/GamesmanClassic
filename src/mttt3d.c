@@ -148,7 +148,7 @@ Player (player one) Wins!";
 #define x               'x'
 typedef char BlankOX;
 
-char *gBlankOXString[] = { "-", "o", "x" };
+char *gBlankOXString[] = { "-", "O", "X" };
 
 struct {
     BlankOX board[BOARDSIZE];
@@ -209,7 +209,7 @@ void InitializeGame(void) {
     generic_hash_destroy();
     //have a GLOBAL HASH set up at outset:
     int game[10] = {'o', 0, 13, 'x', 0, 14, Blank, 0, 27, -1 };
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, game, vcfg, 0);
+    gNumberOfPositions = generic_hash_init(BOARDSIZE, game, &vcfg, 0);
 
     BlankOX board[BOARDSIZE]; memset(board, Blank, BOARDSIZE);
     memcpy(gPosition.board, board, sizeof(BlankOX) * BOARDSIZE);
@@ -256,9 +256,9 @@ void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, int* turn) {
 }
 
 BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
-    return(       theBlankOX[a] == theBlankOX[b] &&
-                  theBlankOX[b] == theBlankOX[c] &&
-                  theBlankOX[c] != Blank );
+    return(theBlankOX[a] == theBlankOX[b] &&
+            theBlankOX[b] == theBlankOX[c] &&
+            theBlankOX[c] != Blank);
 }
 
 BlankOX WhoseTurn(BlankOX *theBlankOX) {
@@ -321,14 +321,14 @@ POSITION DoMove(POSITION position, MOVE move) {
     BlankOX board[BOARDSIZE];
     int turn = generic_hash_turn(position);
     generic_hash_unhash(position, board);
-    board[move] = (turn == 1 ? x : o);
+    board[move] = (turn == FIRSTPLAYER ? x : o);
     // update global gPosition
     memcpy(gPosition.board, board, sizeof(BlankOX) * BOARDSIZE);
     int placed = 0;
     for (int i = 0; i < BOARDSIZE; i++) if (board[i] != Blank) placed++;
     gPosition.piecesPlaced = placed;
-    gPosition.nextPiece = (turn == 1 ? o : x);
-    return generic_hash_hash(board, turn == 1 ? 2 : 1);
+    gPosition.nextPiece = (turn == FIRSTPLAYER ? o : x);
+    return generic_hash_hash(board, turn == FIRSTPLAYER ? SECONDPLAYER : FIRSTPLAYER);
 
 }
 
@@ -487,15 +487,15 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     player = player == 1 ? x : o;
 
     printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[18]), getSymbol(theBlankOx[19]), getSymbol(theBlankOx[20]));
-    printf("                             : %s %s %s  C \n", getSymbol(theBlankOx[21]), getSymbol(theBlankOx[22]), getSymbol(theBlankOx[23]));
+    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[21]), getSymbol(theBlankOx[22]), getSymbol(theBlankOx[23]));
     printf("                             : %s %s %s    \n", getSymbol(theBlankOx[24]), getSymbol(theBlankOx[25]), getSymbol(theBlankOx[26]));
 
     printf("\n         ( 1 2 3 )           : %s %s %s    \n", getSymbol(theBlankOx[9]), getSymbol(theBlankOx[10]), getSymbol(theBlankOx[11]));
-    printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s  B \n", getSymbol(theBlankOx[12]), getSymbol(theBlankOx[13]), getSymbol(theBlankOx[14]));
+    printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s    \n", getSymbol(theBlankOx[12]), getSymbol(theBlankOx[13]), getSymbol(theBlankOx[14]));
     printf("         ( 7 8 9 )           : %s %s %s    \n", getSymbol(theBlankOx[15]), getSymbol(theBlankOx[16]), getSymbol(theBlankOx[17]));
 
     printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[0]), getSymbol(theBlankOx[1]), getSymbol(theBlankOx[2]));
-    printf("                             : %s %s %s  A \n", getSymbol(theBlankOx[3]), getSymbol(theBlankOx[4]), getSymbol(theBlankOx[5]));
+    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[3]), getSymbol(theBlankOx[4]), getSymbol(theBlankOx[5]));
     printf("                             : %s %s %s %s    \n", getSymbol(theBlankOx[6]), getSymbol(theBlankOx[7]), getSymbol(theBlankOx[8]), GetPrediction(position,playerName,usersTurn));
 }
 
@@ -515,7 +515,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
     do {
         /* List of available moves */
         // Modify the player's move prompt as you wish
-        printf("%8s's move [(u)ndo/[a,b,c][1-9]] :  ", playerName);
+        printf("%8s's move [(u)ndo/[1-9]] :  ", playerName);
         ret = HandleDefaultTextInput(position, move, playerName);
         if (ret != Continue) return ret;
     } while (TRUE);
@@ -532,15 +532,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
  * @return TRUE iff the input is a valid text input.
  */
 BOOLEAN ValidTextInput(STRING input) {
-    if(strlen(input) < 1) {
-        return FALSE;
-    } else if((input[0] < 'a') || (input[0] > 'c')) {
-        return FALSE;
-    } else if((input[1] < '1') || (input[1] > '9')) {
-        return FALSE;
-    } else {
-        return TRUE;
-    }
+    return(input[0] <= '9' && input[0] >= '1');
 }
 
 /**
@@ -552,9 +544,13 @@ BOOLEAN ValidTextInput(STRING input) {
  * @return The hash of the move specified by the text input.
  */
 MOVE ConvertTextInputToMove(STRING input) {
-    int z = input[0] - 'a';
-    int pos = input[1] - '1';
-    return z * 9 + pos;
+
+    int pos = input[0] - '1'; //position 0-8
+ 
+    if (gPosition.board[pos] == Blank) return pos; // layer A
+    else if (gPosition.board[pos + 9] == Blank) return pos + 9; // layer B if A has piece
+    else if (gPosition.board[pos + 18] == Blank) return pos + 18; // layer C if B has piece
+    return -1;
 }
 
 /**
@@ -571,11 +567,9 @@ MOVE ConvertTextInputToMove(STRING input) {
  * the move string written to `moveStringBuffer` is properly null-terminated.
  */
 void MoveToString(MOVE move, char *moveStringBuffer) {
-    int z = move / 9;
     int pos = move % 9;
-    moveStringBuffer[0] = 'a' + z; // add based on the board being examined
-    moveStringBuffer[1] = '0' + (pos + 1); /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
-    moveStringBuffer[2] = '\0';
+    moveStringBuffer[0] = '0' + (pos + 1); /* The plus 1 is because the user thinks it's 1-9, but MOVE is 0-8 */
+    moveStringBuffer[1] = '\0';
 }
 
 /**
