@@ -267,7 +267,7 @@ VALUE Primitive(POSITION position){
         return (turn == 1) ? lose : win;
     }
     if (x4 && o4) {
-        return lose;
+        return tie;
     }
     if (top_row_full_all_cols(B)) return tie;
 
@@ -301,7 +301,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn){
             char ch = (v=='x' ? 'X' : (v=='o' ? 'O' : ' '));
             printf(" %c |", ch);
         }
-        printf(" %d\n", r+1);
+        int shown = ROWS - r;
+        printf(" %d\n", shown);
         print_separator();
     }
     printf("%s to move.\n", (turn==1) ? "X" : "O");
@@ -310,8 +311,8 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn){
 BOOLEAN ValidTextInput(STRING s){
     /* Accept: "<col> N" or "<col> <L|R> <row>" */
     int c=0, r=0; char d='N';
-    int n = sscanf(s, "%d %c %d", &c, &d, &r);
-    if (n < 2) return FALSE;
+    int n = sscanf(s, " %d", &c);
+    if (n == 1) { return (c >= 1 && c <= COLS); }
 
     if (c < 1 || c > COLS) return FALSE;
     d = (char)toupper((unsigned char)d);
@@ -328,7 +329,9 @@ BOOLEAN ValidTextInput(STRING s){
 
 MOVE ConvertTextInputToMove(STRING s){
     int c=0, r=0; char d='N';
-    (void)sscanf(s, "%d %c %d", &c, &d, &r);
+    if (sscanf(s, " %d", &c) == 1) {
+        return MOVE_MAKE(c-1, 0, DIR_NONE); 
+    }
     d = (char)toupper((unsigned char)d);
     if (d == 'N') r = 1; /* row ignored in NONE; keep in range */
     TwistDir dir = (d=='L')?DIR_LEFT : (d=='R')?DIR_RIGHT : DIR_NONE;
