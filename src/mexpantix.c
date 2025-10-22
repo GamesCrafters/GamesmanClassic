@@ -147,7 +147,7 @@ void shift_right(char board[ROWS][COLS], int shift){
             board[r][c] = EMPTY;
 }
 
-BOOLEAN is_adjacent_to_O(char board[BOARDSIZE], int r, int c) {
+BOOLEAN is_adjacent_to_piece(char board[BOARDSIZE], int r, int c) {
     // Check above
     if (r - 1 >= 0 && r - 1 < ROWS && c >= 0 && c < COLS)
         if (board[(r - 1) * COLS + c] == PIECE) return TRUE;
@@ -182,8 +182,10 @@ BOOLEAN can_place_move(char board[BOARDSIZE], int start_row, int start_col,
     // Determine shift needed for moves that go off the top/left
     int shift_down_needed = 0;
     int shift_right_needed = 0;
-    if (end_row < 0) shift_down_needed = -end_row;
-    if (end_col < 0) shift_right_needed = -end_col;
+	int smallest_row = (end_row < start_row) ? end_row : start_row;
+	int smallest_col = (end_col < start_col) ? end_col : start_col;
+    if (smallest_row < 0) shift_down_needed = -smallest_row;
+    if (smallest_col < 0) shift_right_needed = -smallest_col;
 
     // Check if board can be shifted to fit move
     if (shift_down_needed + occupied_rows > ROWS) return FALSE;
@@ -193,15 +195,17 @@ BOOLEAN can_place_move(char board[BOARDSIZE], int start_row, int start_col,
 	if (end_row >= ROWS) return FALSE;
 	if (end_col >= COLS) return FALSE;
 
+	BOOLEAN any_adjacent = FALSE;
     // Check for overlap with existing 'O's
     for (int i = 0; i < length; i++) {
         int r = start_row + dr * i;
         int c = start_col + dc * i;
 		if (r >= ROWS || c >= COLS) return FALSE;
         if (r >= 0 && c >= 0 && board[r * COLS + c] == PIECE) return FALSE;
+		if (is_adjacent_to_piece(board, r, c)) any_adjacent = TRUE;
     }
 
-    return TRUE;
+    return any_adjacent;
 }
 
 BOOLEAN board_empty(char board[BOARDSIZE]) {
@@ -300,7 +304,6 @@ MOVELIST *GenerateMoves(POSITION position) {
     for (int r = -1; r < ROWS; r++) {
         for (int c = -1; c < COLS; c++) {
             if (r >= 0 && c >= 0 && board[r * COLS + c] == PIECE) continue;
-            if (!is_adjacent_to_O(board, r, c)) continue;
 
 			for (int len = 1; len <= MAXPLACED; len++) {
 				if (len == 1) {
@@ -350,17 +353,23 @@ POSITION DoMove(POSITION position, MOVE move) {
     else if (dir == 2) dc = -1;
 	else if (dir == 3) dr = 1;
 
-	int shift_down_amount = 0;
-    int shift_right_amount = 0;
-    if (start_row + dr * (len - 1) < 0) shift_down_amount = -(start_row + dr * (len - 1));
-    if (start_col + dc * (len - 1) < 0) shift_right_amount = -(start_col + dc * (len - 1));
+	int end_row = start_row + dr * (len - 1);
+    int end_col = start_col + dc * (len - 1);
 
-	if (shift_down_amount > 0) shift_down(board, shift_down_amount);
-	if (shift_right_amount > 0) shift_right(board, shift_right_amount);
+    // Determine shift needed for moves that go off the top/left
+    int shift_down_needed = 0;
+    int shift_right_needed = 0;
+	int smallest_row = (end_row < start_row) ? end_row : start_row;
+	int smallest_col = (end_col < start_col) ? end_col : start_col;
+    if (smallest_row < 0) shift_down_needed = -smallest_row;
+    if (smallest_col < 0) shift_right_needed = -smallest_col;
+
+	if (shift_down_needed > 0) shift_down(board, shift_down_needed);
+	if (shift_right_needed > 0) shift_right(board, shift_right_needed);
 
 	// Adjust indices to account for the shift
-	start_row += shift_down_amount;
-    start_col += shift_right_amount;
+	start_row += shift_down_needed;
+    start_col += shift_right_needed;
 
     // Place the move
     for (int i = 0; i < len; i++) {
