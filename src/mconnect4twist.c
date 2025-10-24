@@ -49,8 +49,11 @@ CONST_STRING kHelpExample           =
 /*----------------------------------------------------------------------
  *  Board constants and global board
  *--------------------------------------------------------------------*/
-enum { ROWS = 4, COLS = 5, CELLS = ROWS * COLS };
-
+#define ROWCOUNT 4
+#define COLCOUNT 5
+#define CELLS (ROWCOUNT * COLCOUNT)
+#define TWIST_LEFT_BASE   1000
+#define TWIST_RIGHT_BASE  2000
 /*----------------------------------------------------------------------
  *  Move encoding
  *      bits 0-7   : drop column (0..5)
@@ -73,24 +76,18 @@ static POSITION hash_pos(char *B, int turn);
 /*----------------------------------------------------------------------
  *  Helpers on gBoard (no bit-packing)
  *--------------------------------------------------------------------*/
-static inline int  IDX(int r,int c){ return r*COLS + c; }
+static inline int  IDX(int r,int c){ return r*COLCOUNT + c; }
 static inline char AT (char *B, int r,int c){ return B[IDX(r,c)]; }
 static inline void SET(char *B, int r,int c,char v){ B[IDX(r,c)] = v; }
 
 
-
-/* ===== debug switches ===== */
-static int DBG_ON = 1;      // 置 0 关闭全部调试
-static int DBG_MOVES = 1;   // 打印 GenerateMoves 列表
-static int DBG_DOMOVE = 1;  // 打印 DoMove 前后棋盘
-
 static void dump_board_compact(char *B){
-    for(int r=0;r<ROWS;r++){
-        for(int c=0;c<COLS;c++){
+    for(int r=0;r<ROWCOUNT;r++){
+        for(int c=0;c<COLCOUNT;c++){
             char v = AT(B,r,c);
             fputc(v=='*' ? '.' : v, stderr);
         }
-        if(r<ROWS-1) fputc('/', stderr);
+        if(r<ROWCOUNT-1) fputc('/', stderr);
     }
 }
 /* ===== debug switches ===== */
@@ -99,60 +96,60 @@ static void dump_board_compact(char *B){
 
 
 static int row_has_piece(char *B, int r){
-    for(int c=0;c<COLS;c++) if(AT(B,r,c)!='*') return 1;
+    for(int c=0;c<COLCOUNT;c++) if(AT(B,r,c)!='*') return 1;
     return 0;
 }
 static int top_full_col(char *B, int c){ return AT(B,0,c)!='*'; }
 
 static void apply_gravity_col(char *B, int c){
-    for(int r=ROWS-2;r>=0;r--){
+    for(int r=ROWCOUNT-2;r>=0;r--){
         if(AT(B,r,c)!='*'){
             int rr=r;
-            while(rr+1<ROWS && AT(B,rr+1,c)=='*') rr++;
+            while(rr+1<ROWCOUNT && AT(B,rr+1,c)=='*') rr++;
             if(rr!=r){ SET(B,rr,c,AT(B,r,c)); SET(B,r,c,'*'); }
         }
     }
 }
 
 static void drop_piece_do(char *B, int col, char me){
-    for(int r=ROWS-1;r>=0;r--){
+    for(int r=ROWCOUNT-1;r>=0;r--){
         if(AT(B,r,col)=='*'){ SET(B,r,col,me); return; }
     }
 }
 
 static void twist_row_do(char *B, int row, int dir /* -1=LEFT, +1=RIGHT */){
     if(!row_has_piece(B, row)) return;
-    char tmp[COLS]; for(int c=0;c<COLS;c++) tmp[c]=AT(B,row,c);
-    if(dir<0)  for(int c=0;c<COLS;c++) SET(B,row,c, tmp[(c+1)%COLS]);
-    else       for(int c=0;c<COLS;c++) SET(B,row,c, tmp[(c+COLS-1)%COLS]);
-    for(int c=0;c<COLS;c++) apply_gravity_col(B, c);
+    char tmp[COLCOUNT]; for(int c=0;c<COLCOUNT;c++) tmp[c]=AT(B,row,c);
+    if(dir<0)  for(int c=0;c<COLCOUNT;c++) SET(B,row,c, tmp[(c+1)%COLCOUNT]);
+    else       for(int c=0;c<COLCOUNT;c++) SET(B,row,c, tmp[(c+COLCOUNT-1)%COLCOUNT]);
+    for(int c=0;c<COLCOUNT;c++) apply_gravity_col(B, c);
 }
 
 static int has_four_for(char *B, char p){
-    for(int r=0;r+3<ROWS;r++)
-        for(int c=0;c<COLS;c++)
+    for(int r=0;r+3<ROWCOUNT;r++)
+        for(int c=0;c<COLCOUNT;c++)
             if(AT(B,r,c)==p && AT(B,r+1,c)==p && AT(B,r+2,c)==p && AT(B,r+3,c)==p)
                 return 1;
 
-    for(int r=0;r<ROWS;r++){
-        for(int c0=0;c0<COLS;c0++){
-            int c1=(c0+1)%COLS, c2=(c0+2)%COLS, c3=(c0+3)%COLS;
+    for(int r=0;r<ROWCOUNT;r++){
+        for(int c0=0;c0<COLCOUNT;c0++){
+            int c1=(c0+1)%COLCOUNT, c2=(c0+2)%COLCOUNT, c3=(c0+3)%COLCOUNT;
             if(AT(B,r,c0)==p && AT(B,r,c1)==p && AT(B,r,c2)==p && AT(B,r,c3)==p)
                 return 1;
         }
     }
 
-    for(int r=0;r<ROWS;r++) for(int c=0;c<COLS;c++){
-        if (r+3<ROWS && c+3<COLS &&
+    for(int r=0;r<ROWCOUNT;r++) for(int c=0;c<COLCOUNT;c++){
+        if (r+3<ROWCOUNT && c+3<COLCOUNT &&
             AT(B,r,c)==p && AT(B,r+1,c+1)==p && AT(B,r+2,c+2)==p && AT(B,r+3,c+3)==p) return 1;
-        if (r-3>=0  && c+3<COLS &&
+        if (r-3>=0  && c+3<COLCOUNT &&
             AT(B,r,c)==p && AT(B,r-1,c+1)==p && AT(B,r-2,c+2)==p && AT(B,r-3,c+3)==p) return 1;
     }
     return 0;
 }
 
 static int top_row_full_all_cols(char *B){
-    for(int c=0;c<COLS;c++) if(AT(B,0,c)=='*') return 0;
+    for(int c=0;c<COLCOUNT;c++) if(AT(B,0,c)=='*') return 0;
     return 1;
 }
 
@@ -192,7 +189,6 @@ void InitializeGame(void){
     };
 
     gNumberOfPositions = generic_hash_init(CELLS, pieces_arr, vcfg_connect4, 0);
-    fprintf(stderr, "\n[GM] gnumpos=%d", gNumberOfPositions); 
 
     /* empty board, X to move (turn=1) */
     char B[CELLS]; memset(B,'*',CELLS);
@@ -207,16 +203,13 @@ MOVELIST *GenerateMoves(POSITION position){
     char B[CELLS]; 
     int turn; unhash_pos(B, position, &turn);
 
-    if (DBG_ON && DBG_MOVES) {
-        // fprintf(stderr, "\n[GM] turn=%d board=", turn); dump_board_compact(B); fputc('\n', stderr);
-    }
     /* count placed pieces to decide whether twists are allowed */
     int placed=0; for(int i=0;i<CELLS;i++) if(B[i]!='*') placed++;
-    for(int c=0;c<COLS;c++){
+    for(int c=0;c<COLCOUNT;c++){
         if(!top_full_col(B, c)){
             /* twists only allowed after the very first move (spec per你的描述) */
             if(placed>0){
-                for(int r=0;r<ROWS;r++){
+                for(int r=0;r<ROWCOUNT;r++){
                     if(row_has_piece(B, r)){
                         list = CreateMovelistNode(MOVE_MAKE(c,r,DIR_LEFT),  list);
                         list = CreateMovelistNode(MOVE_MAKE(c,r,DIR_RIGHT), list);
@@ -279,7 +272,7 @@ VALUE Primitive(POSITION position){
  *--------------------------------------------------------------------*/
 static void print_separator(void){
     putchar('+');
-    for (int c = 0; c < COLS; c++) printf("---+");
+    for (int c = 0; c < COLCOUNT; c++) printf("---+");
     putchar('\n');
 }
 
@@ -290,18 +283,18 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn){
     char B[CELLS]; unhash_pos(B, position, &turn);
 
     printf("  ");
-    for (int c = 0; c < COLS; c++) printf("  %d ", c+1);
+    for (int c = 0; c < COLCOUNT; c++) printf("  %d ", c+1);
     printf("\n");
 
     print_separator();
-    for (int r = 0; r < ROWS; r++){
+    for (int r = 0; r < ROWCOUNT; r++){
         printf("|");
-        for (int c = 0; c < COLS; c++){
+        for (int c = 0; c < COLCOUNT; c++){
             char v = AT(B,r,c);
             char ch = (v=='x' ? 'X' : (v=='o' ? 'O' : ' '));
             printf(" %c |", ch);
         }
-        int shown = ROWS - r;
+        int shown = ROWCOUNT - r;
         printf(" %d\n", shown);
         print_separator();
     }
@@ -312,16 +305,16 @@ BOOLEAN ValidTextInput(STRING s){
     /* Accept: "<col> N" or "<col> <L|R> <row>" */
     int c=0, r=0; char d='N';
     int n = sscanf(s, " %d", &c);
-    if (n == 1) { return (c >= 1 && c <= COLS); }
+    if (n == 1) { return (c >= 1 && c <= COLCOUNT); }
 
-    if (c < 1 || c > COLS) return FALSE;
+    if (c < 1 || c > COLCOUNT) return FALSE;
     d = (char)toupper((unsigned char)d);
 
     if (d == 'N') {
         return TRUE; /* row ignored */
     } else if (d == 'L' || d == 'R') {
         if (n < 3) return FALSE;
-        if (r < 1 || r > ROWS) return FALSE;
+        if (r < 1 || r > ROWCOUNT) return FALSE;
         return TRUE;
     }
     return FALSE;
@@ -369,18 +362,83 @@ void PrintComputersMove(MOVE mv, STRING name){
     printf("%s plays: %s\n", name, buf);
 }
 
-/*----------------------------------------------------------------------
- *  Variants (none)
- *--------------------------------------------------------------------*/
 int NumberOfOptions(void){ return 1; }
 int getOption(void){ return 0; }
 void setOption(int option){ (void)option; }
 void GameSpecificMenu(void){}
 
-/*----------------------------------------------------------------------
- *  Required but unused conversions
- *--------------------------------------------------------------------*/
 void PositionToString(POSITION p,char *b){ (void)p;(void)b; }
-POSITION StringToPosition(char *s){ (void)s; return 0; }
-void PositionToAutoGUIString(POSITION p,char *b){ (void)p;(void)b; }
-void MoveToAutoGUIString(POSITION p,MOVE m,char *b){ (void)p;(void)m;(void)b; }
+POSITION StringToPosition(char *s){ 
+    int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(s, &turn, &board)) {
+        POSITION pos = 0;
+        for (int c = 0; c < COLCOUNT; c++) {
+            POSITION colbits = 0;
+            BOOLEAN endFound = FALSE;
+            for (int r = 0; !endFound && r < ROWCOUNT; r++) {
+            char piece = board[ROWCOUNT * (c + 1) - 1 - r];
+            if (piece == 'O') {
+                colbits |= (1 << r);
+            } else if (piece == '-') {
+                endFound = TRUE;
+                colbits |= (1 << r);
+            }
+            }
+            if (!endFound) colbits |= (1 << ROWCOUNT);
+            pos |= (colbits << ((ROWCOUNT + 1) * (COLCOUNT - 1 - c)));
+        }
+        if (turn == 2) pos |= (1ULL << 63);
+        return pos;
+	}
+	return NULL_POSITION;
+}
+void PositionToAutoGUIString(POSITION p,char *b){ 
+    char B[CELLS];
+    int turn;
+    unhash_pos(B, p, &turn); 
+
+    char pieces[CELLS + 1];
+    int placed = 0;
+    int k = 0;
+
+    for (int r = 0; r < ROWCOUNT; ++r){
+        for (int c = 0; c < COLCOUNT; ++c){
+            char v = AT(B, r, c);
+            if (v == 'x') { pieces[k++] = 'X'; placed++; }
+            else if (v == 'o') { pieces[k++] = 'O'; placed++; }
+            else { pieces[k++] = '-'; }
+        }
+    }
+    pieces[k] = '\0';
+
+    AutoGUIMakePositionString(turn, pieces, b);
+}
+void MoveToAutoGUIString(POSITION p,MOVE m,char *b){ 
+    (void)p;(void)m;(void)b;
+
+    if (m < TWIST_LEFT_BASE) {
+        int w = (ROWCOUNT + 1) * COLCOUNT - 1 - (m / (ROWCOUNT + 1));
+        AutoGUIMakeMoveButtonStringM(w, w + COLCOUNT, 'x', b);
+        return;
+    }
+
+    if (m >= TWIST_LEFT_BASE && m < TWIST_RIGHT_BASE) {
+        int r = m - TWIST_LEFT_BASE;
+        int rowTopIdx = r;
+        int leftIdx  = r;
+        int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
+        AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
+        return;
+    }
+
+    if (m >= TWIST_RIGHT_BASE) {
+        int r = m - TWIST_RIGHT_BASE;
+        int leftIdx  = r;
+        int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
+        AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
+        return;
+    }
+
+    AutoGUIMakeMoveButtonStringM(0, 0, 'x', b);
+}
