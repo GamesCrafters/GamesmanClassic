@@ -494,16 +494,15 @@ void MoveToAutoGUIString(POSITION p, MOVE m, char *b) {
     int col = MOVE_COL(m);
     int row = MOVE_ROW(m);
     int dir = MOVE_DIR(m);
-    
+
     if (dir == DIR_NONE) {
-        // Regular drop move - arrow in row (horizontal drop)
-        int rowStartIdx = col * ROWCOUNT;
-        int rowEndIdx = rowStartIdx + ROWCOUNT - 1;
-        AutoGUIMakeMoveButtonStringM(col, col + 4, 'x', b);
+        int start = ROWCOUNT * COLCOUNT + col;
+        AutoGUIMakeMoveButtonStringM(start, start + 4, 'x', b);
+    } else if (dir == 1) {
+        int pos = col + (row * COLCOUNT);
+        AutoGUIMakeMoveButtonStringA('l', pos, 'y', b);
     } else {
-        // Twist move - arrow in column (vertical twist)
-        int colStartIdx = row;
-        int colEndIdx = row + (COLCOUNT - 1) * ROWCOUNT;
-        AutoGUIMakeMoveButtonStringM(row, 4 + row, 'y', b);
+        int pos = col + (row * COLCOUNT);
+        AutoGUIMakeMoveButtonStringA('r', pos, 'y', b);
     }
 }
