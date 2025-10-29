@@ -370,28 +370,28 @@ class GameProcess():
     # can send input. Returns the amount of time until a timeout
     # based on the timeout argument.
     def wait_for_ready(self, timeout: float) -> float:
-        # read_timeout: float = 0.001
-        # total_time = read_timeout
-        # ready: bool = False # True iff ready string found in output
-        # while total_time < timeout and not ready:
-        #     total_time += read_timeout
-        #     time.sleep(read_timeout)
-        #     last_output: bytes | None = self.stdout.read()
-        #     if last_output is None:
-        #         # None if output stream was empty
-        #         last_output = b""
-        #     last_output_str = last_output.decode()
-        #     self.server.log.debug(f"{self.game.name} read:\n"
-        #                           f"{last_output}")
+        read_timeout: float = 0.001
+        total_time = read_timeout
+        ready: bool = False # True iff ready string found in output
+        while total_time < timeout and not ready:
+            total_time += read_timeout
+            time.sleep(read_timeout)
+            last_output: bytes | None = self.stdout.read()
+            if last_output is None:
+                # None if output stream was empty
+                last_output = b""
+            last_output_str = last_output.decode()
+            self.server.log.debug(f"{self.game.name} read:\n"
+                                  f"{last_output}")
 
-        #     if ' ready =>>' in last_output_str:
-        #         self.server.log.debug(f'Found ready prompt in {total_time} seconds.')
-        #         ready = True
-        # if not ready:
-        #     self.server.log.error(f"Could not find ready prompt for {self.game.name}.")
-        # return timeout - total_time
-        print(f"[DEBUG] skipping wait_for_ready, assuming {self.game.name} is ready.")
-        return timeout
+            if ' ready =>>' in last_output_str:
+                self.server.log.debug(f'Found ready prompt in {total_time} seconds.')
+                ready = True
+        if not ready:
+            self.server.log.error(f"Could not find ready prompt for {self.game.name}.")
+        return timeout - total_time
+        # print(f"[DEBUG] skipping wait_for_ready, assuming {self.game.name} is ready.")
+        # return timeout
 
     # Returns the percentage of on device memory this process is using
     def memory_percent_usage(self) -> float:
