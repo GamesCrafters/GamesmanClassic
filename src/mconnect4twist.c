@@ -50,7 +50,7 @@ CONST_STRING kHelpExample           =
  *  Board constants and global board
  *--------------------------------------------------------------------*/
 #define ROWCOUNT 4
-#define COLCOUNT 5
+#define COLCOUNT 4
 #define CELLS (ROWCOUNT * COLCOUNT)
 #define TWIST_LEFT_BASE   1000
 #define TWIST_RIGHT_BASE  2000
@@ -367,78 +367,143 @@ int getOption(void){ return 0; }
 void setOption(int option){ (void)option; }
 void GameSpecificMenu(void){}
 
-void PositionToString(POSITION p,char *b){ (void)p;(void)b; }
-POSITION StringToPosition(char *s){ 
-    int turn;
+// void PositionToString(POSITION p, char *b) {
+//     // Get the turn for this position
+//     int turn = generic_hash_turn(p);
+    
+//     // Use generic_hash_unhash_tcl to get the board string
+//     char *board_str = generic_hash_unhash_tcl(p);
+    
+//     // Format as "turn_board" (e.g., "1_xxxxxxxx" or "2_xxxxxxxx")
+//     sprintf(b, "%d_%s", turn, board_str);
+    
+//     // Free the allocated string from generic_hash_unhash_tcl
+//     SafeFree(board_str);
+// }
+
+// POSITION StringToPosition(char *s) {
+//     int turn;
+//     char *board;
+    
+//     if (ParseStandardOnelinePositionString(s, &turn, &board)) {
+//         // Use generic_hash_hash to convert the board string to position
+//         POSITION pos = generic_hash_hash(board, turn);
+//         return pos;
+//     }
+    
+//     return NULL_POSITION;
+// }
+// void PositionToAutoGUIString(POSITION p,char *b){ 
+//     char B[CELLS];
+//     int turn;
+//     unhash_pos(B, p, &turn); 
+
+//     char pieces[CELLS + 1];
+//     int placed = 0;
+//     int k = 0;
+
+//     for (int r = 0; r < ROWCOUNT; ++r){
+//         for (int c = 0; c < COLCOUNT; ++c){
+//             char v = AT(B, r, c);
+//             if (v == 'x') { pieces[k++] = 'X'; placed++; }
+//             else if (v == 'o') { pieces[k++] = 'O'; placed++; }
+//             else { pieces[k++] = '-'; }
+//         }
+//     }
+//     pieces[k] = '\0';
+
+//     AutoGUIMakePositionString(turn, pieces, b);
+// }
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
 	char *board;
-	if (ParseStandardOnelinePositionString(s, &turn, &board)) {
-        POSITION pos = 0;
-        for (int c = 0; c < COLCOUNT; c++) {
-            POSITION colbits = 0;
-            BOOLEAN endFound = FALSE;
-            for (int r = 0; !endFound && r < ROWCOUNT; r++) {
-            char piece = board[ROWCOUNT * (c + 1) - 1 - r];
-            if (piece == 'O') {
-                colbits |= (1 << r);
-            } else if (piece == '-') {
-                endFound = TRUE;
-                colbits |= (1 << r);
-            }
-            }
-            if (!endFound) colbits |= (1 << ROWCOUNT);
-            pos |= (colbits << ((ROWCOUNT + 1) * (COLCOUNT - 1 - c)));
-        }
-        if (turn == 2) pos |= (1ULL << 63);
-        return pos;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+		char realBoard[CELLS];
+		for (int i = 0; i < CELLS; i++) {
+			if (board[i] == '-') {
+				realBoard[i] = '*';
+			} else {
+				realBoard[i] = board[i];
+			}
+		}
+		return generic_hash_hash(realBoard, turn);
 	}
 	return NULL_POSITION;
 }
-void PositionToAutoGUIString(POSITION p,char *b){ 
-    char B[CELLS];
-    int turn;
-    unhash_pos(B, p, &turn); 
 
-    char pieces[CELLS + 1];
-    int placed = 0;
-    int k = 0;
-
-    for (int r = 0; r < ROWCOUNT; ++r){
-        for (int c = 0; c < COLCOUNT; ++c){
-            char v = AT(B, r, c);
-            if (v == 'x') { pieces[k++] = 'X'; placed++; }
-            else if (v == 'o') { pieces[k++] = 'O'; placed++; }
-            else { pieces[k++] = '-'; }
-        }
-    }
-    pieces[k] = '\0';
-
-    AutoGUIMakePositionString(turn, pieces, b);
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[CELLS + 1];
+	generic_hash_unhash(position, board);
+	for (int i = 0; i < CELLS; i++) {
+		if (board[i] == '*') {
+			board[i] = '-';
+		}
+	}
+	board[CELLS] = '\0';
+	AutoGUIMakePositionString(generic_hash_turn(position), board, autoguiPositionStringBuffer);
 }
-void MoveToAutoGUIString(POSITION p,MOVE m,char *b){ 
-    (void)p;(void)m;(void)b;
 
-    if (m < TWIST_LEFT_BASE) {
-        int w = (ROWCOUNT + 1) * COLCOUNT - 1 - (m / (ROWCOUNT + 1));
-        AutoGUIMakeMoveButtonStringM(w, w + COLCOUNT, 'x', b);
-        return;
+// void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+// 	(void) position;
+// 	int i1 = Unhasher_Index(move);
+// 	int direction = Unhasher_Direction(move);
+
+// 	//   STRING directions[NUM_OF_DIRS] = {
+// 	//    "ne", "e", "se",
+// 	//    "n",        "s",
+// 	//    "nw", "w", "sw"
+// 	//   };
+
+// 	int indexAdjust[] = {-3, 1, 5, -4, 4, -5, -1, 3};
+// 	AutoGUIMakeMoveButtonStringM(i1, i1 + indexAdjust[direction], 'x', autoguiMoveStringBuffer);
+// }
+
+// void MoveToAutoGUIString(POSITION p,MOVE m,char *b){ 
+//     (void)p;(void)m;(void)b;
+
+//     if (m < TWIST_LEFT_BASE) {
+//         int w = (ROWCOUNT + 1) * COLCOUNT - 1 - (m / (ROWCOUNT + 1));
+//         AutoGUIMakeMoveButtonStringM(w, w + COLCOUNT, 'x', b);
+//         return;
+//     }
+
+//     if (m >= TWIST_LEFT_BASE && m < TWIST_RIGHT_BASE) {
+//         int r = m - TWIST_LEFT_BASE;
+//         int rowTopIdx = r;
+//         int leftIdx  = r;
+//         int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
+//         AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
+//         return;
+//     }
+
+//     if (m >= TWIST_RIGHT_BASE) {
+//         int r = m - TWIST_RIGHT_BASE;
+//         int leftIdx  = r;
+//         int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
+//         AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
+//         return;
+//     }
+
+//     AutoGUIMakeMoveButtonStringM(0, 0, 'x', b);
+// }
+
+void MoveToAutoGUIString(POSITION p, MOVE m, char *b) {
+    (void)p; (void)b;
+    
+    int col = MOVE_COL(m);
+    int row = MOVE_ROW(m);
+    int dir = MOVE_DIR(m);
+    
+    if (dir == DIR_NONE) {
+        // Regular drop move - arrow in row (horizontal drop)
+        int rowStartIdx = col * ROWCOUNT;
+        int rowEndIdx = rowStartIdx + ROWCOUNT - 1;
+        AutoGUIMakeMoveButtonStringM(col, col + 4, 'x', b);
+    } else {
+        // Twist move - arrow in column (vertical twist)
+        int colStartIdx = row;
+        int colEndIdx = row + (COLCOUNT - 1) * ROWCOUNT;
+        AutoGUIMakeMoveButtonStringM(row, 4 + row, 'y', b);
     }
-
-    if (m >= TWIST_LEFT_BASE && m < TWIST_RIGHT_BASE) {
-        int r = m - TWIST_LEFT_BASE;
-        int rowTopIdx = r;
-        int leftIdx  = r;
-        int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
-        AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
-        return;
-    }
-
-    if (m >= TWIST_RIGHT_BASE) {
-        int r = m - TWIST_RIGHT_BASE;
-        int leftIdx  = r;
-        int rightIdx = r + (COLCOUNT-1)*ROWCOUNT;
-        AutoGUIMakeMoveButtonStringM(leftIdx, rightIdx, 'y', b);
-        return;
-    }
-
-    AutoGUIMakeMoveButtonStringM(0, 0, 'x', b);
 }
