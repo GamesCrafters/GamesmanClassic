@@ -853,9 +853,18 @@ POSITION ActualNumberOfPositions(int variant)
 
 POSITION StringToPosition(char *positionString) {
 	int turn;
-	char *board;
-	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
-		return 0;
+	char *board_str;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board_str)) {
+    char board[BOARD_SIZE];
+    for(int i = 0; i < BOARD_SIZE; i++){
+      if(board_str[i] == '-'){
+        board[i] = ' ';
+      } else {
+        board[i] = board_str[i];
+      }
+    }
+		POSITION p = generic_hash_hash(board, turn);
+    return p;
 	}
 	return NULL_POSITION;
 }
@@ -944,10 +953,10 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
     (void) position;
     
-    int from = DECODE_MOVE_FROM(move);
-    int to = DECODE_MOVE_TO(move);
-    int drop = DECODE_MOVE_DROP(move);
-    
+    int from = DECODE_MOVE_FROM(move & 0x0FFF);
+    int to = DECODE_MOVE_TO(move & 0x0FFF);
+    int drop = DECODE_MOVE_DROP(move & 0x0FFF);
+  
     if (move & 0x1000) { 
         AutoGUIMakeMoveButtonStringM(from, to, 'x', autoguiMoveStringBuffer);
     } 
@@ -981,44 +990,33 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
     MULTIPARTEDGELIST *mpel = NULL;
     
-    int opponentMoveDecisionAdded = 0;
-    BOOLEAN opponentMovePhaseStarted = FALSE;
-    
-    // Intermediate position for "choose to move opponent piece" phase
-    POSITION decisionInterPos = position;  // Use position directly or create intermediate
-    
     while (moveList != NULL) {
-        int from = DECODE_MOVE_FROM(moveList->move);
-        int to = DECODE_MOVE_TO(moveList->move);
-        int drop = DECODE_MOVE_DROP(moveList->move);
+        int normal_move = moveList->move  & 0x0FFF;
+        int from = DECODE_MOVE_FROM(normal_move);
+        int to = DECODE_MOVE_TO(normal_move);
+        int drop = DECODE_MOVE_DROP(normal_move);
         
-        if (from != 0 || to != 0) {
+        if (from == 0 && to == 0) {
+              // Single-part move: just place marble, no opponent piece movement
+            // These can be added as regular moves or filtered out
+            // For now, we skip them as they don't need multipart handling
+        } 
+        else {
+
             // This move involves moving opponent's piec
             
             // Intermediate position for selecting which piece to move
-            POSITION selectPieceInterPos = position;  // Or create intermediate if needed
+            char board[BOARD_SIZE];
+            generic_hash_unhash(position, board);
+            int player = GetCurrentPlayer(board);
+            board[to] = board[from];
+            board[from] = ' ';
+
+            POSITION movePieceInterPos = generic_hash_hash(board, player);  // Or create intermediate if needed
             
-            mpel = CreateMultipartEdgeListNode(
-                decisionInterPos,                       // from intermediate
-                selectPieceInterPos,                    // to next intermediate
-                0x1000 | moveList->move,               // partMove (flag + move)
-                0,                                      // dummy move
-                mpel
-            );
-            // Add "select where to move opponent piece" partMove
-            // User clicks on the destination at position 'to'
-            mpel = CreateMultipartEdgeListNode(
-                selectPieceInterPos,                    // from intermediate
-                NULL_POSITION,                          // back to main
-                0x2000 | moveList->move,               // partMove (flag + move)
-                moveList->move,                         // actual move
-                mpel
-            );
-        } 
-        else {
-            // Single-part move: just place marble, no opponent piece movement
-            // These can be added as regular moves or filtered out
-            // For now, we skip them as they don't need multipart handling
+            mpel = CreateMultipartEdgeListNode(NULL_POSITION, movePieceInterPos, (0x1000 | normal_move), 0, mpel);
+
+            mpel = CreateMultipartEdgeListNode(movePieceInterPos, NULL_POSITION, (0x2000 | normal_move), moveList->move, mpel);
         }
         
         moveList = moveList->next;
@@ -1027,3 +1025,4 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
     
     return mpel;
 }
+
