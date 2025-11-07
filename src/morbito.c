@@ -580,10 +580,10 @@ MOVELIST *GenerateMoves(POSITION position) {
         if(board[from] != opponent_char) continue;
         
         if(diagonal_variant){
-          int adjacents[9] = {from - 1, from + 1, from - 4, from + 4, from - 3, from + 3, from - 5, from + 5};
-          for(int i = 0; i < 9; i++){
+          int adjacents[8] = {from - 1, from + 1, from - 4, from + 4, from - 3, from + 3, from - 5, from + 5};
+          for(int i = 0; i < 8; i++){
             int to = adjacents[i];
-            
+
             // Validate adjacency and bounds
             if(to < 0 || to >= BOARD_SIZE) continue;
             if(board[to] != ' ') continue;
@@ -807,11 +807,8 @@ void PrintMove(MOVE move)
 
 void MoveToString (MOVE move, char *moveStringBuffer)
 {
-  if(move == 0x1000){
-    snprintf(moveStringBuffer, 2, "n");
-  } else {
-    snprintf(moveStringBuffer, 4, "%x%x%x", DECODE_MOVE_FROM(move), DECODE_MOVE_TO(move), DECODE_MOVE_DROP(move));
-  }
+  int real_move = move & 0x0FFF;
+  snprintf(moveStringBuffer, 4, "%x%x%x", DECODE_MOVE_FROM(real_move), DECODE_MOVE_TO(real_move), DECODE_MOVE_DROP(real_move));
   
 }
 
@@ -887,54 +884,8 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
   }
   AutoGUIMakePositionString(player, positionstring, autoguiPositionStringBuffer);
 }
-/*
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
-	(void) position;
-	(void) move;
-	(void) autoguiMoveStringBuffer;
-}
 
 
-MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList) {
-	MULTIPARTEDGELIST *mpel = NULL;
-  int edgeFromAdded = 0;
-  BOOLEAN gridMoveAdded = FALSE;
-  POSITION gridMoveInterPos = 
-	while (moveList != NULL) {
-    BOOLEAN isGridMove;
-    int from, to;
-    unhashMove(moveList->move, &isGridMove, &from, &to);
-
-    if (isGridMove) {
-      if (!gridMoveAdded) {
-        // Add "choose to move grid" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, gridMoveInterPos, 0x80000 | moveList->move, 0, mpel);
-        gridMoveAdded = TRUE;
-      }
-      // Add "choose where to move grid" partMove
-      mpel = CreateMultipartEdgeListNode(gridMoveInterPos, NULL_POSITION, 0x20000 | moveList->move, moveList->move, mpel);
-    } else if (from != to) {
-      POSITION slideMoveInterPos = encodeIntermediatePosition(position, FALSE, from);
-      if (!(edgeFromAdded & (1 << from))) {
-        // Add "select piece to move" partMove
-        mpel = CreateMultipartEdgeListNode(NULL_POSITION, slideMoveInterPos, 0x40000 | moveList->move, 0, mpel);
-        edgeFromAdded ^= (1 << from);
-      }
-      // Add "select where to move the piece" partMove
-      mpel = CreateMultipartEdgeListNode(slideMoveInterPos, NULL_POSITION, 0x10000 | moveList->move, moveList->move, mpel);
-    }
-    // Ignore placement moves, they're single-part
-
-		moveList = moveList->next;
-		positionList = positionList->next;
-	}
-	return mpel;
-}
-
-*/
-
-// Orbito Multipart Move Implementation
-// Based on Orbito's actual move structure and mechanics
 
 /**
  * MoveToAutoGUIString
@@ -961,8 +912,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
         AutoGUIMakeMoveButtonStringM(from, to, 'x', autoguiMoveStringBuffer);
     } 
     else if (move & 0x2000) { 
-        // Phase 2b: "select where to move opponent's piece"
-        // Show destination position 'to'
         AutoGUIMakeMoveButtonStringA('-', drop, 'x', autoguiMoveStringBuffer);
     } 
     else {
@@ -973,7 +922,8 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
         } 
         else { 
             // Full multipart move completed
-            AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+            //AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
+            AutoGUIMakeMoveButtonStringA('-', 0, 'x', autoguiMoveStringBuffer);
         }
     }
 }
@@ -1003,7 +953,7 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
         } 
         else {
 
-            // This move involves moving opponent's piec
+            // This move involves moving opponent's piece
             
             // Intermediate position for selecting which piece to move
             char board[BOARD_SIZE];
