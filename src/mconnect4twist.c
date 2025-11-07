@@ -50,7 +50,7 @@ CONST_STRING kHelpExample           =
  *  Board constants and global board
  *--------------------------------------------------------------------*/
 #define ROWCOUNT 4
-#define COLCOUNT 4
+#define COLCOUNT 5
 #define CELLS (ROWCOUNT * COLCOUNT)
 #define TWIST_LEFT_BASE   1000
 #define TWIST_RIGHT_BASE  2000
@@ -78,7 +78,7 @@ static POSITION hash_pos(char *B, int turn);
  *--------------------------------------------------------------------*/
 static inline int  IDX(int r,int c){ return r*COLCOUNT + c; }
 static inline char AT (char *B, int r,int c){ return B[IDX(r,c)]; }
-static inline void SET(char *B, int r,int c,char v){ B[IDX(r,c)] = v; }
+static inline void- SET(char *B, int r,int c,char v){ B[IDX(r,c)] = v; }
 
 
 static void dump_board_compact(char *B){
