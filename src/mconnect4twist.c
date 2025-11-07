@@ -140,10 +140,41 @@ static int has_four_for(char *B, char p){
     }
 
     for(int r=0;r<ROWCOUNT;r++) for(int c=0;c<COLCOUNT;c++){
+        // Standard diagonals (no wrapping)
         if (r+3<ROWCOUNT && c+3<COLCOUNT &&
             AT(B,r,c)==p && AT(B,r+1,c+1)==p && AT(B,r+2,c+2)==p && AT(B,r+3,c+3)==p) return 1;
         if (r-3>=0  && c+3<COLCOUNT &&
             AT(B,r,c)==p && AT(B,r-1,c+1)==p && AT(B,r-2,c+2)==p && AT(B,r-3,c+3)==p) return 1;
+        
+        // Diagonals with column wrapping
+        // Down-right with wrapping (c wraps from high to low)
+        if (r+3<ROWCOUNT) {
+            int c1 = (c+1)%COLCOUNT;
+            int c2 = (c+2)%COLCOUNT;
+            int c3 = (c+3)%COLCOUNT;
+            if (AT(B,r,c)==p && AT(B,r+1,c1)==p && AT(B,r+2,c2)==p && AT(B,r+3,c3)==p) return 1;
+        }
+        // Up-right with wrapping (c wraps from high to low)
+        if (r-3>=0) {
+            int c1 = (c+1)%COLCOUNT;
+            int c2 = (c+2)%COLCOUNT;
+            int c3 = (c+3)%COLCOUNT;
+            if (AT(B,r,c)==p && AT(B,r-1,c1)==p && AT(B,r-2,c2)==p && AT(B,r-3,c3)==p) return 1;
+        }
+        // Down-left with wrapping (c wraps from low to high)
+        if (r+3<ROWCOUNT) {
+            int c1 = (c+COLCOUNT-1)%COLCOUNT;
+            int c2 = (c+COLCOUNT-2)%COLCOUNT;
+            int c3 = (c+COLCOUNT-3)%COLCOUNT;
+            if (AT(B,r,c)==p && AT(B,r+1,c1)==p && AT(B,r+2,c2)==p && AT(B,r+3,c3)==p) return 1;
+        }
+        // Up-left with wrapping (c wraps from low to high)
+        if (r-3>=0) {
+            int c1 = (c+COLCOUNT-1)%COLCOUNT;
+            int c2 = (c+COLCOUNT-2)%COLCOUNT;
+            int c3 = (c+COLCOUNT-3)%COLCOUNT;
+            if (AT(B,r,c)==p && AT(B,r-1,c1)==p && AT(B,r-2,c2)==p && AT(B,r-3,c3)==p) return 1;
+        }
     }
     return 0;
 }
