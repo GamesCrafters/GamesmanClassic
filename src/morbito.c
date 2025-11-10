@@ -31,6 +31,7 @@
 int num_end_rotations = 5;
 int diagonal_variant = 0;
 int rotation_variant = 0;
+int misere_variant = 1; 
 
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
@@ -160,6 +161,9 @@ void GameSpecificMenu() {
 
 		switch(GetMyChar())
 		{
+    case 'M': case 'm':
+      setOption(3);
+      break;
 		case 'D': case 'd':
 			setOption(2);
 			break;
@@ -421,13 +425,21 @@ VALUE Primitive(POSITION position)
 
   int op_4 = FourInARow(board, opponent_char);
   int my_4 = FourInARow(board, my_char);
+  
   if(op_4 && my_4){
     return tie;
   } else if(op_4){
+    if (misere_variant) {
+      return gStandardGame ? lose : win;
+    }
     return lose;
   } else if(my_4){
+    if (misere_variant) {
+      return gStandardGame ? win : lose;
+    }
     return win;
   }
+
 
   int blackCount = 0;
   int whiteCount = 0;
@@ -816,16 +828,20 @@ CONST_STRING kDBName = "orbito";
 
 int NumberOfOptions()
 {
-  return 4;
+  return 5;
 }
 
 int getOption()
 {
   if (rotation_variant && diagonal_variant){
+    return 4;
+  } else if (misere_variant) {
     return 3;
-  } else if (diagonal_variant){
+  }
+   else if (diagonal_variant){
     return 2;
-  } else if (rotation_variant){
+  } 
+  else if (rotation_variant){
     return 1;
   }
   return 0;
@@ -838,6 +854,9 @@ void setOption(int option)
   }
   if(option == 2){
     diagonal_variant = (diagonal_variant + 1)%2;
+  }
+  if(option == 3) {
+    misere_variant = (misere_variant + 1)%2;
   }
 }
 
