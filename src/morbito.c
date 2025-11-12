@@ -31,7 +31,7 @@
 int num_end_rotations = 5;
 int diagonal_variant = 0;
 int rotation_variant = 0;
-int misere_variant = 1; 
+int misere_variant = 0; 
 
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
@@ -154,6 +154,14 @@ void GameSpecificMenu() {
 		}
 		else {
 			printf("\n\tR)\tChange inner (R)otation from SAME to OPPOSITE as outer\n");
+		}
+
+    printf("\n\tGame Logic Variant:");
+		if(misere_variant) {
+			printf("\n\tM)\tChange (M)isère from ENABLED to DISABLED\n");
+		}
+		else {
+			printf("\n\tM)\tChange (M)isère from DISABLED to ENABLED\n");
 		}
 
     printf("\n\tB)\tTo go back\n");
@@ -462,8 +470,14 @@ if(blackCount == 8 && whiteCount == 8){
         if(op_4 && my_4){
             return tie;
         } else if(op_4){
+          if (misere_variant) {
+            return gStandardGame ? lose : win;
+          }
             return lose;
         } else if(my_4){
+          if (misere_variant) {
+            return gStandardGame ? win : lose;
+          }
             return win;
         }
         
