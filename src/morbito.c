@@ -50,52 +50,52 @@ BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
-CONST_STRING kHelpGraphicInterface = "To move your opponent's piece click the arrow pointing to the empty\n
-                                      space you want to move it to. Then to place your piece click the circle \n
-                                      on the empty space you want to drop your piece to.";
+CONST_STRING kHelpGraphicInterface = "To move your opponent's piece click the arrow pointing to the empty\n"
+                                      "space you want to move it to. Then to place your piece click the circle \n"
+                                      "on the empty space you want to drop your piece to.";
 
-CONST_STRING kHelpTextInterface = "Enter your move in the format: XYZ or 00Z\n
-                                     X = opponent's piece position (hex 0-f)  \n
-                                     Y = where to MOVE your opponent piece (hex 0-f)\n
-                                     Z = where to drop your piece (hex 0-F)\n
-                                  Use 00Z to skip moving opponent's piece! (just drop your piece at Z)\n
-                                  Example: '15f' MOVES opponent from 1 to 5, drop at f \n
-                                  Example: '00f' DROPS at f without moving opponent";
+CONST_STRING kHelpTextInterface = "Enter your move in the format: XYZ or 00Z\n"
+                                     "X = opponent's piece position (hex 0-f)\n"
+                                     "Y = where to MOVE your opponent piece (hex 0-f)\n"
+                                     "Z = where to drop your piece (hex 0-F)\n"
+                                      "Use 00Z to skip moving opponent's piece! (just drop your piece at Z)\n"
+                                  "Example: '15f' MOVES opponent from 1 to 5, drop at f\n"
+                                  "Example: '00f' DROPS at f without moving opponent";
 
-CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent empty square, \n
-                               then place your marble on any empty sqaure. Board rotates counter clockwise after your turn. \n
-                               If board is full, type 1000, to rotate board.";
+CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent empty square, \n"
+                               "Then place your marble on any empty sqaure. Board rotates counter clockwise after your turn.\n"
+                               "If board is full, type 1000, to rotate board.";
 
-CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)
-                                      after the board rotates at the END of your turn.";
+CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)"
+                                      "after the board rotates at the END of your turn.";
 
 CONST_STRING kHelpReverseObjective = "Avoid getting 4 in a row and force your oppoent to get 4 in a row";
 
 CONST_STRING kHelpTieOccursWhen = "The board is filled completely with no player achieving 4 in a row";//...even after tiebreaker 5 rotates 
 
-CONST_STRING kHelpExample = "Position Grid                          Current Board\n
-  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
-  (4)(5)(6)(7)                            ↓  ↓  ←  ↑\n  
-  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
-  (C)(D)(E)(F)                            →  →  →  ↑\n
-It is Player’s turn (B).\n
-\n
-Player’s move:  000\n
-\n
-  Position Grid                          Current Board\n
-  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
-  (4)(5)(6)(7)                            B  ↓  ←  ↑\n
-  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
-  (C)(D)(E)(F)                            →  →  →  ↑\n
-It is Data’s turn (W).\n
-\n
-Data's moved: 40d
-\n
-  Position Grid                          Current Board\n
-  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
-  (4)(5)(6)(7)                            B  ↓  ←  ↑\n
-  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
-  (C)(D)(E)(F)                            →  →  W  ↑";
+CONST_STRING kHelpExample = "Position Grid                          Current Board\n"
+"  (0)(1)(2)(3)                            ↓  ←  ←  ←\n"
+"  (4)(5)(6)(7)                            ↓  ↓  ←  ↑\n" 
+"  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n"
+"  (C)(D)(E)(F)                            →  →  →  ↑\n"
+"It is Player’s turn (B).\n"
+"\n"
+"Player’s move:  000\n"
+"\n"
+"  Position Grid                          Current Board\n"
+"  (0)(1)(2)(3)                            ↓  ←  ←  ←\n"
+"  (4)(5)(6)(7)                            B  ↓  ←  ↑\n"
+"  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n"
+"  (C)(D)(E)(F)                            →  →  →  ↑\n"
+"It is Data’s turn (W).\n"
+"\n"
+"Data's moved: 40d"
+"\n"
+"  Position Grid                          Current Board\n"
+"  (0)(1)(2)(3)                            ↓  ←  ←  ←\n"
+"  (4)(5)(6)(7)                            B  ↓  ←  ↑\n"
+"  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n"
+"  (C)(D)(E)(F)                            →  →  W  ↑";
 
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
@@ -895,6 +895,10 @@ void setOption(int option)
   }
   if(option == 3) {
     misere_variant = (misere_variant + 1)%2;
+  }
+  if(option == 4) {
+    rotation_variant = (rotation_variant + 1)%2;
+    diagonal_variant = (diagonal_variant + 1)%2;
   }
 }
 
