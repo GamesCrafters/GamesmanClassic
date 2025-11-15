@@ -31,7 +31,7 @@
 int num_end_rotations = 5;
 int diagonal_variant = 0;
 int rotation_variant = 0;
-int misere_variant = 1; 
+int misere_variant = 0; 
 
 POSITION gNumberOfPositions = 0;
 POSITION kBadPosition = -1;
@@ -50,29 +50,53 @@ BOOLEAN kTieIsPossible = TRUE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
+CONST_STRING kHelpGraphicInterface = "To move your opponent's piece click the arrow pointing to the empty\n
+                                      space you want to move it to. Then to place your piece click the circle \n
+                                      on the empty space you want to drop your piece to.";
 
-CONST_STRING kHelpGraphicInterface = "";
+CONST_STRING kHelpTextInterface = "Enter your move in the format: XYZ or 00Z\n
+                                     X = opponent's piece position (hex 0-f)  \n
+                                     Y = where to MOVE your opponent piece (hex 0-f)\n
+                                     Z = where to drop your piece (hex 0-F)\n
+                                  Use 00Z to skip moving opponent's piece! (just drop your piece at Z)\n
+                                  Example: '15f' MOVES opponent from 1 to 5, drop at f \n
+                                  Example: '00f' DROPS at f without moving opponent";
 
-CONST_STRING kHelpTextInterface = "Enter your move in the format: XYZ or 00Z\n"
-                                  "   X = opponent's piece position (hex 0-f)  \n"
-                                  "   Y = where to MOVE your opponent piece (hex 0-f)\n"
-                                  "   Z = where to drop your piece (hex 0-F)\n"
-                                  "Use 00Z to skip moving opponent's piece! (just drop your piece at Z)\n "
-                                  "Example: '15f' MOVES opponent from 1 to 5, drop at f \n"
-                                  "Example: '00f' DROPS at f without moving opponent";
+CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent empty square, \n
+                               then place your marble on any empty sqaure. Board rotates counter clockwise after your turn. \n
+                               If board is full, type 1000, to rotate board.";
 
-CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent empty square, \n"
-                               "then place your marble on any empty sqaure. Board rotates counter clockwise after your turn. \n "
-                               "If board is full, type 1000, to rotate board.";
+CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)
+                                      after the board rotates at the END of your turn.";
 
-CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)"
-                                      "after the board rotates at the END of your turn.";
-
-CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpReverseObjective = "Avoid getting 4 in a row and force your oppoent to get 4 in a row";
 
 CONST_STRING kHelpTieOccursWhen = "The board is filled completely with no player achieving 4 in a row";//...even after tiebreaker 5 rotates 
 
-CONST_STRING kHelpExample = "";
+CONST_STRING kHelpExample = "Position Grid                          Current Board\n
+  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
+  (4)(5)(6)(7)                            ↓  ↓  ←  ↑\n  
+  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
+  (C)(D)(E)(F)                            →  →  →  ↑\n
+It is Player’s turn (B).\n
+\n
+Player’s move:  000\n
+\n
+  Position Grid                          Current Board\n
+  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
+  (4)(5)(6)(7)                            B  ↓  ←  ↑\n
+  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
+  (C)(D)(E)(F)                            →  →  →  ↑\n
+It is Data’s turn (W).\n
+\n
+Data's moved: 40d
+\n
+  Position Grid                          Current Board\n
+  (0)(1)(2)(3)                            ↓  ←  ←  ←\n
+  (4)(5)(6)(7)                            B  ↓  ←  ↑\n
+  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n
+  (C)(D)(E)(F)                            →  →  W  ↑";
+
 MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveList, POSITIONLIST *positionList);
 
 /*************************************************************************
@@ -155,6 +179,14 @@ void GameSpecificMenu() {
 		else {
 			printf("\n\tR)\tChange inner (R)otation from SAME to OPPOSITE as outer\n");
 		}
+
+    printf("\n\tGame Logic Variant:");
+    if(misere_variant){
+      printf("\n\tM)\tChange (M)isere from ENABLED to DISABLED\n");
+    }
+    else {
+      printf("\n\tM)\tChange (M)isere from DISABLED to ENABLED\n");
+    }
 
     printf("\n\tB)\tTo go back\n");
     printf("\n\tQ)\tTo quit\n");
@@ -430,12 +462,12 @@ VALUE Primitive(POSITION position)
     return tie;
   } else if(op_4){
     if (misere_variant) {
-      return gStandardGame ? lose : win;
+      return win;
     }
     return lose;
   } else if(my_4){
     if (misere_variant) {
-      return gStandardGame ? win : lose;
+      return lose;
     }
     return win;
   }
@@ -462,8 +494,14 @@ if(blackCount == 8 && whiteCount == 8){
         if(op_4 && my_4){
             return tie;
         } else if(op_4){
+            if (misere_variant) {
+              return win;
+            }
             return lose;
         } else if(my_4){
+            if (misere_variant) {
+              return lose;
+            }
             return win;
         }
         
@@ -941,8 +979,7 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
         } 
         else { 
             // Full multipart move completed
-            //AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
-            AutoGUIMakeMoveButtonStringA('-', 0, 'x', autoguiMoveStringBuffer);
+            AutoGUIWriteEmptyString(autoguiMoveStringBuffer);
         }
     }
 }
@@ -966,7 +1003,7 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
         int drop = DECODE_MOVE_DROP(normal_move);
         
         if (from == 0 && to == 0) {
-              // Single-part move: just place marble, no opponent piece movement
+            // Single-part move: just place marble, no opponent piece movement
             // These can be added as regular moves or filtered out
             // For now, we skip them as they don't need multipart handling
         } 
