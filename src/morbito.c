@@ -43,6 +43,7 @@ POSITION gMinimalPosition = 0;
 
 CONST_STRING kAuthorName = "Ariana Abel and Allena Oglivie";
 CONST_STRING kGameName = "Orbito";
+CONST_STRING kDBName = "orbito";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = TRUE;
 BOOLEAN kGameSpecificMenu = TRUE;
@@ -66,7 +67,7 @@ CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent 
                                "Then place your marble on any empty sqaure. Board rotates counter clockwise after your turn.\n"
                                "If board is full, type 1000, to rotate board.";
 
-CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)"
+CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonally)"
                                       "after the board rotates at the END of your turn.";
 
 CONST_STRING kHelpReverseObjective = "Avoid getting 4 in a row and force your opponent to get 4 in a row";
@@ -211,8 +212,6 @@ void GameSpecificMenu() {
 			HitAnyKeyToContinue();
 			break;
 		}
-
-		/*fflush(stdin); no longer needed */
 	} while(TRUE);
 }
 
@@ -334,8 +333,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 
 int FourInARow(char* board, char player_char) {
   //check rows
-    // Check rows
-for(int row = 0; row < 4; row++){
+  for(int row = 0; row < 4; row++){
       for(int col = 0; col <= 4 - 4; col++) {  // Only col 0 works for 4x4
           int start = row * 4 + col;
           if(board[start] == player_char && 
@@ -828,8 +826,6 @@ void MoveToString (MOVE move, char *moveStringBuffer)
   snprintf(moveStringBuffer, 4, "%x%x%x", DECODE_MOVE_FROM(real_move), DECODE_MOVE_TO(real_move), DECODE_MOVE_DROP(real_move));
   
 }
-
-CONST_STRING kDBName = "orbito";
 
 int NumberOfOptions()
 {
