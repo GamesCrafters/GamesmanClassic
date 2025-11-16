@@ -69,9 +69,10 @@ CONST_STRING kHelpOnYourTurn = "Optionally move ONE opponent marble to adjacent 
 CONST_STRING kHelpStandardObjective = "Get 4 of your marbles in a row (horizontally, vertically, or diagonolly)"
                                       "after the board rotates at the END of your turn.";
 
-CONST_STRING kHelpReverseObjective = "Avoid getting 4 in a row and force your oppoent to get 4 in a row";
+CONST_STRING kHelpReverseObjective = "Avoid getting 4 in a row and force your opponent to get 4 in a row";
 
-CONST_STRING kHelpTieOccursWhen = "The board is filled completely with no player achieving 4 in a row";//...even after tiebreaker 5 rotates 
+CONST_STRING kHelpTieOccursWhen = "If both players achieve 4 in a row on the same turn after the board is rotated.\n"
+                                "Or if the board is filled completely with no player achieving 4 in a row even after 5 tiebreaker rotates";
 
 CONST_STRING kHelpExample = "Position Grid                          Current Board\n"
 "  (0)(1)(2)(3)                            ↓  ←  ←  ←\n"
@@ -130,8 +131,6 @@ void InitializeGame()
   gNumberOfPositions = generic_hash_init(BOARD_SIZE, hash_data, vcfg, 0);
   char start[] = "                ";
   gInitialPosition = generic_hash_hash(start, 1);
-  /* This game is the same game as Blocking and is known to be pure draw. */
-  kUsePureDraw = TRUE;
   gGenerateMultipartMoveEdgesFunPtr = &GenerateMultipartMoveEdges;
 }
 
@@ -250,8 +249,6 @@ int GetCurrentPlayer(char* board) {
     }
   }
 
-  int totalPieces = blackCount + whiteCount;
-
   if (blackCount == whiteCount) {
     return 1;
   }
@@ -295,30 +292,6 @@ POSITION DoMove(POSITION position, MOVE move) {
     int player = GetCurrentPlayer(board);
     void RotateBoard(char* board, char* rotate_board);
     
-    // POSITION out;
-    // if(move == 0x1000){
-    //   // ROTATE THE BOARD
-    //   char rotated[BOARD_SIZE];
-    //   RotateBoard(board, rotated);
-    //   out = generic_hash_hash(rotated, player);
-    // } else {
-    //    if (!(from == 0 && to == 0)) {
-    //     board[to] = board[from];
-    //     board[from] = ' ';
-    //   }
-        
-    //   // Place current player's piece
-    //   board[drop] = playerPiece[player];
-    //   // ROTATE THE BOARD
-    //   char rotated[BOARD_SIZE];
-    //   RotateBoard(board, rotated);
-    //   if(IsFull(rotated)){
-    //     out = generic_hash_hash(rotated, player);
-    //   } else {
-    //     out = generic_hash_hash(rotated, NEXT_PLAYER(player));
-    //   }
-      
-    // }
     POSITION out;
     if (!(from == 0 && to == 0)) {
       board[to] = board[from];
@@ -611,12 +584,6 @@ MOVELIST *GenerateMoves(POSITION position) {
     char opponent_char = playerPiece[NEXT_PLAYER(player)];
     
     MOVELIST *moves = NULL;
-
-    // if(IsFull(board)){
-    //   printf("board is full");
-    //   moves = CreateMovelistNode(0x1000, moves);
-    //   return moves;
-    // }
     
     // Generate moves without moving opponent
     for(int i = 0; i < BOARD_SIZE; i++){
@@ -928,8 +895,7 @@ POSITION StringToPosition(char *positionString) {
 }
 
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
-	// (void) position;
-	// (void) autoguiPositionStringBuffer;
+
   char board[BOARD_SIZE];
   generic_hash_unhash(position, board);
   int player = GetCurrentPlayer(board);
@@ -1006,15 +972,8 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
         int to = DECODE_MOVE_TO(normal_move);
         int drop = DECODE_MOVE_DROP(normal_move);
         
-        if (from == 0 && to == 0) {
-            // Single-part move: just place marble, no opponent piece movement
-            // These can be added as regular moves or filtered out
-            // For now, we skip them as they don't need multipart handling
-        } 
-        else {
-
+        if (!(from == 0 && to == 0)) {
             // This move involves moving opponent's piece
-            
             // Intermediate position for selecting which piece to move
             char board[BOARD_SIZE];
             generic_hash_unhash(position, board);
