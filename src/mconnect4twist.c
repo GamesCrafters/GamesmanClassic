@@ -119,33 +119,67 @@ static void dump_board_compact(char *B){
 
 
 static int row_has_piece(char *B, int r){
-    for(int c=0;c<COLCOUNT;c++) if(AT(B,r,c)!='*') return 1;
+    for(int c=0;c<COLCOUNT;c++) {
+        if(AT(B,r,c)!='*') {
+            return 1;
+        }
+    }
     return 0;
 }
-static int top_full_col(char *B, int c){ return AT(B,0,c)!='*'; }
+static int top_full_col(char *B, int c){ 
+    return AT(B,0,c)!='*'; 
+}
 
 static void apply_gravity_col(char *B, int c){
     for(int r=ROWCOUNT-2;r>=0;r--){
         if(AT(B,r,c)!='*'){
+            
             int rr=r;
-            while(rr+1<ROWCOUNT && AT(B,rr+1,c)=='*') rr++;
-            if(rr!=r){ SET(B,rr,c,AT(B,r,c)); SET(B,r,c,'*'); }
+            
+            while(rr+1<ROWCOUNT && AT(B,rr+1,c)=='*') {
+                rr++;
+            }
+
+            if(rr!=r){ 
+                SET(B,rr,c,AT(B,r,c)); 
+                SET(B,r,c,'*'); 
+            }
         }
     }
 }
 
 static void drop_piece_do(char *B, int col, char me){
     for(int r=ROWCOUNT-1;r>=0;r--){
-        if(AT(B,r,col)=='*'){ SET(B,r,col,me); return; }
+        if(AT(B,r,col)=='*'){ 
+            SET(B,r,col,me); 
+            return; 
+        }
     }
 }
 
 static void twist_row_do(char *B, int row, int dir /* -1=LEFT, +1=RIGHT */){
-    if(!row_has_piece(B, row)) return;
-    char tmp[COLCOUNT]; for(int c=0;c<COLCOUNT;c++) tmp[c]=AT(B,row,c);
-    if(dir<0)  for(int c=0;c<COLCOUNT;c++) SET(B,row,c, tmp[(c+1)%COLCOUNT]);
-    else       for(int c=0;c<COLCOUNT;c++) SET(B,row,c, tmp[(c+COLCOUNT-1)%COLCOUNT]);
-    for(int c=0;c<COLCOUNT;c++) apply_gravity_col(B, c);
+    if(!row_has_piece(B, row)){
+        return;
+    } 
+
+    char tmp[COLCOUNT]; 
+    for(int c=0;c<COLCOUNT;c++) {
+        tmp[c]=AT(B,row,c);
+    }
+
+    if (dir<0)  {
+        for(int c=0;c<COLCOUNT;c++){
+            SET(B,row,c, tmp[(c+1)%COLCOUNT]);
+        } 
+    } else {
+        for(int c=0;c<COLCOUNT;c++) {
+            SET(B,row,c, tmp[(c+COLCOUNT-1)%COLCOUNT]);
+        }
+    }
+    
+    for(int c=0;c<COLCOUNT;c++) {
+        apply_gravity_col(B, c);
+    }
 }
 
 static int has_four_for(char *B, char p){
