@@ -29,7 +29,7 @@ log_filename: str = "server.log"
 close_on_timeout: bool = False
 
 # Seconds to wait for a response from the process before sending timeout_msh
-subprocess_response_timeout: int = 300
+subprocess_response_timeout: int = 5
 
 # Seconds to wait without a request before shutting down process
 subprocess_idle_timeout: int = 600
@@ -114,7 +114,6 @@ class GameRequest():
         self.command = command
 
     def respond(self, response: str):
-        print(f"[DEBUG] [respond] sending back to client: {response!r}")
         self.handler.respond(response)
 
 class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
@@ -144,9 +143,7 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         game_id = path[1]
         variant_id = path[2]
         command = path[3]
-        print(f"[DEBUG] Raw path: {self.path}")
-        print(f"[DEBUG] command: {command}")
-
+        
         # Can't use urlparse.parse_qs because of equal signs in board string
         query: defaultdict[str, str] = defaultdict(str)
         keyValPairs = parsed.query.split('&')
@@ -181,8 +178,6 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         if command in commandToGamesmanCommand:
             c_command = commandToGamesmanCommand[command]
             # Dispatches responsibility to the game object to respond
-            print(f"[DEBUG] dispatching GameRequest: game_id={game_id}, variant_id={variant_id}")
-            print(f"[DEBUG] dispatching command string to subprocess: {c_command}")
             game.push_request(GameRequest(self, query, c_command))
         else:
             try:
@@ -312,8 +307,7 @@ class GameProcess():
         if time_remaining <= 0:
             return self.handle_timeout(request, process_output='')
         self.server.log.debug('Sent command {}.'.format(request.command))
-
-        print(f"[DEBUG] [GameProcess.handle] sending to subprocess stdin: {request.command!r}")
+           
         try:
             self.stdin.write((request.command + '\n').encode())
             self.stdin.flush()
@@ -340,9 +334,7 @@ class GameProcess():
                 time_remaining -= timeout
             else:
                 response += next_char.decode()
-        print(f"[DEBUG] [GameProcess.handle] raw line from subprocess: {response!r}")
         parsed = self.parse_response(response)
-        print(f"[DEBUG] [GameProcess.handle] parsed response (after format_parsed): {parsed!r}")
         request.respond(parsed)
         return True
     
@@ -383,15 +375,12 @@ class GameProcess():
             last_output_str = last_output.decode()
             self.server.log.debug(f"{self.game.name} read:\n"
                                   f"{last_output}")
-
             if ' ready =>>' in last_output_str:
                 self.server.log.debug(f'Found ready prompt in {total_time} seconds.')
                 ready = True
         if not ready:
             self.server.log.error(f"Could not find ready prompt for {self.game.name}.")
         return timeout - total_time
-        # print(f"[DEBUG] skipping wait_for_ready, assuming {self.game.name} is ready.")
-        # return timeout
 
     # Returns the percentage of on device memory this process is using
     def memory_percent_usage(self) -> float:
@@ -442,20 +431,6 @@ class GameProcess():
     # Parsing a result that looks like
     # result =>> {result}
     def parse_response(self, response: str) -> str:
-        self.server.log.debug(f"[DEBUG] raw subprocess response before parse: {response!r}")
-
-        if '=>>' not in response:
-            self.server.log.error(
-                f"[ERROR] Subprocess output not in expected format: {response!r}"
-            )
-            fallback = {
-                "status": "error",
-                "reason": "Unexpected subprocess output (no '=>>' found)",
-                "rawOutput": response,
-            }
-            # Send back pretty JSON so frontend can read it
-            return json.dumps(fallback, indent=2)
-
         result = response.split('=>>')[1].strip()
         self.server.log.debug(f'Split off "result =>>"')
         parsed = json.loads(result)
