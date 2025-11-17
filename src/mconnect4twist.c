@@ -474,7 +474,7 @@ void GameSpecificMenu(void)
 		c = GetMyChar();
 		switch(c) {
 		case 'c': case 'C':
-			setOption(getOption() + 1);
+			setOption(getOption() == 1 ? 2 : 1);
 			break;
 		case 'b': case 'B':
 			cont = FALSE;
