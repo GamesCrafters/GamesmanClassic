@@ -103,21 +103,6 @@ static inline int  IDX(int r,int c){ return r*COLCOUNT + c; }
 static inline char AT (char *B, int r,int c){ return B[IDX(r,c)]; }
 static inline void SET(char *B, int r,int c,char v){ B[IDX(r,c)] = v; }
 
-
-static void dump_board_compact(char *B){
-    for(int r=0;r<ROWCOUNT;r++){
-        for(int c=0;c<COLCOUNT;c++){
-            char v = AT(B,r,c);
-            fputc(v=='*' ? '.' : v, stderr);
-        }
-        if(r<ROWCOUNT-1) fputc('/', stderr);
-    }
-}
-/* ===== debug switches ===== */
-
-
-
-
 static int row_has_piece(char *B, int r){
     for(int c=0;c<COLCOUNT;c++) {
         if(AT(B,r,c)!='*') {
