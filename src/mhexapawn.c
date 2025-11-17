@@ -46,7 +46,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 }
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
-int variant_length= 0;
+int variant_length = 0;
 int ROWS = 3;
 int COLS = 0;
 int CELLS = 0;
