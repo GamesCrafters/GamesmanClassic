@@ -480,7 +480,7 @@ void MoveToAutoGUIString(POSITION p, MOVE m, char *b) {
 
     if (dir == DIR_NONE) {
         int start = ROWCOUNT * COLCOUNT + col;
-        AutoGUIMakeMoveButtonStringM(start, start + ROWCOUNT, 'x', b);
+        AutoGUIMakeMoveButtonStringM(start, start + COLCOUNT, 'x', b);
     } else if (dir == 1) {
         int pos = col + (row * COLCOUNT);
         AutoGUIMakeMoveButtonStringA('l', pos, 'y', b);
