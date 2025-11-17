@@ -4,7 +4,9 @@
 **
 ** DESCRIPTION: Le Grec
 **
-** AUTHOR:      "Ihsan Kisi, Shaheer Babar, Josh Zhang, Nahee Jeong"
+** AUTHOR:      Ihsan Kisi, Shaheer Babar, Josh Zhang, Nahee Jeong
+**
+** DATE:        2025-11-17
 **
 **************************************************************************/
 
