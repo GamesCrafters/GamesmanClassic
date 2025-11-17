@@ -22,21 +22,23 @@ BOOLEAN kPartizan = TRUE;
 BOOLEAN kTieIsPossible = FALSE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
-
 POSITION GetCanonicalPosition(POSITION);
 POSITION kBadPosition = -1;
 BOOLEAN kDebugDetermineValue = FALSE;
 void* gGameSpecificTclInit = NULL;
-
 BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 CONST_STRING kHelpGraphicInterface = "";
-CONST_STRING kHelpTextInterface = "";
-CONST_STRING kHelpOnYourTurn = "";
+
+CONST_STRING kHelpTextInterface = "MOVING YOUR PAWN: \n First enter the column and then row of the piece (of your color) that you wish to move.\nThen, without entering a space, enter the desired column and row of where you want to place your pawn.";
+
+CONST_STRING kHelpOnYourTurn = "Move one of your pawns to an empty position 'ahead' of you or diagonally to capture a pawn of the opposing color.";
+
 CONST_STRING kHelpStandardObjective = "Advance a pawn to the far rank or block opponent so they cannot move.";
 CONST_STRING kHelpReverseObjective = "";
 CONST_STRING kHelpTieOccursWhen = "";
 CONST_STRING kHelpExample = "";
+
 
 void DebugMenu() {}
 void SetTclCGameSpecificOptions(int theOptions[]) {
@@ -44,12 +46,12 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 }
 
 /*********** BEGIN SOLVING FUNCIONS ***********/
-
-int variant_length;
-int ROWS;
-int COLS;
-int CELLS;
-int boardSize;
+int variant_length= 0;
+int ROWS = 3;
+int COLS = 0;
+int CELLS = 0;
+int MISERE = 0; // 0 = normal, 1 = misère
+int ID = 0;
 
 static inline int in_bounds(int i) {
     return (i >= 0 && i < CELLS);
@@ -61,7 +63,7 @@ void InitializeGame() {
   }
 
   gCanonicalPosition = GetCanonicalPosition;
-  int piecesArray[] = {'B', 0, CELLS, 'W', 0, CELLS, '-', 0, CELLS, -1};
+  int piecesArray[] = {'B', 0, variant_length, 'W', 0, variant_length, '-', 0, CELLS, -1};
   gNumberOfPositions = generic_hash_init(CELLS, piecesArray, NULL, 0);
   char *initial = malloc(CELLS * sizeof(char));
   for (int r = 0; r < ROWS; r++) {
@@ -84,7 +86,7 @@ BOOLEAN HasAnyMove(const char board[CELLS], int sideToMove){
         int row = index / COLS;
         int col = index % COLS;
 
-        if (sideToMove == 1) { // White moves up (-3)
+        if (sideToMove == 1) {
             if (board[index] != 'W') continue;
             if (row - 1 >= 0) {
                 int fwd_idx = index - COLS; // up
@@ -98,7 +100,7 @@ BOOLEAN HasAnyMove(const char board[CELLS], int sideToMove){
                     return TRUE;
             }
 
-        } else { // Black moves down (+3)
+        } else {
             if (board[index] != 'B') continue;
             if (row + 1 < ROWS) {
                 int fwd_idx = index + COLS; // down
@@ -115,15 +117,6 @@ BOOLEAN HasAnyMove(const char board[CELLS], int sideToMove){
     }
     return FALSE;
 }
-
-
-/* Return a linked list of moves. */
-/*
-  For the side to move:
-    - Add a forward move (−3 for White, +3 for Black) if the square is empty.
-    - Add up-left / up-right (White) or down-left / down-right (Black)
-      if the target square contains an opponent pawn and stays within the 3×3 bounds.
-*/
 MOVELIST *GenerateMoves(POSITION position) {
   MOVELIST *moves = NULL;
   char board[CELLS];
@@ -132,7 +125,6 @@ MOVELIST *GenerateMoves(POSITION position) {
   for (int index = 0; index < CELLS; index++) {
     int row = index / COLS;
     int col = index % COLS;
-
     if (turn == 1) {
         if (board[index] != 'W') continue;
         if (row - 1 >= 0 ) {
@@ -184,7 +176,6 @@ POSITION DoMove(POSITION position, MOVE move) {
   return generic_hash_hash(board, (player % 2) + 1);
 }
 
-
 /*****************************************************************
 **  Determine whether the position is a primitive win,
 **  primitive tie, primitive lose, or not primitive.
@@ -197,20 +188,12 @@ VALUE Primitive(POSITION position) {
     - A pawn reaches the far rank (White reaches row 0; Black reaches row 2).
     - The opponent has no pawns left.
     - The opponent has no legal moves on their turn.
-
-
   Lose condition:
     - If it’s your turn and you have no legal moves, you lose.
-
-
-  Notes:
-    - No draws/ties
-    - Pawns move straight forward one square if empty;
-      capture one square diagonally forward.
 */
   char board[CELLS];
   generic_hash_unhash(position, board);
-  int turn = generic_hash_turn(position); // 1 = White to move; 2 = Black to move
+  int turn = generic_hash_turn(position);
   // Zero Pawn Check
   int whiteCount = 0, blackCount = 0;
   for (int i = 0; i < CELLS; i++) {
@@ -219,19 +202,25 @@ VALUE Primitive(POSITION position) {
     else if (board[i] == 'B')
         blackCount++;
   }
-  if (whiteCount == 0)
-    return (turn == 1) ? lose : win;
-  if (blackCount == 0)
-    return (turn == 2) ? lose : win;
-  // Pawn Reaches opposite side
 
-  for (int i = 0; i < variant_length; i++) {
-    if (board[i]=='W') return (turn == 1) ? win : lose;
-    if (board[boardSize-i] == 'B') return (turn == 2) ? win : lose;
 
-  }
-  if (!HasAnyMove(board, turn)) return lose;
-  return undecided;
+
+    #define FLIP(value) ((MISERE) ? ((value == win) ? lose : win) : (value))
+
+    // Zero Pawn Check
+    if (whiteCount == 0) return FLIP((turn == 1) ? lose : win);
+    if (blackCount == 0) return FLIP((turn == 2) ? lose : win);
+
+    // Pawn Reaches opposite side
+    for (int c = 0; c < COLS; c++) {
+        if (board[c] == 'W') return FLIP((turn == 1) ? win : lose);
+        if (board[(ROWS-1)*COLS + c] == 'B') return FLIP((turn == 2) ? win : lose);
+    }
+
+    // No legal moves
+    if (!HasAnyMove(board, turn)) return FLIP(lose);
+
+    return undecided;
 }
 
 POSITION GetCanonicalPosition(POSITION position) {
@@ -262,19 +251,17 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     }
   }
  for (int r = ROWS - 1; r >= 0; r--) {
-    if(r == 1) printf("BASE:   ");
-    else printf("\t");
+    if(r == 1) printf("\tBASE:   ");
+    else printf("\t\t");
    printf(" %d  ", r + 1);
 
-   // left (starting board)
    for (int c = 0; c < COLS; c++) {
      putchar(start[r * COLS + c]);
      if (c + 1 < COLS) putchar(' ');
    }
    printf("\t");
-    if(r == 1) printf("GAMEPLAY:   \t");
-    else printf("\t\t");
-   // right (current board)
+    if(r == 1) printf("\tGAMEPLAY:   \t");
+    else printf("\t\t\t");
    printf("%d  ", r + 1);
    for (int c = 0; c < COLS; c++) {
      putchar(board[r * COLS + c]);
@@ -282,9 +269,10 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
    }
    putchar('\n');
  }
- printf("\t    ");
+ printf("\t\t    ");
  for (int c = 0; c < COLS; c++) printf("%c ", 'z' - variant_length + c + 1);
-  printf("\t\t\t   ");
+ if (variant_length == 6) printf("\t\t\t   ");
+ else printf("\t\t\t\t   ");
  for (int c = 0; c < COLS; c++) printf("%c ", 'z' - variant_length + c + 1);
  printf("\n");
  printf("\n\t%s to move\n\n", (turn == 1) ? "White (W)" : "Black (B)");
@@ -307,23 +295,16 @@ BOOLEAN ValidTextInput(STRING input) {
   if (strlen(input) != 4) return FALSE;
   if (input[0] < ('x' - variant_length + 1) || input[0] > 'z') return FALSE;
   if (input[2] < ('x' - variant_length + 1) || input[2] > 'z') return FALSE;
-  if (input[1] < '1' || input[1] > '0' + variant_length) return FALSE;
-  if (input[3] < '1' || input[3] > '0' + variant_length) return FALSE;
+  if (input[1] < '1' || input[1] > '3') return FALSE;
+  if (input[3] < '1' || input[3] > '3') return FALSE;
   return TRUE;
 }
 
 MOVE ConvertTextInputToMove(STRING input) {
-  //int originRow = input[0] - 'x'; 'z'
-  //x1x2
   int originRow = input[1] - '1';
-  //int originCol = input[0] - 'x';
   int originCol = input[0] - ('z' - variant_length + 1);
-
-
   int targetRow = input[3] - '1';
-  //int targetCol = input[2] - 'x';
   int targetCol = input[2] - ('z' - variant_length + 1);
-
   int origin = originRow * variant_length + originCol;
   int target = targetRow * variant_length + targetCol;
   return origin * 100 + target;
@@ -340,7 +321,6 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
            'z' - variant_length + originCol + 1, originRow + 1,
            'z' - variant_length + targetCol + 1, targetRow + 1);
   }
-  //switched originCol and originRow
 
 void PrintMove(MOVE move) {
   char moveStringBuffer[32];
@@ -354,36 +334,32 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
   printf("\n");
 }
 
-
 /*********** END TEXTUI FUNCTIONS ***********/
 
 
 
 /*********** BEGIN VARIANT FUNCTIONS ***********/
 
-
 /* How many variants are you supporting? */
 int NumberOfOptions() {
-  return 3;
+  return 8;
 }
-
 
 /* Return the current variant id. */
 int getOption() {
-  return variant_length;
+  return ID;
 }
-
 
 /* The input is a variant id. This function sets any global variables
 or data structures according to the variant specified by the variant id. */
 void setOption(int option) {
-  variant_length = option;
-  ROWS = 3; // always 3 rows for Hexapawn
+  variant_length = option % 4 + 3;
+  ID = option;
+  ROWS = 3;
   COLS = variant_length;
   CELLS = ROWS * COLS;
-  boardSize = CELLS;
+  MISERE = option > 3;
 }
-
 
 /**
 * @brief Interactive menu used to change the variant, i.e., change
@@ -394,26 +370,33 @@ void GameSpecificMenu(void) {
     int option = 0;
     while (1) { // keep asking until valid input
         printf("\n========== Hexapawn Variant Menu ==========\n");
-        printf("Variants: Extended Nx3 Hexapawn (2 < N < 10)\n");
+        printf("VARIANTS:\n");
+        printf("0: LENGTH 3, REGULAR\n");
+        printf("1: LENGTH 4, REGULAR\n");
+        printf("2: LENGTH 5, REGULAR\n");
+        printf("3: LENGTH 6, REGULAR\n");
+        printf("4: LENGTH 3, MISERE\n");
+        printf("5: LENGTH 4, MISERE\n");
+        printf("6: LENGTH 5, MISERE\n");
+        printf("7: LENGTH 6, MISERE\n");
         printf("===========================================\n");
-        printf("Select a variant length [3-9]: ");
+        printf("SELECT VARAINT: ");
 
         if (scanf("%d", &option) != 1) {
             printf("Invalid input. Try again.\n");
-            while (getchar() != '\n'); // flush invalid input
+            while (getchar() != '\n');
             continue;
         }
-        while (getchar() != '\n'); // flush leftover newline
+        while (getchar() != '\n');
 
-        if (option >= 3 && option <= 9) {
+        if (option <= 7) {
             setOption(option);
             printf("Variant set to %dx3 board.\n", variant_length);
-            break; // valid input, exit loop
+            break;
         } else {
-            printf("Invalid option. Please enter a number between 3 and 9.\n");
+            printf("Invalid option. Please enter a number between [0, 7].\n");
         }
     }
-
     InitializeGame();
 }
 
@@ -427,7 +410,6 @@ POSITION StringToPosition(char *positionString) {
   }
   return NULL_POSITION;
 }
-
 
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
   char board[CELLS + 1];
