@@ -966,7 +966,6 @@ MULTIPARTEDGELIST* GenerateMultipartMoveEdges(POSITION position, MOVELIST *moveL
         int normal_move = moveList->move  & 0x0FFF;
         int from = DECODE_MOVE_FROM(normal_move);
         int to = DECODE_MOVE_TO(normal_move);
-        int drop = DECODE_MOVE_DROP(normal_move);
         
         if (!(from == 0 && to == 0)) {
             // This move involves moving opponent's piece
