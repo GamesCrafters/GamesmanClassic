@@ -11,7 +11,6 @@
 ************************************************************************/
 #include "gamesman.h"
 #include <ctype.h>
-//#include "gameplay.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,9 +46,6 @@ static uint64_t mix64(uint64_t x){
     x^=x>>33; x*=0xff51afd7ed558ccdULL; x^=x>>33; x*=0xc4ceb9fe1a85ec53ULL; return x^(x>>33);
 }
 
-__attribute__((unused)) static void DL_Reset(void){
-    if (gDL){ free(gDL); gDL=NULL; gDLcap=0; gDLcount=0; }
-}
 
 static void DL_Rehash(size_t newcap) {
     DLSlot *old = gDL; size_t oldcap = gDLcap;
@@ -93,14 +89,6 @@ static Eval* DL_Get(POSITION k, int create) {
     }
 }
 
-
-// Small helpers
-static inline const char* DL_Label(const Eval *e) {
-    if (e->value == V_WIN)  return "WIN";
-    if (e->value == V_LOSE) return "LOSE";
-    if (e->value == V_DW)   return "DW";
-    return "DL"; // use draw_level for exact print
-}
 
 
 
@@ -155,8 +143,6 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 #define BOARD_LEN 14
 #define BOARD_SIZE 13
-#define win_for_player_one   win
-#define win_for_player_two   lose  /* from current player's POV */
 
 /* 13 board cells only; player-to-move is passed separately to the hash */
 char initial_board[BOARD_SIZE] = {
@@ -203,23 +189,6 @@ static const int neighbors[20][9] = {
 static inline int is_me_piece(char c, char meU)   { return toupper((unsigned char)c) == meU; }
 static inline int is_opp_piece(char c, char oppU) { return toupper((unsigned char)c) == oppU; }
 
-/* Any capture for a color anywhere on the board */
-__attribute__((unused)) static int HasAnyCaptureFor(const char board[BOARD_SIZE], char meU, char oppU) {
-
-
-    for (int from = 1; from <= BOARD_SIZE; ++from) {
-        if (!is_me_piece(board[from - 1], meU)) continue;
-        for (int i = 0; neighbors[from][i] != 0; ++i) {
-            int mid = neighbors[from][i];
-            int to  = kOpposite[from][mid];    /* colinear only */
-            if (to == 0) continue;
-            if (is_opp_piece(board[mid - 1], oppU) && board[to - 1] == '-') return 1;
-        }
-    }
-    return 0;
-}
-
-
 /**
  * @brief Helper: recursively find jumps from a square and build full jump sequences
  * Enforces straight-line (colinear) captures using kOpposite.
@@ -228,11 +197,6 @@ __attribute__((unused)) static int HasAnyCaptureFor(const char board[BOARD_SIZE]
 /* One-ply capture generator: add each legal first jump from `from`. */
 
 
-// ---- Multi-pass draw classification over the local draw component ----
-typedef struct { POSITION p; } QItem;
-
-
-// ---- Local visited set (pure C) used only inside the DL builder ----
 // ---- Local visited set (pure C) used only inside the DL builder ----
 typedef struct { POSITION key; int used; } VisSlot;
 
@@ -327,12 +291,6 @@ static POSITION* BuildDrawList(POSITION root, int *N_out) {
     return nodes;  // caller frees
 }
 
-/* “Child is opponent WIN” = child is win for the side-to-move at child and the turn flipped. */
-__attribute__((unused))
-static int child_is_opponent_WIN(POSITION parent, POSITION child){
-    if (GetPrediction(child) != win) return 0;
-    return generic_hash_turn(child) != generic_hash_turn(parent);
-}
 
 /* Multi-pass DL classification over the reachable draw component (no adjacency storage). */
 static void ClassifyDrawLevelsFrom(POSITION root){
@@ -424,12 +382,6 @@ void InitializeGame(void) {
     int initialPlayer = 1;
     gInitialPosition = generic_hash_hash(initial_board, initialPlayer);
 
-    printf("[LKK] build ok. neighbors[9]:");    for (int i=0; neighbors[9][i]; ++i)  printf(" %d", neighbors[9][i]);  puts("");
-printf("[LKK] neighbors[10]:");              for (int i=0; neighbors[10][i]; ++i) printf(" %d", neighbors[10][i]); puts("");
-
-printf("[LKK] %s %s\n", __DATE__, __TIME__);
-printf("[LKK] n[9]:");  for (int i=0; neighbors[9][i];  ++i) printf(" %d", neighbors[9][i]);  puts("");
-printf("[LKK] n[10]:"); for (int i=0; neighbors[10][i]; ++i) printf(" %d", neighbors[10][i]); puts("");
 
 
 }
@@ -459,21 +411,6 @@ static void GenerateJumpsFrom(int from,
     }
 }
 
-
-
-
-
-/* Can the piece at `from` continue capturing? (colinear rule) */
-static int HasAnyCaptureFrom(const char board[BOARD_SIZE], int from, char oppU) {
-
-    for (int i = 0; neighbors[from][i] != 0; ++i) {
-        int mid = neighbors[from][i];
-        int to  = kOpposite[from][mid];
-        if (to == 0) continue;
-        if (is_opp_piece(board[mid - 1], oppU) && board[to - 1] == '-') return 1;
-    }
-    return 0;
-}
 
 
 
@@ -1012,6 +949,7 @@ POSITION StringToPosition(char *positionString) {
     for (int i = 0; i < BOARD_SIZE; ++i)
         board[i] = (i < len ? boardStr[i] : '-');
 
+
     return generic_hash_hash(board, turn);
 }
 
@@ -1082,7 +1020,6 @@ void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBu
     }
 }
 
-#include "gamesman.h"
 
 // Compatibility wrapper for new GamesmanClassic GUI
 void GS_InitGameSpecific(void) {
