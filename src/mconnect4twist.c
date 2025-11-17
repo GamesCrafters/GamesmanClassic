@@ -32,7 +32,7 @@ BOOLEAN kDebugDetermineValue= FALSE;
 POSITION gNumberOfPositions = 0;
 POSITION gInitialPosition   = 0;
 
-BOOLEAN kGameSpecificMenu   = FALSE;
+BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kDebugMenu          = FALSE;
 
 CONST_STRING kHelpGraphicInterface =
@@ -426,7 +426,31 @@ void PrintComputersMove(MOVE mv, STRING name){
 // int NumberOfOptions(void){ return 1; }
 // int getOption(void){ return 0; }
 
-void GameSpecificMenu(void){}
+void GameSpecificMenu(void)
+{
+	char c;
+	BOOLEAN cont = TRUE;
+	while(cont) {
+		printf("\n\nCurrent %dx%d board:  \n", ROWCOUNT, COLCOUNT);
+		PrintPosition(gInitialPosition, "Gamesman", 0);
+		printf("\tGame Options:\n\n"
+		       "\tc)\t(C)hange the board size (4x4 or 4x5), currently: %dx%d\n"
+		       "\tb)\t(B)ack to the main menu\n"
+		       "\nSelect an option:  ", ROWCOUNT, COLCOUNT);
+		c = GetMyChar();
+		switch(c) {
+		case 'c': case 'C':
+			setOption(getOption() + 1);
+			break;
+		case 'b': case 'B':
+			cont = FALSE;
+			break;
+		default:
+			printf("Invalid option!\n");
+		}
+	}
+
+}
 
 int NumberOfOptions(void) { return 2; }
 
