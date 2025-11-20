@@ -19,83 +19,10 @@
 MOVELIST *GenerateMoves(POSITION pos);
 void FreeMoveList(MOVELIST *ml);
 
-
-// ---- Draw-stability types (paste near top) ----
-typedef enum {
-    V_WIN = 0, V_LOSE = 1, V_DW = 2, V_DL = 3  // V_DL means "some DLk"; see draw_level
-} ValueExt;
-
-typedef struct {
-    ValueExt value;          // V_WIN / V_LOSE / V_DW / V_DL
-    uint16_t ply_to_outcome; // normal remoteness for WIN/LOSE (optional for tie)
-    uint16_t draw_level;     // k for DLk; UINT16_MAX for DW; 0/1/... valid only when value==V_DL
-} Eval;
-
-// ---- Minimal open-address hash from POSITION -> Eval (resizable) ----
-typedef struct {
-    POSITION key;
-    Eval     val;
-    int      used;
-} DLSlot;
-
-static DLSlot *gDL = NULL;
-static size_t  gDLcap = 0;
-static size_t  gDLcount = 0;
-
-static uint64_t mix64(uint64_t x){
-    x^=x>>33; x*=0xff51afd7ed558ccdULL; x^=x>>33; x*=0xc4ceb9fe1a85ec53ULL; return x^(x>>33);
-}
-
-
-static void DL_Rehash(size_t newcap) {
-    DLSlot *old = gDL; size_t oldcap = gDLcap;
-    gDL = (DLSlot*)calloc(newcap, sizeof(DLSlot));
-    gDLcap = newcap; gDLcount = 0;
-    size_t m = gDLcap - 1;
-    for (size_t i = 0; i < oldcap; ++i) {
-        if (!old[i].used) continue;
-        POSITION k = old[i].key;
-        size_t j = (size_t)mix64((uint64_t)k) & m;
-        while (gDL[j].used) j = (j + 1) & m;
-        gDL[j].used = 1; gDL[j].key = k; gDL[j].val = old[i].val; gDLcount++;
-    }
-    free(old);
-}
-
-static void DL_Ensure(size_t cap) {
-    if (gDL) return;
-    gDLcap = 1; while (gDLcap < cap) gDLcap <<= 1;
-    gDL = (DLSlot*)calloc(gDLcap, sizeof(DLSlot));
-    gDLcount = 0;
-}
-
-static Eval* DL_Get(POSITION k, int create) {
-    if (!gDL) DL_Ensure(1<<16);
-    if (create && gDLcount * 10 >= gDLcap * 7) DL_Rehash(gDLcap << 1);
-
-    size_t m = gDLcap - 1;
-    size_t i = (size_t)mix64((uint64_t)k) & m;
-    for(;;){
-        if (!gDL[i].used){
-            if (!create) return NULL;
-            gDL[i].used = 1; gDL[i].key = k; gDLcount++;
-            gDL[i].val.value = V_DW;
-            gDL[i].val.draw_level = UINT16_MAX;
-            gDL[i].val.ply_to_outcome = 0;
-            return &gDL[i].val;
-        }
-        if (gDL[i].key == k) return &gDL[i].val;
-        i = (i+1) & m;
-    }
-}
-
-
-
-
 // Game metadata
 CONST_STRING kAuthorName = "Ryan Lee, Zoe Zhang, Reed Yalouh";
 CONST_STRING kGameName = "Lau Kati Kata";  // Use this spacing and case
-CONST_STRING kDBName = "laukatikata-v2";
+CONST_STRING kDBName = "laukatikata";
 
 POSITION gNumberOfPositions = 0; 
 POSITION gInitialPosition = 0;
@@ -143,6 +70,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  */
 #define BOARD_LEN 14
 #define BOARD_SIZE 13
+char pieces[3] = " BW";
 
 /* 13 board cells only; player-to-move is passed separately to the hash */
 char initial_board[BOARD_SIZE] = {
@@ -186,180 +114,6 @@ static const int neighbors[20][9] = {
 /* ============================================================
    Helper: Check if the given player has any legal capturing move
    ============================================================ */
-static inline int is_me_piece(char c, char meU)   { return toupper((unsigned char)c) == meU; }
-static inline int is_opp_piece(char c, char oppU) { return toupper((unsigned char)c) == oppU; }
-
-/**
- * @brief Helper: recursively find jumps from a square and build full jump sequences
- * Enforces straight-line (colinear) captures using kOpposite.
- * Indexing for squares is 1..19; board[] is 0-based storage.
- */
-/* One-ply capture generator: add each legal first jump from `from`. */
-
-
-// ---- Local visited set (pure C) used only inside the DL builder ----
-typedef struct { POSITION key; int used; } VisSlot;
-
-static VisSlot* vis = NULL;
-static size_t viscap = 0;
-static size_t viscount = 0;
-
-static void vis_free(void){ if (vis){ free(vis); vis=NULL; viscap=0; viscount=0; } }
-
-static void vis_rehash(size_t newcap) {
-    VisSlot *old = vis; size_t oldcap = viscap;
-    vis = (VisSlot*)calloc(newcap, sizeof(VisSlot));
-    viscap = newcap;
-    viscount = 0;
-    size_t m = viscap - 1;
-    for (size_t i = 0; i < oldcap; ++i) {
-        if (!old[i].used) continue;
-        POSITION k = old[i].key;
-        size_t j = (size_t)mix64((uint64_t)k) & m;
-        while (vis[j].used) j = (j + 1) & m;
-        vis[j].used = 1; vis[j].key = k; viscount++;
-    }
-    free(old);
-}
-
-static void vis_init(size_t want) {
-    vis_free();
-    viscap = 1; while (viscap < want) viscap <<= 1;
-    vis = (VisSlot*)calloc(viscap, sizeof(VisSlot));
-    viscount = 0;
-}
-
-static int vis_has(POSITION k) {
-    size_t m = viscap - 1, i = (size_t)mix64((uint64_t)k) & m;
-    for (;;) {
-        if (!vis[i].used) return 0;
-        if (vis[i].key == k) return 1;
-        i = (i + 1) & m;
-    }
-}
-
-static void vis_add(POSITION k) {
-    // Grow at ~70% load
-    if (viscount * 10 >= viscap * 7) vis_rehash(viscap << 1);
-    size_t m = viscap - 1, i = (size_t)mix64((uint64_t)k) & m;
-    for (;;) {
-        if (!vis[i].used) { vis[i].used = 1; vis[i].key = k; viscount++; return; }
-        if (vis[i].key == k) return;
-        i = (i + 1) & m;
-    }
-}
-
-
-/* Build the list of draw (tie) nodes reachable from root, no adjacency stored. */
-static POSITION* BuildDrawList(POSITION root, int *N_out) {
-    *N_out = 0;
-    if (GetPrediction(root) != tie) return NULL;
-
-    // simple queue
-    int qh = 0, qt = 0, qcap = 1024;
-    POSITION *Q = (POSITION*)malloc(qcap * sizeof(POSITION));
-
-    // result vector
-    int ncap = 1024, n = 0;
-    POSITION *nodes = (POSITION*)malloc(ncap * sizeof(POSITION));
-
-    vis_init(1 << 16);           // temp visited set
-    Q[qt++] = root; vis_add(root);
-
-    while (qh < qt) {
-        POSITION p = Q[qh++];
-
-        // push into result
-        if (n == ncap) { ncap <<= 1; nodes = (POSITION*)realloc(nodes, ncap * sizeof(POSITION)); }
-        nodes[n++] = p;
-
-        // expand only through tie children
-        MOVELIST *ml = GenerateMoves(p);
-        for (MOVELIST *it = ml; it; it = it->next) {
-            POSITION c = DoMove(p, it->move);
-            if (GetPrediction(c) == tie && !vis_has(c)) {
-                if (qt == qcap) { qcap <<= 1; Q = (POSITION*)realloc(Q, qcap * sizeof(POSITION)); }
-                Q[qt++] = c;
-                vis_add(c);
-            }
-        }
-        if (ml) FreeMoveList(ml);
-    }
-
-    free(Q);
-    *N_out = n;
-    return nodes;  // caller frees
-}
-
-
-/* Multi-pass DL classification over the reachable draw component (no adjacency storage). */
-static void ClassifyDrawLevelsFrom(POSITION root){
-    int N = 0;
-    POSITION *nodes = BuildDrawList(root, &N);
-    if (!nodes || N == 0) { 
-        if (nodes) free(nodes); 
-        vis_free(); 
-        return; 
-    }
-
-    // Initialize cached evals: assume DW; tighten below.
-    for (int i = 0; i < N; ++i) {
-        Eval *e = DL_Get(nodes[i], 1);
-        e->value = V_DW;
-        e->draw_level = UINT16_MAX;
-        e->ply_to_outcome = 0;
-    }
-
-    // Pass A: DL0 fringe
-    int marks = 0;
-    for (int i = 0; i < N; ++i) {
-        POSITION p = nodes[i];
-        int hit = 0;
-        MOVELIST *ml = GenerateMoves(p);
-        for (MOVELIST *it = ml; it; it = it->next) {
-            POSITION c = DoMove(p, it->move);
-            if (GetPrediction(c) == win && generic_hash_turn(c) != generic_hash_turn(p)) { hit = 1; break; }
-        }
-        if (ml) FreeMoveList(ml);
-        if (hit) {
-            Eval *e = DL_Get(p, 1);
-            e->value = V_DL;
-            e->draw_level = 0;
-            marks++;
-        }
-    }
-
-    // Pass B: DLk for k >= 1
-    for (uint16_t k = 1; marks > 0; ++k) {
-        marks = 0;
-        for (int i = 0; i < N; ++i) {
-            Eval *e = DL_Get(nodes[i], 1);
-            // only process nodes still unmarked (DW with UINT16_MAX level)
-            if (!(e->value == V_DW && e->draw_level == UINT16_MAX)) continue;
-            int hit = 0;
-            MOVELIST *ml = GenerateMoves(nodes[i]);
-            for (MOVELIST *it = ml; it; it = it->next) {
-                POSITION c = DoMove(nodes[i], it->move);
-                Eval *ce = DL_Get(c, 0);
-                if (ce && ce->value == V_DL && ce->draw_level == (uint16_t)(k - 1)) { hit = 1; break; }
-            }
-            if (ml) FreeMoveList(ml);
-            if (hit) {
-                e->value = V_DL;
-                e->draw_level = k;
-                marks++;
-            }
-        }
-    }
-
-    free(nodes);
-    vis_free();   // IMPORTANT: free temp visited set
-}
-
-
-
-
-
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
 
@@ -373,28 +127,19 @@ void InitializeGame(void) {
         -1
     };
 
-
-
     generic_hash_destroy();
     gNumberOfPositions = generic_hash_init(BOARD_SIZE, pieceSpec, NULL, 0);
 
     /* 1 = Black to move first; change to 2 if White should start */
     int initialPlayer = 1;
     gInitialPosition = generic_hash_hash(initial_board, initialPlayer);
-
-
-
 }
-
-// (Optional) forward declare if GenerateJumpsFrom is below:
 
 static void GenerateJumpsFrom(int from,
                               const char board[BOARD_SIZE],
                               char meU, char oppU,
                               MOVELIST **jumpList)
 {
-    (void)meU; // not needed here
-
     if (from < 1 || from > BOARD_SIZE) return;
 
     for (int n = 0; neighbors[from][n] != 0; ++n) {
@@ -410,8 +155,6 @@ static void GenerateJumpsFrom(int from,
         }
     }
 }
-
-
 
 
 /**
@@ -471,6 +214,7 @@ POSITION DoMove(POSITION position, MOVE move) {
     int nextTurn = (turn == 1 ? 2 : 1);
     return generic_hash_hash(board, nextTurn);
 }
+
 // ---- Legal move generator (captures preferred; locked piece forces continuation)
 MOVELIST *GenerateMoves(POSITION pos) {
     char board[BOARD_SIZE];
@@ -563,20 +307,12 @@ VALUE Primitive(POSITION position) {
     return undecided;
 }
 
-
-
-
-
-
-
-
 /**
  * @brief Canonical position (no symmetry used).
  */
 POSITION GetCanonicalPosition(POSITION position) {
     return position;
 }
-
 
 /**
  * @brief Dummy implementation of GenerateParents (required for loopy games).
@@ -588,10 +324,6 @@ void GenerateParents(POSITION position, MOVE **moveList) {
 
     // TODO: implement true reverse move generation for full loopy solving.
 }
-
-
-
-
 /*********** END SOLVING FUNCTIONS ***********/
 
 
@@ -624,7 +356,7 @@ static void LoadBoard(POSITION position, char board[14]) {
 }
 
 
-/* Pretty print the board (with labels 1..19 on the left, pieces on the right) */
+/* Pretty print the board (with labels 1..13 on the left, pieces on the right) */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     (void)playerName; (void)usersTurn;
 
@@ -646,42 +378,12 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
     printf("    /    |    \\         :      /    |    \\\n");
     printf("  11-----12-----13      :     %c-----%c-----%c\n", c11, c12, c13);
 
-
-    /* Optional: show prediction if desired
-       (See GetPrediction in core/gameplay.h) */
-    // PrintPrediction(position);
-
-    // ---- Add after the big board ascii ----
-{
-    VALUE pv = GetPrediction(position);
-    if (pv == win) {
-        printf("  Position: WIN\n\n");
-    } else if (pv == lose) {
-        printf("  Position: LOSE\n\n");
-    } else if (pv == tie) {
-    // Use cached DL if available; otherwise classify once for this component.
-    Eval *e = DL_Get(position, 0);
-    if (!e || (e->value != V_DL && e->value != V_DW)) {
-        ClassifyDrawLevelsFrom(position);
-        e = DL_Get(position, 1);
-    } 
-    if (e->value == V_DW) {
-        printf("  Position: DW (safe draw)\n\n");
-    } else if (e->value == V_DL) {
-        printf("  Position: DL%u\n\n", (unsigned)e->draw_level);
-    } else {
-        printf("  Position: (unexpected)\n\n");
-    }
-
-    } else {
-        printf("  Position: (DL: N/A — unsolved)\n\n");
-    }
-}
-
-MOVELIST *ml = GenerateMoves(position);
-printf("[LKK] moves: ");
-for (MOVELIST *p=ml; p; p=p->next) { char s[MAX_MOVE_STRING_LENGTH]; MoveToString(p->move, s); printf("[%s] ", s); }
-puts(""); if (ml) FreeMoveList(ml);
+    int player = generic_hash_turn(position);
+    printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
+    // MOVELIST *ml = GenerateMoves(position);
+    // printf("[LKK] moves: ");
+    // for (MOVELIST *p=ml; p; p=p->next) { char s[MAX_MOVE_STRING_LENGTH]; MoveToString(p->move, s); printf("[%s] ", s); }
+    // puts(""); if (ml) FreeMoveList(ml);
 
 
 }
@@ -702,7 +404,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerNam
 Accepted syntax (whitespace ignored):
   - Simple step: "a-b"  (from-to)
   - Single jump: "a x m x b"  (from-captured-to)
-Where a,b,m are integers in [1,19].
+Where a,b,m are integers in [1,13].
 We don’t validate legality here (only syntax); Gamesman will check move legality.
 */
 

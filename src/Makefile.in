@@ -1,4 +1,4 @@
-include "gameplay.h"##############################################################################
+##############################################################################
 #
 #  Makefile for GAMESMAN
 #  The Finite, Two-person Perfect-Information Game Generator
