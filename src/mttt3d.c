@@ -11,7 +11,6 @@
 ************************************************************************/
 
 #include "gamesman.h"
-#include "core/bpdb.h"
 #include <string.h>
 
 CONST_STRING kAuthorName = "Angela Rodriguez";
@@ -19,15 +18,15 @@ CONST_STRING kGameName = "3D X0 Chess";  // Use this spacing and case
 CONST_STRING kDBName = "ttt3d";      // Use this spacing and case
 
 /**
- * @brief The total number of positions calculated by generic_hash_init.
+ * @brief The total ~68GB positions for 9 columns with 15 states each.
  */
-POSITION gNumberOfPositions;
+POSITION gNumberOfPositions = 1ULL << 36;
 POSITION kBadPosition        = -1;
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
 BOOLEAN kPartizan = TRUE;
-BOOLEAN kTieIsPossible = TRUE;
+BOOLEAN kTieIsPossible = FALSE;
 BOOLEAN kLoopy = FALSE;
 BOOLEAN kSupportsSymmetries = FALSE;
 BOOLEAN kDebugDetermineValue = FALSE;
@@ -136,40 +135,105 @@ LEGEND:  ( 4 5 6 )  TOTAL:   : - - -  B \n\
                              : - O X    \n\
                              : - - -  A \n\
                              : - O -    \n\n\
-Player (player one) Wins!";        
+Player (player one) Wins!"; 
 
 #define BOARDLEN      3
 #define BOARDSIZE     27           /* 3x3x3 board */
 
-#define FIRSTPLAYER     1
-#define SECONDPLAYER    2
-#define Blank           '-'
-#define o               'o'
-#define x               'x'
+#define WIN4_WIDTH    9
+#define WIN4_HEIGHT   3
+
 typedef char BlankOX;
 
-char *gBlankOXString[] = { "-", "O", "X" };
+#define BLANK ((char)0)
+#define O ((char)2)
+#define X ((char)1)
+
+char *gBlankOXString[] = { "-", "X", "O" };
+
+static BlankOX gGenericBlankOXArray[] = {BLANK, O, X};
+
+static POSITION pow15[9];
+
+typedef struct {
+    BlankOX a, b, c;
+} ColumnState;
+
+static ColumnState columnStates[15] = {
+    {BLANK, BLANK, BLANK}, // 0
+    {X, BLANK, BLANK},     // 1
+    {O, BLANK, BLANK},     // 2
+    {X, X, BLANK},         // 3
+    {X, O, BLANK},         // 4
+    {O, X, BLANK},         // 5
+    {O, O, BLANK},         // 6
+    {X, X, X},             // 7
+    {X, X, O},             // 8
+    {X, O, X},             // 9
+    {X, O, O},             // 10
+    {O, X, X},             // 11
+    {O, X, O},             // 12
+    {O, O, X},             // 13
+    {O, O, O}              // 14
+};
 
 struct {
-    BlankOX board[BOARDSIZE];
+    BlankOX board[27];
     BlankOX nextPiece;
     int piecesPlaced;
 } gPosition;
 
+BlankOX WhoseTurn(POSITION);
 
+void PositionToBoard(POSITION pos, BlankOX* board) {
+    for(int col = 0; col < 9; col++) {
+        int state = pos % 15;
+        pos /= 15;
+        board[col] = columnStates[state].a;
+        board[col + 9] = columnStates[state].b;
+        board[col + 18] = columnStates[state].c;
+    }
+}
+
+POSITION BoardToPosition(BlankOX board[27]) {
+    POSITION pos = 0;
+    for(int col = 0; col < 9; col++) {
+        BlankOX a = board[col], b = board[col + 9], c = board[col + 18];
+        int state = -1;
+        for(int s = 0; s < 15; s++) {
+            if(columnStates[s].a == a && columnStates[s].b == b && columnStates[s].c == c) {
+                state = s;
+                break;
+            }
+        }
+        if(state == -1) return kBadPosition; // invalid board
+        pos += (POSITION)state * pow15[col];
+    }
+    return pos;
+}
 
 BOOLEAN AllFilledIn(BlankOX*);
 void UndoMove(MOVE move);
 BOOLEAN ThreeInARow(BlankOX*, int, int, int);
 POSITION GetCanonicalPosition(POSITION);
+
+/**
+ * @brief Checks if three positions on the board have the same non-blank piece.
+ *
+ * @param board The game board.
+ * @param a First position index.
+ * @param b Second position index.
+ * @param c Third position index.
+ * @return TRUE if all three positions have the same non-blank piece, FALSE otherwise.
+ */
+BOOLEAN ThreeInARow(BlankOX *board, int a, int b, int c) {
+    return (board[a] == board[b] &&
+            board[b] == board[c] &&
+            board[a] != BLANK);
+}
 POSITION ActualNumberOfPositions(int variant);
 
-
-void PositionToBlankOX(POSITION, BlankOX*, int*);
-BlankOX WhoseTurn(BlankOX*);
 TIER BoardToTier(BlankOX*);
-
-
 
 
 
@@ -177,6 +241,8 @@ BOOLEAN IsLegal(POSITION);
 
 
 POSITION UnDoMove(POSITION, UNDOMOVE);
+
+
 
 /**
  * @brief Tcl-related stuff. Do not change if you do not plan to make a Tcl interface.
@@ -198,28 +264,16 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
  * @brief Initialize any global variables.
  */
 
-// for the hash init
-int vcfg(int* this_cfg) {
-    int o_piece = this_cfg[0];
-    int x_piece = this_cfg[1];
-    return (x_piece == o_piece) || (x_piece == o_piece + 1);
-}
-
 void InitializeGame(void) {
-    generic_hash_destroy();
-    //have a GLOBAL HASH set up at outset:
-    int game[10] = {'o', 0, 13, 'x', 0, 14, Blank, 0, 27, -1 };
-    gNumberOfPositions = generic_hash_init(BOARDSIZE, game, &vcfg, 0);
-
-    BlankOX board[BOARDSIZE]; memset(board, Blank, BOARDSIZE);
-    memcpy(gPosition.board, board, sizeof(BlankOX) * BOARDSIZE);
-    gPosition.nextPiece = x;
-    gPosition.piecesPlaced = 0;
+    pow15[0] = 1;
+    for(int i = 1; i < 9; i++) pow15[i] = pow15[i-1] * 15;
+    gNumberOfPositions = 1ULL << 36; // ~68GB positions
+    gInitialPosition = 0;
+    gMinimalPosition = 0;
     gUndoMove = UndoMove;
-
-    gInitialPosition = generic_hash_hash(board, FIRSTPLAYER);
-
 }
+
+
 
 /**
  * @brief Return the head of a list of the legal moves from the input position.
@@ -244,65 +298,33 @@ BOOLEAN AllFilledIn(BlankOX *theBlankOX) {
     int i;
 
     for(i = 0; i < BOARDSIZE; i++)
-        answer &= (theBlankOX[i] == o || theBlankOX[i] == x);
+        answer &= (theBlankOX[i] == O || theBlankOX[i] == X);
 
     return(answer);
 }
 
-void PositionToBlankOX(POSITION thePos, BlankOX *theBlankOX, int* turn) {
-    if (turn)
-        *turn = generic_hash_turn(thePos);
-    generic_hash_unhash(thePos, theBlankOX);
+BlankOX WhoseTurn(POSITION thePosition) {
+    BlankOX board[27];
+    PositionToBoard(thePosition, board);
+    int count = 0;
+    for(int i = 0; i < 27; i++) if(board[i] != BLANK) count++;
+    return (count % 2 == 0) ? X : O;
 }
 
-BOOLEAN ThreeInARow(BlankOX *theBlankOX, int a, int b, int c) {
-    return(theBlankOX[a] == theBlankOX[b] &&
-            theBlankOX[b] == theBlankOX[c] &&
-            theBlankOX[c] != Blank);
-}
-
-BlankOX WhoseTurn(BlankOX *theBlankOX) {
-    int i, xcount = 0, ocount = 0;
-
-    for(i = 0; i < BOARDSIZE; i++)
-        if(theBlankOX[i] == x)
-            xcount++;
-        else if(theBlankOX[i] == o)
-            ocount++;
-        /* else don't count blanks */
-
-    if(xcount == ocount)
-        return(x);  /* in our TicTacToe, x always goes first */
-    else
-        return(o);
-}
 
 MOVELIST *GenerateMoves(POSITION position) {
-
-    /*
-        NOTE: To add to the linked list, do
-
-        moves = CreateMovelistNode(<the move you're adding>, moves);
-
-        See the function CreateMovelistNode in src/core/misc.c
-    */
-
-    int index;
-    int turn;
     MOVELIST *moves = NULL;
-    BlankOX board[BOARDSIZE];
-
-    PositionToBlankOX(position, board, &turn);
-
-    for (index = 0; index < 27; index++) {
-        if (board[index] == '-') {
-            if (index < 9) {
-                moves = CreateMovelistNode(index, moves);
-            } else {
-                if (board[index - 9] != Blank)
-                    moves = CreateMovelistNode(index, moves);
-            }
-        }
+    if (Primitive(position) != undecided) return NULL;
+    BlankOX board[27];
+    PositionToBoard(position, board);
+    memcpy(gPosition.board, board, sizeof(board));
+    for (int pos = 0; pos < 9; pos++) {
+        if (gPosition.board[pos] == BLANK)
+            moves = CreateMovelistNode(pos, moves);
+        else if (gPosition.board[pos] != BLANK && gPosition.board[pos + 9] == BLANK)
+            moves = CreateMovelistNode(pos + 9, moves);
+        else if (gPosition.board[pos + 9] != BLANK && gPosition.board[pos + 18] == BLANK)
+            moves = CreateMovelistNode(pos + 18, moves);
     }
     return moves;
 }
@@ -317,25 +339,18 @@ MOVELIST *GenerateMoves(POSITION position) {
  * @return The child position, encoded as a 64-bit integer. See
  * the POSITION typedef in src/core/types.h.
  */
-POSITION DoMove(POSITION position, MOVE move) {
-    BlankOX board[BOARDSIZE];
-    int turn = generic_hash_turn(position);
-    generic_hash_unhash(position, board);
-    board[move] = (turn == FIRSTPLAYER ? x : o);
-    // update global gPosition
-    memcpy(gPosition.board, board, sizeof(BlankOX) * BOARDSIZE);
-    int placed = 0;
-    for (int i = 0; i < BOARDSIZE; i++) if (board[i] != Blank) placed++;
-    gPosition.piecesPlaced = placed;
-    gPosition.nextPiece = (turn == FIRSTPLAYER ? o : x);
-    return generic_hash_hash(board, turn == FIRSTPLAYER ? SECONDPLAYER : FIRSTPLAYER);
-
+POSITION DoMove(POSITION thePosition, MOVE theMove)
+{
+    BlankOX board[27];
+    PositionToBoard(thePosition, board);
+    int col = theMove % 9;
+    int level = theMove / 9;
+    BlankOX turn = WhoseTurn(thePosition);
+    board[col + level * 9] = turn;
+    return BoardToPosition(board);
 }
 
 void UndoMove(MOVE move) {
-    gPosition.board[move] = Blank;
-    gPosition.nextPiece = gPosition.nextPiece == x ? o : x;
-    --gPosition.piecesPlaced;
 }
 
 static int get_1d_index(int z, int y, int m) {
@@ -347,11 +362,8 @@ static BOOLEAN check_line_win(int start_z, int start_y, int start_x, int dz, int
     int index1 = get_1d_index(start_z, start_y, start_x);
     int index2 = get_1d_index(start_z + 1 * dz, start_y + 1 * dy, start_x + 1 * dx);
     int index3 = get_1d_index(start_z + 2 * dz, start_y + 2 * dy, start_x + 2 * dx);
-
-    if (ThreeInARow(gPosition.board, index1, index2, index3))
-        return TRUE;
-    else
-        return FALSE;
+ 
+    return ThreeInARow(gPosition.board, index1, index2, index3);
 }
 
 static BOOLEAN check_3d_win() {
@@ -414,21 +426,14 @@ static BOOLEAN check_3d_win() {
  * src/core/types.h for the value enum definition.
  */
 VALUE Primitive(POSITION position) {
-    BlankOX board[BOARDSIZE];
-    generic_hash_unhash(position, board);
-    char player = generic_hash_turn(position);
-    player = player == FIRSTPLAYER ? x : o;
-    {
-    memcpy(gPosition.board, board, sizeof(BlankOX) * BOARDSIZE);
-    int placed = 0;
-    for (int i = 0; i < BOARDSIZE; i++) if (board[i] != Blank) placed++;
-    gPosition.piecesPlaced = placed;
-    }
+    BlankOX board[27];
+    PositionToBoard(position, board);
+    memcpy(gPosition.board, board, sizeof(board));
+    int count = 0;
+    for(int i=0; i<27; i++) if(board[i] != BLANK) count++;
+    gPosition.piecesPlaced = count;
     if (check_3d_win())
         return gStandardGame ? lose : win;
-    else if ((gUseGPS && (gPosition.piecesPlaced == BOARDSIZE)) ||
-             ((!gUseGPS) && AllFilledIn(gPosition.board)))
-        return tie;
     else
         return undecided;
 }
@@ -472,31 +477,25 @@ POSITION GetCanonicalPosition(POSITION position) {
  * to print the prediction of the game's outcome.
  */
 static char* getSymbol(char c) {
-    if (c == '-') return "-";
-    if (c == 'o') return "O";
-    if (c == 'x') return "X";
-    return "?";
+    return gBlankOXString[(int)c];
 }
 
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-    BlankOX theBlankOx[BOARDSIZE];
-    int turn;
-    PositionToBlankOX(position,theBlankOx, &turn);
+    BlankOX theBlankOx[WIN4_HEIGHT][WIN4_WIDTH];
+    memset(theBlankOx, BLANK, sizeof(theBlankOx));
+    PositionToBoard(position, (BlankOX*)theBlankOx);
 
-    char player = generic_hash_turn(position);
-    player = player == 1 ? x : o;
+    printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[2][0]), getSymbol(theBlankOx[2][1]), getSymbol(theBlankOx[2][2]));
+    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[2][3]), getSymbol(theBlankOx[2][4]), getSymbol(theBlankOx[2][5]));
+    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[2][6]), getSymbol(theBlankOx[2][7]), getSymbol(theBlankOx[2][8]));
 
-    printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[18]), getSymbol(theBlankOx[19]), getSymbol(theBlankOx[20]));
-    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[21]), getSymbol(theBlankOx[22]), getSymbol(theBlankOx[23]));
-    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[24]), getSymbol(theBlankOx[25]), getSymbol(theBlankOx[26]));
+    printf("\n         ( 1 2 3 )           : %s %s %s    \n", getSymbol(theBlankOx[1][0]), getSymbol(theBlankOx[1][1]), getSymbol(theBlankOx[1][2]));
+    printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s    \n", getSymbol(theBlankOx[1][3]), getSymbol(theBlankOx[1][4]), getSymbol(theBlankOx[1][5]));
+    printf("         ( 7 8 9 )           : %s %s %s    \n", getSymbol(theBlankOx[1][6]), getSymbol(theBlankOx[1][7]), getSymbol(theBlankOx[1][8]));
 
-    printf("\n         ( 1 2 3 )           : %s %s %s    \n", getSymbol(theBlankOx[9]), getSymbol(theBlankOx[10]), getSymbol(theBlankOx[11]));
-    printf("LEGEND:  ( 4 5 6 )  TOTAL:   : %s %s %s    \n", getSymbol(theBlankOx[12]), getSymbol(theBlankOx[13]), getSymbol(theBlankOx[14]));
-    printf("         ( 7 8 9 )           : %s %s %s    \n", getSymbol(theBlankOx[15]), getSymbol(theBlankOx[16]), getSymbol(theBlankOx[17]));
-
-    printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[0]), getSymbol(theBlankOx[1]), getSymbol(theBlankOx[2]));
-    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[3]), getSymbol(theBlankOx[4]), getSymbol(theBlankOx[5]));
-    printf("                             : %s %s %s %s    \n", getSymbol(theBlankOx[6]), getSymbol(theBlankOx[7]), getSymbol(theBlankOx[8]), GetPrediction(position,playerName,usersTurn));
+    printf("\n                             : %s %s %s    \n", getSymbol(theBlankOx[0][0]), getSymbol(theBlankOx[0][1]), getSymbol(theBlankOx[0][2]));
+    printf("                             : %s %s %s    \n", getSymbol(theBlankOx[0][3]), getSymbol(theBlankOx[0][4]), getSymbol(theBlankOx[0][5]));
+    printf("                             : %s %s %s %s    \n", getSymbol(theBlankOx[0][6]), getSymbol(theBlankOx[0][7]), getSymbol(theBlankOx[0][8]), GetPrediction(position,playerName,usersTurn));
 }
 
 /**
@@ -511,6 +510,7 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
  * @return One of (Undo, Abort, Continue)
  */
 USERINPUT GetAndPrintPlayersMove(POSITION position, MOVE *move, STRING playerName) {
+    Primitive(position); 
     USERINPUT ret;
     do {
         /* List of available moves */
@@ -547,9 +547,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 
     int pos = input[0] - '1'; //position 0-8
  
-    if (gPosition.board[pos] == Blank) return pos; // layer A
-    else if (gPosition.board[pos + 9] == Blank) return pos + 9; // layer B if A has piece
-    else if (gPosition.board[pos + 18] == Blank) return pos + 18; // layer C if B has piece
+    if (gPosition.board[pos] == BLANK) return pos; // layer A
+    else if (gPosition.board[pos + 9] == BLANK) return pos + 9; // layer B if A has piece
+    else if (gPosition.board[pos + 18] == BLANK) return pos + 18; // layer C if B has piece
     return -1;
 }
 
