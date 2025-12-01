@@ -52,6 +52,7 @@ int COLS = 0;
 int CELLS = 0;
 int MISERE = 0; // 0 = normal, 1 = misère
 int ID = 0;
+int COMPULSORY = 0;
 
 static inline int in_bounds(int i) {
     return (i >= 0 && i < CELLS);
@@ -118,49 +119,80 @@ BOOLEAN HasAnyMove(const char board[CELLS], int sideToMove){
     return FALSE;
 }
 MOVELIST *GenerateMoves(POSITION position) {
-  MOVELIST *moves = NULL;
-  char board[CELLS];
-  generic_hash_unhash(position, board);
-  int turn = generic_hash_turn(position);
-  for (int index = 0; index < CELLS; index++) {
-    int row = index / COLS;
-    int col = index % COLS;
-    if (turn == 1) {
-        if (board[index] != 'W') continue;
-        if (row - 1 >= 0 ) {
-            int fwd_idx = index - COLS;
-            int left_capture_idx = fwd_idx - 1;
-            int right_capture_idx = fwd_idx +1;
+    MOVELIST *moves = NULL;
+    char board[CELLS];
+    generic_hash_unhash(position, board);
+    int turn = generic_hash_turn(position);
 
-            if (board[fwd_idx] == '-')
-                moves = CreateMovelistNode(index*100 + fwd_idx, moves);
+    int any_capture_available = 0;
 
-            if(col > 0 && in_bounds(left_capture_idx) && board[left_capture_idx] == 'B')
-                moves = CreateMovelistNode(index*100 + left_capture_idx, moves);
+    /* FIRST PASS — detect if any capture exists */
+    if (COMPULSORY){
+        for (int index = 0; index < CELLS; index++) {
+            int row = index / COLS;
+            int col = index % COLS;
 
-            if (col < COLS - 1 && in_bounds(right_capture_idx) && board[right_capture_idx] == 'B')
-                moves = CreateMovelistNode(index*100 + right_capture_idx, moves);
-        }
+            if (turn == 1 && board[index] == 'W' && row > 0) {
+                int fwd = index - COLS;
+                int l = fwd - 1;
+                int r = fwd + 1;
 
-    } else {
-        if (board[index] != 'B') continue;
-        if (row + 1 < ROWS) {
-            int fwd_idx = index + COLS;
-            int left_capture_idx = fwd_idx - 1;
-            int right_capture_idx = fwd_idx + 1;
+                if (col > 0 && in_bounds(l) && board[l] == 'B') any_capture_available = 1;
+                if (col < COLS - 1 && in_bounds(r) && board[r] == 'B') any_capture_available = 1;
 
-            if (board[fwd_idx] == '-')
-                moves = CreateMovelistNode(index*100 + fwd_idx, moves);
+            } else if (turn == 2 && board[index] == 'B' && row + 1 < ROWS) {
+                int fwd = index + COLS;
+                int l = fwd - 1;
+                int r = fwd + 1;
 
-            if (col > 0 && in_bounds(left_capture_idx) && board[left_capture_idx] == 'W')
-                moves = CreateMovelistNode(index*100 + left_capture_idx, moves);
-
-            if (col < COLS - 1 && in_bounds(right_capture_idx) && board[right_capture_idx] == 'W')
-                moves = CreateMovelistNode(index*100 + right_capture_idx, moves);
+                if (col > 0 && in_bounds(l) && board[l] == 'W') any_capture_available = 1;
+                if (col < COLS - 1 && in_bounds(r) && board[r] == 'W') any_capture_available = 1;
+            }
         }
     }
-  }
-  return moves;
+
+    /* SECOND PASS — generate moves */
+    for (int index = 0; index < CELLS; index++) {
+        int row = index / COLS;
+        int col = index % COLS;
+
+        if (turn == 1 && board[index] == 'W' && row > 0) {
+            int fwd = index - COLS;
+            int l = fwd - 1;
+            int r = fwd + 1;
+
+            /* CAPTURES */
+            if (col > 0 && in_bounds(l) && board[l] == 'B')
+                moves = CreateMovelistNode(index*100 + l, moves);
+
+            if (col < COLS - 1 && in_bounds(r) && board[r] == 'B')
+                moves = CreateMovelistNode(index*100 + r, moves);
+
+            /* FORWARD MOVE ONLY IF NO CAPTURE REQUIRED */
+            if (!any_capture_available && board[fwd] == '-')
+                moves = CreateMovelistNode(index*100 + fwd, moves);
+
+        }
+
+        else if (turn == 2 && board[index] == 'B' && row + 1 < ROWS) {
+            int fwd = index + COLS;
+            int l = fwd - 1;
+            int r = fwd + 1;
+
+            /* CAPTURES */
+            if (col > 0 && in_bounds(l) && board[l] == 'W')
+                moves = CreateMovelistNode(index*100 + l, moves);
+
+            if (col < COLS - 1 && in_bounds(r) && board[r] == 'W')
+                moves = CreateMovelistNode(index*100 + r, moves);
+
+            /* FORWARD MOVE ONLY IF NO CAPTURE REQUIRED */
+            if (!any_capture_available && board[fwd] == '-')
+                moves = CreateMovelistNode(index*100 + fwd, moves);
+        }
+    }
+
+    return moves;
 }
 
 /* Return the position that results from making the
@@ -342,7 +374,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 
 /* How many variants are you supporting? */
 int NumberOfOptions() {
-  return 8;
+  return 10;
 }
 
 /* Return the current variant id. */
@@ -358,7 +390,8 @@ void setOption(int option) {
   ROWS = 3;
   COLS = variant_length;
   CELLS = ROWS * COLS;
-  MISERE = option > 3;
+  MISERE = (option >= 4 && option <= 7) ? 1 : 0;
+  COMPULSORY = option > 7;
 }
 
 /**
@@ -379,6 +412,8 @@ void GameSpecificMenu(void) {
         printf("5: LENGTH 4, MISERE\n");
         printf("6: LENGTH 5, MISERE\n");
         printf("7: LENGTH 6, MISERE\n");
+        printf("8: LENGTH 3, COMPULSORY CAPTURE\n");
+        printf("9: LENGTH 4, COMPULSORY CAPTURE\n");
         printf("===========================================\n");
         printf("SELECT VARAINT: ");
 
@@ -389,12 +424,12 @@ void GameSpecificMenu(void) {
         }
         while (getchar() != '\n');
 
-        if (option <= 7) {
+        if (option <= 9) {
             setOption(option);
             printf("Variant set to %dx3 board.\n", variant_length);
             break;
         } else {
-            printf("Invalid option. Please enter a number between [0, 7].\n");
+            printf("Invalid option. Please enter a number between [0, 9].\n");
         }
     }
     InitializeGame();
