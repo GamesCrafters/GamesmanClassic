@@ -35,7 +35,7 @@ BOOLEAN kDebugDetermineValue = FALSE;
 
 POSITION GetCanonicalPosition(POSITION);
 void PositionToString(POSITION, char*);
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 
 CONST_STRING kHelpGraphicInterface = "The graphical interface is not available yet for Lau Kati Kata.\n"
@@ -68,18 +68,22 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 /**
  * @brief Initial board state (player 1 starts as black)
  */
-#define BOARD_LEN 14
-#define BOARD_SIZE 13
+// #define BOARD_LEN 14
+#define MAX_BOARD_SIZE 19
+
 char pieces[3] = " BW";
+int num_pieces = 3;
+int BOARD_SIZE = 7;
+char initial_board[MAX_BOARD_SIZE];
 
 /* 13 board cells only; player-to-move is passed separately to the hash */
-char initial_board[BOARD_SIZE] = {
-    'B','B','B',
-    'B','B','B',
-    '-',            /* cell 10 is empty */
-    'W','W','W',
-    'W','W','W'
-};
+// char initial_board[BOARD_SIZE] = {
+//     'B','B','B',
+//     'B','B','B',
+//     '-',            /* cell 10 is empty */
+//     'W','W','W',
+//     'W','W','W'
+// };
 
 
 /* Jump must stay on the same straight line: from - mid - to.
@@ -119,13 +123,21 @@ void InitializeGame(void) {
 
     // Bounded counts to keep the state space sane.
     int pieceSpec[] = {
-        'B', 0, 6,             // up to 6 black
-        'W', 0, 6,             // up to 6 white
+        'B', 0, num_pieces,             // up to 6 black
+        'W', 0, num_pieces,             // up to 6 white
         'b', 0, 1,             // at most 1 locked black
         'w', 0, 1,             // at most 1 locked white
         '-', 1, BOARD_SIZE-1,  // at least 1 empty, up to 12
         -1
     };
+
+    for (int i = 0; i < num_pieces; i++) {
+            initial_board[i] = 'B';
+        }
+    initial_board[num_pieces] = '-';  // center
+    for (int i = num_pieces + 1; i < 2 * num_pieces + 1; i++) {
+        initial_board[i] = 'W';
+    }
 
     generic_hash_destroy();
     gNumberOfPositions = generic_hash_init(BOARD_SIZE, pieceSpec, NULL, 0);
@@ -136,21 +148,32 @@ void InitializeGame(void) {
 }
 
 static void GenerateJumpsFrom(int from,
-                              const char board[BOARD_SIZE],
+                              const char board[],   // <- not [BOARD_SIZE]
                               char meU, char oppU,
                               MOVELIST **jumpList)
 {
+    // from must be on the current board
     if (from < 1 || from > BOARD_SIZE) return;
 
+    // Look at all neighbors of `from` as potential midpoints
     for (int n = 0; neighbors[from][n] != 0; ++n) {
         int mid = neighbors[from][n];
+
+        // Skip neighbors outside the active board (for 7/13 variants)
         if (mid < 1 || mid > BOARD_SIZE) continue;
 
-        int to = kOpposite[from][mid];   // force colinearity
+        // Force colinearity via kOpposite (from - mid - to)
+        int to = kOpposite[from][mid];
+
+        // `to` must also lie on the active board
         if (to < 1 || to > BOARD_SIZE) continue;
 
-        if (toupper((unsigned char)board[mid - 1]) == oppU && board[to - 1] == '-') {
-            MOVE mv = from * 10000 + mid * 100 + to;  // from x mid x to
+        // If there's an opponent piece on `mid` and an empty landing square at `to`,
+        // then from x mid x to is a legal jump.
+        if (toupper((unsigned char)board[mid - 1]) == oppU &&
+            board[to - 1] == '-') {
+
+            MOVE mv = from * 10000 + mid * 100 + to;  // encode: from x mid x to
             *jumpList = CreateMovelistNode(mv, *jumpList);
         }
     }
@@ -169,9 +192,17 @@ POSITION DoMove(POSITION position, MOVE move) {
     char oppU = (turn == 1 ? 'W' : 'B');
 
     if (move > 9999) {  /* jump: a x m x b  (we'll keep going if forced) */
-        int from = move / 10000;
+        int from =  move / 10000;
         int mid  = (move / 100) % 100;
-        int to   = move % 100;
+        int to   =  move % 100;
+
+        /* Basic safety: indices must lie on the current board */
+        if (from < 1 || from > BOARD_SIZE ||
+            mid  < 1 || mid  > BOARD_SIZE ||
+            to   < 1 || to   > BOARD_SIZE) {
+            /* Invalid move encoding for this board size */
+            return position;
+        }
 
         board[from - 1] = '-';
         board[mid  - 1] = '-';
@@ -179,22 +210,31 @@ POSITION DoMove(POSITION position, MOVE move) {
 
         /* Keep auto-jumping while there is exactly one forced continuation. */
         for (;;) {
-            // build one-ply jumps from current 'to'
             MOVELIST *jl = NULL;
-            // reuse your helper
             GenerateJumpsFrom(to, board, meU, oppU, &jl);
 
-            if (!jl) break;                 // no more jumps: chain ends
-            if (jl->next) {                 // multiple choices => stop here (let UI choose)
+            if (!jl) break;     // no more jumps: chain ends
+
+            if (jl->next) {     // multiple choices => stop here (let UI choose)
                 FreeMoveList(jl);
                 board[to - 1] = (turn == 1 ? 'b' : 'w');  // lock the piece
-                return generic_hash_hash(board, turn);    // keep jumping
+                return generic_hash_hash(board, turn);    // same side keeps jumping
             }
 
             // exactly one forced jump; apply it and continue
-            MOVE cont = jl->move; FreeMoveList(jl);
-            int mid2 = (cont / 100) % 100;
-            int to2  = cont % 100;
+            MOVE cont = jl->move;
+            FreeMoveList(jl);
+
+            int from2 = cont / 10000;
+            int mid2  = (cont / 100) % 100;
+            int to2   =  cont % 100;
+
+            /* Again, be safe about indices */
+            if (from2 < 1 || from2 > BOARD_SIZE ||
+                mid2  < 1 || mid2  > BOARD_SIZE ||
+                to2   < 1 || to2   > BOARD_SIZE) {
+                break;  // shouldn't happen, but avoid UB
+            }
 
             board[mid2 - 1] = '-';
             board[to2  - 1] = meU;
@@ -204,17 +244,28 @@ POSITION DoMove(POSITION position, MOVE move) {
     } else {          /* step: a-b */
         int from = move / 100;
         int to   = move % 100;
+
+        if (from < 1 || from > BOARD_SIZE ||
+            to   < 1 || to   > BOARD_SIZE) {
+            return position;  // invalid for this board size
+        }
+
         board[to - 1]   = meU;
         board[from - 1] = '-';
     }
-    for (int i = 0; i < BOARD_SIZE; ++i) {  //clear the locked piece    
-    if (board[i] == (turn == 1 ? 'b' : 'w'))
-        board[i] = (turn == 1 ? 'B' : 'W');}
+
+    /* Clear any locked piece back to uppercase after move finishes */
+    for (int i = 0; i < BOARD_SIZE; ++i) {
+        if (board[i] == (turn == 1 ? 'b' : 'w')) {
+            board[i] = (turn == 1 ? 'B' : 'W');
+        }
+    }
 
     int nextTurn = (turn == 1 ? 2 : 1);
     return generic_hash_hash(board, nextTurn);
 }
 
+// ---- Legal move generator (captures preferred; locked piece forces continuation)
 // ---- Legal move generator (captures preferred; locked piece forces continuation)
 MOVELIST *GenerateMoves(POSITION pos) {
     char board[BOARD_SIZE];
@@ -226,10 +277,14 @@ MOVELIST *GenerateMoves(POSITION pos) {
     char oppU   = (turn == 1 ? 'W' : 'B');
 
     MOVELIST *list = NULL;
+
     // If we’re in the middle of a capture chain, only that locked piece moves (must jump)
     int locked_from = 0;
     for (int i = 1; i <= BOARD_SIZE; ++i) {
-        if (board[i - 1] == meLock) { locked_from = i; break; }
+        if (board[i - 1] == meLock) {
+            locked_from = i;
+            break;
+        }
     }
     if (locked_from) {
         GenerateJumpsFrom(locked_from, board, meU, oppU, &list);
@@ -240,6 +295,7 @@ MOVELIST *GenerateMoves(POSITION pos) {
     int anyCap = 0;
     for (int from = 1; from <= BOARD_SIZE; ++from) {
         if (toupper((unsigned char)board[from - 1]) != meU) continue;
+
         MOVELIST *before = list;
         GenerateJumpsFrom(from, board, meU, oppU, &list);
         if (list != before) anyCap = 1;
@@ -249,8 +305,14 @@ MOVELIST *GenerateMoves(POSITION pos) {
     // Otherwise, generate simple step moves to any adjacent empty neighbor
     for (int from = 1; from <= BOARD_SIZE; ++from) {
         if (toupper((unsigned char)board[from - 1]) != meU) continue;
+
         for (int i = 0; neighbors[from][i] != 0; ++i) {
             int to = neighbors[from][i];
+
+            // neighbors[] may be defined for the full 19-point graph,
+            // so ignore neighbors that fall off the active board.
+            if (to < 1 || to > BOARD_SIZE) continue;
+
             if (board[to - 1] == '-') {
                 MOVE mv = from * 100 + to;
                 list = CreateMovelistNode(mv, list);
@@ -267,6 +329,7 @@ VALUE Primitive(POSITION position) {
 
     int turn = generic_hash_turn(position);   /* 1 = Black, 2 = White */
     int bCnt = 0, wCnt = 0;
+
     for (int i = 0; i < BOARD_SIZE; ++i) {
         char u = toupper((unsigned char)board[i]);
         if (u == 'B') ++bCnt;
@@ -346,46 +409,125 @@ static inline char CellChar(char c) {
 }
 
 
-/* Helper: get board[14] from position */
-static void LoadBoard(POSITION position, char board[14]) {
-    char raw[BOARD_SIZE];
+/* Helper: get board[1..gBoardSize] from position */
+static void LoadBoard(POSITION position, char board[MAX_BOARD_SIZE + 1]) {
+    char raw[MAX_BOARD_SIZE];
     generic_hash_unhash(position, raw);
-    board[0] = 0;
-    for (int i = 0; i < BOARD_SIZE; i++)
+
+    board[0] = 0;  // unused so we can index from 1
+    for (int i = 0; i < BOARD_SIZE; i++) {
         board[i + 1] = raw[i];
+    }
 }
 
-
-/* Pretty print the board (with labels 1..13 on the left, pieces on the right) */
+/* Pretty print the board for BOARD_SIZE 7, 13, or 19 */
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
-    (void)playerName; (void)usersTurn;
+    (void)usersTurn;
 
-    char b[14]; LoadBoard(position, b);
-    /* indexes 1..13 hold cells */
-    char c1=CellChar(b[1]),  c2=CellChar(b[2]),  c3=CellChar(b[3]);
-    char c4=CellChar(b[4]),  c5=CellChar(b[5]),  c6=CellChar(b[6]);
-    char c7=CellChar(b[7]),  c8=CellChar(b[8]),  c9=CellChar(b[9]);
-    char c10=CellChar(b[10]),c11=CellChar(b[11]),c12=CellChar(b[12]),c13=CellChar(b[13]);
+    char b[MAX_BOARD_SIZE + 1];
+    LoadBoard(position, b);
 
     printf("\n");
-    printf("   1-----2-----3        :     %c-----%c-----%c\n", c1, c2, c3);
-    printf("    \\    |    /         :      \\    |    /\n");
-    printf("     4---5---6          :       %c---%c---%c\n", c4, c5, c6);
-    printf("      \\  |  /           :        \\  |  /\n");
-    printf("         7              :           %c\n", c7);
-    printf("      /  |  \\           :        /  |  \\\n");
-    printf("     8---9---10         :       %c---%c---%c\n", c8, c9, c10);
-    printf("    /    |    \\         :      /    |    \\\n");
-    printf("  11-----12-----13      :     %c-----%c-----%c\n", c11, c12, c13);
+
+    if (BOARD_SIZE == 7) {
+        // 7-point board = middle three rows of the 13-point board
+        // mapping:
+        //   old 4,5,6 -> 1,2,3
+        //   old 7     -> 4
+        //   old 8,9,10-> 5,6,7
+        char c1 = CellChar(b[1]), c2 = CellChar(b[2]), c3 = CellChar(b[3]);
+        char c4 = CellChar(b[4]);
+        char c5 = CellChar(b[5]), c6 = CellChar(b[6]), c7 = CellChar(b[7]);
+
+        printf("     1---2---3          :       %c---%c---%c\n", c1, c2, c3);
+        printf("      \\  |  /           :        \\  |  /\n");
+        printf("         4              :           %c\n", c4);
+        printf("      /  |  \\           :        /  |  \\\n");
+        printf("     5---6---7          :       %c---%c---%c\n", c5, c6, c7);
+
+    } else if (BOARD_SIZE == 13) {
+        // Original 13-point cross layout
+        char c1  = CellChar(b[1]),  c2  = CellChar(b[2]),  c3  = CellChar(b[3]);
+        char c4  = CellChar(b[4]),  c5  = CellChar(b[5]),  c6  = CellChar(b[6]);
+        char c7  = CellChar(b[7]),  c8  = CellChar(b[8]),  c9  = CellChar(b[9]);
+        char c10 = CellChar(b[10]), c11 = CellChar(b[11]), c12 = CellChar(b[12]), c13 = CellChar(b[13]);
+
+        printf("   1-----2-----3        :     %c-----%c-----%c\n", c1, c2, c3);
+        printf("    \\    |    /         :      \\    |    /\n");
+        printf("     4---5---6          :       %c---%c---%c\n", c4, c5, c6);
+        printf("      \\  |  /           :        \\  |  /\n");
+        printf("         7              :           %c\n", c7);
+        printf("      /  |  \\           :        /  |  \\\n");
+        printf("     8---9---10         :       %c---%c---%c\n", c8, c9, c10);
+        printf("    /    |    \\         :      /    |    \\\n");
+        printf("  11-----12-----13      :     %c-----%c-----%c\n", c11, c12, c13);
+
+    } else if (BOARD_SIZE == 19) {
+        // 19-point board:
+        //  extra row on top & bottom, outer rows have 7 dashes
+        //
+        // rows of nodes:
+        //   1-3   (outer top, 7 dashes)
+        //   4-6   (like old 1-3, 5 dashes)
+        //   7-9   (like old 4-6, 3 dashes)
+        //   10    (center)
+        //   11-13 (like old 8-10, 3 dashes)
+        //   14-16 (like old 11-13, 5 dashes)
+        //   17-19 (outer bottom, 7 dashes)
+
+        char c1  = CellChar(b[1]),  c2  = CellChar(b[2]),  c3  = CellChar(b[3]);
+        char c4  = CellChar(b[4]),  c5  = CellChar(b[5]),  c6  = CellChar(b[6]);
+        char c7  = CellChar(b[7]),  c8  = CellChar(b[8]),  c9  = CellChar(b[9]);
+        char c10 = CellChar(b[10]);
+        char c11 = CellChar(b[11]), c12 = CellChar(b[12]), c13 = CellChar(b[13]);
+        char c14 = CellChar(b[14]), c15 = CellChar(b[15]), c16 = CellChar(b[16]);
+        char c17 = CellChar(b[17]), c18 = CellChar(b[18]), c19 = CellChar(b[19]);
+
+        // outermost wide row (7 dashes)
+        printf("  1-------2-------3      :   %c-------%c-------%c\n", c1, c2, c3);
+        printf("   \\      |      /       :    \\      |      /\n");
+
+        // next row in (5 dashes)
+        printf("    4-----5-----6        :     %c-----%c-----%c\n", c4, c5, c6);
+        printf("     \\    |    /         :      \\    |    /\n");
+
+        // inner triad (3 dashes)
+        printf("      7---8---9          :       %c---%c---%c\n", c7, c8, c9);
+        printf("       \\  |  /           :        \\  |  /\n");
+
+        // center
+        printf("          10             :           %c\n", c10);
+        printf("       /  |  \\           :        /  |  \\\n");
+
+        // mirror going back out
+        printf("      11--12--13         :       %c---%c---%c\n", c11, c12, c13);
+        printf("     /    |    \\         :      /    |    \\\n");
+
+        printf("    14----15----16       :     %c-----%c-----%c\n", c14, c15, c16);
+        printf("   /      |      \\       :    /      |      \\\n");
+
+        printf("  17------18------19     :   %c-------%c-------%c\n", c17, c18, c19);
+
+    } else {
+        // Fallback generic printing if BOARD_SIZE is something else
+        int i = 1;
+        while (i <= BOARD_SIZE) {
+            int start = i;
+
+            printf("Idx: ");
+            for (; i <= BOARD_SIZE && i < start + 10; ++i) {
+                printf("%2d ", i);
+            }
+            printf("\nVal: ");
+            for (int j = start; j < i; ++j) {
+                printf(" %c ", CellChar(b[j]));
+            }
+            printf("\n\n");
+        }
+    }
 
     int player = generic_hash_turn(position);
     printf("\n\nIt is %s's turn (%c).\n", playerName, pieces[player]);
-    // MOVELIST *ml = GenerateMoves(position);
-    // printf("[LKK] moves: ");
-    // for (MOVELIST *p=ml; p; p=p->next) { char s[MAX_MOVE_STRING_LENGTH]; MoveToString(p->move, s); printf("[%s] ", s); }
-    // puts(""); if (ml) FreeMoveList(ml);
-
-
 }
 
 /* TextUI prompt – we reuse the default input handler for Undo/Abort/Help, etc. */
@@ -519,14 +661,14 @@ void DebugMenu(void) {
  * @return The total number of variants supported.
  */
 int NumberOfOptions(void) {
-    return 1;
+    return 3;
 }
 
 /**
  * @return The current variant ID.
  */
 int getOption(void) {
-    return 0;
+    return num_pieces;
 }
 
 /**
@@ -536,7 +678,8 @@ int getOption(void) {
  * @param option An ID specifying the variant that we want to change to.
  */
 void setOption(int option) {
-    (void)option;
+    num_pieces = option;
+    BOARD_SIZE = 2 * num_pieces + 1;
 }
 
 /**
@@ -544,7 +687,34 @@ void setOption(int option) {
  * game-specific parameters, such as the side-length of a tic-tac-toe
  * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu(void) {}
+void GameSpecificMenu(void) {
+    char inp;
+    while (TRUE) {
+        printf("\n\n\n");
+        printf(
+            "        ----- Game-specific options for ExpanTix -----\n\n");
+        printf("        Select an option:\n\n");
+        printf("        3)      %s\n", (num_pieces == 3) ? "*" : "");
+		printf("        6)      %s\n", (num_pieces == 6) ? "*" : "");
+		printf("        9)      %s\n", (num_pieces == 9) ? "*" : "");
+        printf("        b)      Back to previous menu\n\n");
+        printf("\nSelect an option: ");
+        inp = GetMyChar();
+        if (inp == '3') {
+            setOption(3);
+        } else if (inp == '6') {
+            setOption(6);
+		} else if (inp == '9') {
+            setOption(9);
+        } else if (inp == 'b' || inp == 'B') {
+            return;
+        } else if (inp == 'q' || inp == 'Q') {
+            exit(0);
+        } else {
+            printf("Invalid input.\n");
+        }
+    }
+}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
