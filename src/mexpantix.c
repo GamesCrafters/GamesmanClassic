@@ -2,7 +2,7 @@
 **
 ** NAME:        mexpantix.c
 **
-** DESCRIPTION: Expan Tix (Use this spacing and case)
+** DESCRIPTION: ExpanTix
 **
 ** AUTHOR:      Johan Ko
 **
@@ -13,18 +13,15 @@
 #include "gamesman.h"
 #include <stdint.h>
 
-#define BOARDSIZE 25
-#define ROWS 5
-#define COLS 5
 #define MAXPLACED 3
 #define EMPTY '.'
 #define PIECE '#'
-#define SYMMETRYLOSE TRUE
+#define SYMMETRYLOSE FALSE
 
 #define NEXT_PLAYER(player) (1 + (player % 2))
 
 CONST_STRING kAuthorName = "Johan Ko";
-CONST_STRING kGameName = "Expan Tix";  // Use this spacing and case
+CONST_STRING kGameName = "ExpanTix";  // Use this spacing and case
 CONST_STRING kDBName = "expantix";      // Use this spacing and case
 
 /**
@@ -98,7 +95,7 @@ void PositionToString(POSITION, char*);
  * @brief If multiple variants are supported, set this
  * to true -- GameSpecificMenu() must be implemented.
  */
-BOOLEAN kGameSpecificMenu = FALSE;
+BOOLEAN kGameSpecificMenu = TRUE;
 
 /**
  * @brief Set this to true if the DebugMenu() is implemented.
@@ -110,12 +107,24 @@ BOOLEAN kDebugMenu = FALSE;
  * after you're done solving the game you should initialize them
  * with something helpful, for the TextUI.
  */
-CONST_STRING kHelpGraphicInterface = "";
-CONST_STRING kHelpTextInterface = "";
-CONST_STRING kHelpOnYourTurn = "";
-CONST_STRING kHelpStandardObjective = "";
-CONST_STRING kHelpReverseObjective = "";
+CONST_STRING kHelpGraphicInterface = "";Click the center dot on a grid space to place one tile.\n\
+Click a double arrow to place 2 pieces and the triple arrow to place 3 pieces in that direction.
+
+CONST_STRING kHelpTextInterface = "Pick a location to start your move, a direction\n\
+(u, d, l, r) to extend your move, and a number of tiles to place. Format is\n\
+{x coord}{y coord}{direction}{length}. For example, '34r2'. If placing only one\n\
+tile, only the x coordinate and y coordinate are needed, like '34'.";
+
+CONST_STRING kHelpOnYourTurn = "You place one, two, or three tiles in a row on the board.\n\
+Your move must touch the existing tiles on the board (connected by at least one edge).\n\
+If you expand below or to the left of the board, the board will shift up or right provided there's enough space.";
+
+CONST_STRING kHelpStandardObjective = "Place the last tile to complete the square.";
+
+CONST_STRING kHelpReverseObjective = "Force your opponent to place the last tile to complete the square.";
+
 CONST_STRING kHelpTieOccursWhen = /* Should follow 'A Tie occurs when... */ "";
+
 CONST_STRING kHelpExample = "";
 
 /**
@@ -127,24 +136,28 @@ void SetTclCGameSpecificOptions(int theOptions[]) { (void)theOptions; }
 
 /* Helper Functions */
 
+int BOARDSIZE = 25;
+int ROWS = 5;
+int COLS = 5;
+
 // Shift the board down by 'shift' columns
-void shift_down(char board[ROWS][COLS], int shift){
+void shift_down(char board[BOARDSIZE], int shift){
     for(int r = ROWS-1; r >= shift; r--)
         for(int c = 0; c < COLS; c++)
-            board[r][c] = board[r-shift][c];
+            board[r*COLS + c] = board[(r-shift)*COLS + c];
     for(int r = 0; r < shift; r++)
         for(int c = 0; c < COLS; c++)
-            board[r][c] = EMPTY;
+            board[r*COLS + c] = EMPTY;
 }
 
 // Shift the board right by 'shift' columns
-void shift_right(char board[ROWS][COLS], int shift){
+void shift_right(char board[BOARDSIZE], int shift){
     for(int r = 0; r < ROWS; r++)
         for(int c = COLS-1; c >= shift; c--)
-            board[r][c] = board[r][c-shift];
+            board[r*COLS + c] = board[r*COLS + c-shift];
     for(int r = 0; r < ROWS; r++)
         for(int c = 0; c < shift; c++)
-            board[r][c] = EMPTY;
+            board[r*COLS + c] = EMPTY;
 }
 
 BOOLEAN is_adjacent_to_piece(char board[BOARDSIZE], int r, int c) {
@@ -172,9 +185,9 @@ BOOLEAN can_place_move(char board[BOARDSIZE], int start_row, int start_col,
                           int occupied_rows, int occupied_cols) {
     int dr = 0, dc = 0;
     if (dir == 0) dc = 1;
-    else if (dir == 1) dr = -1;
+    else if (dir == 1) dr = 1;
     else if (dir == 2) dc = -1;
-	else if (dir == 3) dr = 1;
+	else if (dir == 3) dr = -1;
 
     int end_row = start_row + dr * (length - 1);
     int end_col = start_col + dc * (length - 1);
@@ -221,8 +234,10 @@ BOOLEAN board_empty(char board[BOARDSIZE]) {
 /**
  * @brief Initialize any global variables.
  */
+
 void InitializeGame(void) {
     gCanonicalPosition = GetCanonicalPosition;
+	gSupportsMex = TRUE;
 
 	int hash_data[] = {EMPTY, 0, BOARDSIZE, PIECE, 0, BOARDSIZE, -1};
     gNumberOfPositions = generic_hash_init(BOARDSIZE, hash_data, NULL, 0);
@@ -349,9 +364,9 @@ POSITION DoMove(POSITION position, MOVE move) {
 
 	int dr = 0, dc = 0;
 	if (dir == 0) dc = 1;
-    else if (dir == 1) dr = -1;
+    else if (dir == 1) dr = 1;
     else if (dir == 2) dc = -1;
-	else if (dir == 3) dr = 1;
+	else if (dir == 3) dr = -1;
 
 	int end_row = start_row + dr * (len - 1);
     int end_col = start_col + dc * (len - 1);
@@ -528,18 +543,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
 	char board[BOARDSIZE];
     generic_hash_unhash(position, board);
-	putchar(' ');
-	for (int i = 0; i < COLS + 1; i++) {
-		putchar('0' + i);
-	}
-	putchar('\n');
-	putchar('0');
-	for (int c = -1; c < COLS; c++) {
-		putchar(' ');
-	}
-	printf("       %s", GetPrediction(position, playerName, usersTurn));
-	putchar('\n');
-	for (int r = 0; r < ROWS; r++) {
+	
+	for (int r = ROWS - 1; r >= 0; r--) {
 		putchar('0' + (r + 1));
 		putchar(' ');
         for (int c = 0; c < COLS; c++) {
@@ -547,6 +552,20 @@ void PrintPosition(POSITION position, STRING playerName, BOOLEAN usersTurn) {
         }
         putchar('\n'); // new row
     }
+
+	putchar('0');
+	for (int c = -1; c < COLS; c++) {
+		putchar(' ');
+	}
+	printf("       %s", GetPrediction(position, playerName, usersTurn));
+	putchar('\n');
+
+	putchar(' ');
+	for (int i = 0; i < COLS + 1; i++) {
+		putchar('0' + i);
+	}
+	putchar('\n');
+
 }
 
 /**
@@ -615,8 +634,8 @@ BOOLEAN ValidTextInput(STRING input) {
  */
 MOVE ConvertTextInputToMove(STRING input) {
 	if (strlen(input) == 4) {
-		int r = input[0] - '0';
-		int c = input[1] - '0';
+		int r = input[1] - '0';
+		int c = input[0] - '0';
 		int dir;
 		switch (input[2]) {
 			case 'r': dir = 0; break;
@@ -627,9 +646,9 @@ MOVE ConvertTextInputToMove(STRING input) {
 		int len = input[3] - '0';
 		return r * 1000 + c * 100 + 10 * dir + len;
 	}
-	else if (strlen(input) == 2) {
-		int r = input[0] - '0';
-		int c = input[1] - '0';
+	else {
+		int r = input[1] - '0';
+		int c = input[0] - '0';
 		int dir = 0;
 		int len = 1;
 		return r * 1000 + c * 100 + 10 * dir + len;
@@ -653,10 +672,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 void MoveToString(MOVE move, char *moveStringBuffer) {
 	char directions[] = {'r', 'u', 'l', 'd'};
 	if (move % 10 == 1) {
-		sprintf(moveStringBuffer, "%d%d", move / 1000, move / 100 % 10);
+		sprintf(moveStringBuffer, "%d%d", move / 100 % 10, move / 1000);
 	}
 	else {
-		sprintf(moveStringBuffer, "%d%d%c%d", move / 1000, move / 100 % 10, directions[move / 10 % 10], move % 10);
+		sprintf(moveStringBuffer, "%d%d%c%d", move / 100 % 10, move / 1000, directions[move / 10 % 10], move % 10);
 	}
 }
 
@@ -667,7 +686,7 @@ void MoveToString(MOVE move, char *moveStringBuffer) {
  * @param computersName : The computer's name.
  */
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-    char *moveStringBuffer[32];
+    char moveStringBuffer[32];
     MoveToString(computersMove, moveStringBuffer);
     printf("%s's move: %s\n", computersName, moveStringBuffer);
 }
@@ -686,14 +705,14 @@ void DebugMenu(void) {}
  * @return The total number of variants supported.
  */
 int NumberOfOptions(void) {
-    return 1;
+    return 3;
 }
 
 /**
  * @return The current variant ID.
  */
 int getOption(void) {
-    return 0;
+    return ROWS;
 }
 
 /**
@@ -703,6 +722,11 @@ int getOption(void) {
  * @param option An ID specifying the variant that we want to change to.
  */
 void setOption(int option) {
+	int dim = option;
+	ROWS = dim;
+	COLS = dim;
+	BOARDSIZE = dim * dim;
+	(void)option;
 }
 
 /**
@@ -710,7 +734,34 @@ void setOption(int option) {
  * game-specific parameters, such as the side-length of a tic-tac-toe
  * board, for example. Does nothing if kGameSpecificMenu == FALSE.
  */
-void GameSpecificMenu(void) {}
+void GameSpecificMenu(void) {
+	char inp;
+    while (TRUE) {
+        printf("\n\n\n");
+        printf(
+            "        ----- Game-specific options for ExpanTix -----\n\n");
+        printf("        Select an option:\n\n");
+        printf("        3)      %s\n", (ROWS == 3) ? "(Currently Selected)" : "");
+		printf("        4)      %s\n", (ROWS == 4) ? "(Currently Selected)" : "");
+		printf("        5)      %s\n", (ROWS == 5) ? "(Currently Selected)" : "");
+        printf("        b)      Back to previous menu\n\n");
+        printf("\nSelect an option: ");
+        inp = GetMyChar();
+        if (inp == '3') {
+            setOption(3);
+        } else if (inp == '4') {
+            setOption(4);
+		} else if (inp == '5') {
+            setOption(5);
+        } else if (inp == 'b' || inp == 'B') {
+            return;
+        } else if (inp == 'q' || inp == 'Q') {
+            exit(0);
+        } else {
+            printf("Invalid input.\n");
+        }
+    }
+}
 
 /*********** END VARIANT-RELATED FUNCTIONS ***********/
 
@@ -742,7 +793,10 @@ void GameSpecificMenu(void) {}
  * Position String. You can in fact delete this function and leave
  * gStringToPositionFunPtr as NULL in InitializeGame().
  */
-void PositionToString(POSITION position, char *positionStringBuffer) {}
+void PositionToString(POSITION position, char *positionStringBuffer) {
+	(void)position;
+	(void)positionStringBuffer;
+}
 
 /**
  * @brief Convert the input position string to
@@ -762,7 +816,15 @@ POSITION StringToPosition(char *positionString) {
 	int turn;
 	char *board;
 	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
-		return 0;
+		char real_board[BOARDSIZE];
+        for (int i=0; i<BOARDSIZE; i++) {
+            if (board[i] == '-') {
+                real_board[i] = EMPTY;
+            } else {
+                real_board[i] = PIECE;
+            }
+        }
+        return generic_hash_hash(real_board, turn);
 	}
 	return NULL_POSITION;
 }
@@ -791,7 +853,15 @@ POSITION StringToPosition(char *positionString) {
  * character (which is the first character) of autoguiPositionStringBuffer
  * to '0'.
  */
-void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {}
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+	char board[BOARDSIZE + 1];
+    generic_hash_unhash(position, board);
+    for (int i=0; i<BOARDSIZE; i++) {
+        board[i] = (board[i] == EMPTY ? '-' : 'X');
+    }
+    board[BOARDSIZE] = '\0';
+    AutoGUIMakePositionString(0, board, autoguiPositionStringBuffer);
+}
 
 /**
  * @brief Write an AutoGUI-formatted move string for the given move 
@@ -811,4 +881,29 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
  * @note You may find the "AutoGUIMakeMoveButton" functions helpful.
  * (See src/core/autoguistrings.h)
  */
-void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {}
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+	(void)position;
+
+	int col = move / 100 % 10;
+	int row = move / 1000;
+	int direction = move / 10 % 10;
+	int length = move % 10;
+
+	int center_num;
+
+	char labels[] = {'r', 'u', 'l', 'd', 'R', 'U', 'L', 'D'};
+
+	if (col > 0 && row > 0) {
+		center_num = (row - 1) * COLS + (col - 1);
+	} else if (col > 0) {
+		center_num = BOARDSIZE + col - 1;
+	} else {
+		center_num = BOARDSIZE + COLS + (ROWS - row);
+	}
+
+	if (length == 1) {
+		AutoGUIMakeMoveButtonStringA('-', center_num, 'x', autoguiMoveStringBuffer);
+	} else {
+		AutoGUIMakeMoveButtonStringA(labels[(length - 2) * 4 + direction], (1 + 2 * direction + (length - 2)) * (ROWS + 1) * (COLS + 1) + center_num, 'x', autoguiMoveStringBuffer);
+	}
+}
