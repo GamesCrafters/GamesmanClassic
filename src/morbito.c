@@ -6,6 +6,8 @@
 **
 ** AUTHOR:      Ariana Abel and Allena Oglivie
 **
+** DATE:        2025-11-17
+**
 **************************************************************************/
 
 /*************************************************************************
@@ -80,16 +82,16 @@ CONST_STRING kHelpExample = "Position Grid                          Current Boar
 "  (4)(5)(6)(7)                            ↓  ↓  ←  ↑\n" 
 "  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n"
 "  (C)(D)(E)(F)                            →  →  →  ↑\n"
-"It is Player’s turn (B).\n"
+"It is Player's turn (B).\n"
 "\n"
-"Player’s move:  000\n"
+"Player's move:  000\n"
 "\n"
 "  Position Grid                          Current Board\n"
 "  (0)(1)(2)(3)                            ↓  ←  ←  ←\n"
 "  (4)(5)(6)(7)                            B  ↓  ←  ↑\n"
 "  (8)(9)(A)(B)                            ↓  →  ↑  ↑\n"
 "  (C)(D)(E)(F)                            →  →  →  ↑\n"
-"It is Data’s turn (W).\n"
+"It is Data's turn (W).\n"
 "\n"
 "Data's moved: 40d"
 "\n"
