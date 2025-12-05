@@ -242,7 +242,6 @@ HEXAPAWN_OBJ			= mhexapawn$(OBJSUFFIX)
 HEX_EXE			= $(BINDIR)/mhex$(EXESUFFIX) # The classic game of Hex
 HEX_OBJ			= mhex$(OBJSUFFIX)
 
-
 HOBAGGONU_EXE		= $(BINDIR)/mhobaggonu$(EXESUFFIX) # The game of Horseshoe
 HOBAGGONU_OBJ		= mhobaggonu$(OBJSUFFIX)
 
