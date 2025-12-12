@@ -107,8 +107,7 @@ BOOLEAN kDebugMenu = FALSE;
  * after you're done solving the game you should initialize them
  * with something helpful, for the TextUI.
  */
-CONST_STRING kHelpGraphicInterface = "";Click the center dot on a grid space to place one tile.\n\
-Click a double arrow to place 2 pieces and the triple arrow to place 3 pieces in that direction.
+CONST_STRING kHelpGraphicInterface = "";
 
 CONST_STRING kHelpTextInterface = "Pick a location to start your move, a direction\n\
 (u, d, l, r) to extend your move, and a number of tiles to place. Format is\n\
