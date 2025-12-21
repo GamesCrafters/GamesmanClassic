@@ -19,20 +19,21 @@
 
 #include "gamesman.h"
 
-POSITION gNumberOfPositions  = -1;
+CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
+CONST_STRING kGameName           = "Chinese Checkers";
+CONST_STRING kDBName = "CCheckers";
+
+POSITION gNumberOfPositions  = 3542000; /* Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
 POSITION kBadPosition        = -1;
 
 POSITION gInitialPosition    =  0;
 POSITION gMinimalPosition    =  0;
 
-CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
-CONST_STRING kGameName           = "Chinese Checkers";
-CONST_STRING kDBName = "CCheckers";
 BOOLEAN kPartizan           = TRUE;
-BOOLEAN kDebugMenu          = False;
+BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = FALSE;
-BOOLEAN kTieIsPossible      = False;
-BOOLEAN kLoopy               = FALSE;
+BOOLEAN kTieIsPossible      = FALSE;
+BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
 void*    gGameSpecificTclInit = NULL;
 
