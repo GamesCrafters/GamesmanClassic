@@ -189,7 +189,16 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {}
 **
 ************************************************************************/
 
-VALUE Primitive(POSITION pos) {}
+VALUE Primitive(POSITION pos) {
+        // pseudocode
+        // for peg of color blue:
+            // if peg in (red start area):
+                 //continue
+            // return WIN if turn == BLUE else LOSE
+        // for peg of color red:
+            // same logic
+        //return UNDECIDED
+}
 
 /************************************************************************
 **
@@ -228,7 +237,6 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {}
 **
 ************************************************************************/
 MOVELIST *GenerateMoves(POSITION position) {}
-
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
