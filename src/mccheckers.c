@@ -236,7 +236,25 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {}
 **              LIST OTHER CALLS HERE
 **
 ************************************************************************/
-MOVELIST *GenerateMoves(POSITION position) {}
+MOVELIST *GenerateMoves(POSITION position) {
+        // Pseudocode
+        // movelist[]
+        // turn = whoseturn?
+        // for peg in turn:
+            // start_coord of peg
+            // for dest in Reachable(start_coord)
+            // movelist append (start_coord, dest)
+        // return movelist
+}
+
+// coord Reachable(start_coord){
+    // consider six directions
+        // if adjacent open, add to return list
+        // if can jump (exists adjacent and empty space behind)
+        // recursive call (that only allows jumping)
+    // return list of (end_coord)
+//}
+
 /************************************************************************
 **
 ** NAME:        GetAndPrintPlayersMove
