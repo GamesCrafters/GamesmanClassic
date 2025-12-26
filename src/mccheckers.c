@@ -79,6 +79,20 @@ CONST_STRING kHelpExample =
 #define BOARDROWS     5
 #define BOARDCOLS     5
 
+#define BLUE 1
+#define RED 2
+#define BLUEPEG B'
+#define REDPEG 'R'
+#define BLANK ' '
+
+char start_standard_board[] = {
+'B', 'B', ' ', ' ', ' ',
+'B', ' ', ' ', ' ', ' ', 
+' ', ' ', ' ', ' ', ' ',
+' ', ' ', ' ', ' ', 'R',
+' ', ' ', ' ', 'R', 'R' 
+}
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
