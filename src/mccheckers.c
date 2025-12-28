@@ -23,10 +23,9 @@ CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
 CONST_STRING kDBName = "CCheckers";
 
-POSITION gNumberOfPositions  = 3542000; /* Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
+POSITION gNumberOfPositions/* 3542000 Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
 POSITION kBadPosition        = -1;
-
-POSITION gInitialPosition    =  0;
+POSITION gInitialPosition;
 POSITION gMinimalPosition    =  0;
 
 BOOLEAN kPartizan           = TRUE;
@@ -75,13 +74,13 @@ CONST_STRING kHelpExample =
 **
 **************************************************************************/
 
-#define BOARDSIZE     25           
-#define BOARDROWS     5
-#define BOARDCOLS     5
+int boardsize = 25           
+int side = 5
+int numpegs = 3
 
 #define BLUE 1
 #define RED 2
-#define BLUEPEG B'
+#define BLUEPEG 'B'
 #define REDPEG 'R'
 #define BLANK ' '
 
@@ -102,7 +101,23 @@ char start_standard_board[] = {
 **
 ************************************************************************/
 
-void InitializeGame() {}
+void InitializeGame() {
+        
+        int piecesArray[]
+
+        piecesArray[0] = BLANK;
+        piecesArray[1] = boardsize - 2*(numpegs)
+        piecesArray[2] = boardsize - 2*(numpegs)
+        piecesArray[3] = BLUEPEG
+        piecesArray[4] = numpegs
+        piecesArray[5] = numpegs
+        piecesArray[6] = REDPEG
+        piecesArray[7] = numpegs
+        piecesArray[8] = numpegs
+        piecesArray[9] = -1
+
+        gNumberOfPositions = generic_hash_init(boardsize, picesArray, NULL, 0)
+}
 
 /************************************************************************
 **
