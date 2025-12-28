@@ -103,7 +103,7 @@ char start_standard_board[] = {
 
 void InitializeGame() {
         
-        int piecesArray[]
+        int piecesArray[10]
 
         piecesArray[0] = BLANK;
         piecesArray[1] = boardsize - 2*(numpegs)
