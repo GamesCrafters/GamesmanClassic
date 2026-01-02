@@ -371,6 +371,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\t                               5       \n");
   printf("\n\tLegend: B=Blue, R=Red, ' '=Empty\n");
   printf("\tMove format: <origin> <target> (e.g., \"A1 C1\" to move from A1 to C1)\n");
+  printf("\tTurn: %s\n", (generic_hash_turn(position) == BLUE) ? "Blue" : "Red");
   printf("\n\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 
 }
@@ -453,7 +454,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
         USERINPUT ret;
 
         do {
-                printf("%s's move [(u)ndo/(MOVE: source dest)] : ", playerName);
+                printf("%8s's move [(u)ndo/(MOVE: source dest)] : ", playerName);
                 ret = HandleDefaultTextInput(thePosition, theMove, playerName);
                 if (ret != Continue) {
                         return ret;
@@ -660,36 +661,22 @@ BOOLEAN IsValidPosition(int row, int col) {
         return (row >= 0 && row < side && col >= 0 && col < side);
 }
 
-// 6 hexagonal directions using offset row pattern
-// Order: NE, E, SE, SW, W, NW
-// Even rows (0,2,4) have different offsets than odd rows (1,3)
-int evenRowDir[6][2] = {
-        {-1, 0},  // NE
-        { 0, 1},  // E
-        { 1, 0},  // SE
-        { 1,-1},  // SW
-        { 0,-1},  // W
-        {-1,-1}   // NW
-};
-
-int oddRowDir[6][2] = {
-        {-1, 1},  // NE
-        { 0, 1},  // E
-        { 1, 1},  // SE
-        { 1, 0},  // SW
-        { 0,-1},  // W
-        {-1, 0}   // NW
+// 6 hexagonal directions for the diamond-shaped hex board
+// This layout uses the same offsets for all positions (no even/odd distinction)
+// Directions: up-left, up, left, right, down, down-right
+int hexDir[6][2] = {
+        {-1, 1},  // up-left diagonal
+        {-1,  0},  // up
+        { 0, -1},  // left
+        { 0,  1},  // right
+        { 1,  0},  // down
+        { 1,  -1}   // down-right diagonal
 };
 
 // Get neighbor in direction d from position (row, col)
 void GetNeighbor(int row, int col, int d, int *newRow, int *newCol) {
-        if (row % 2 == 0) {
-                *newRow = row + evenRowDir[d][0];
-                *newCol = col + evenRowDir[d][1];
-        } else {
-                *newRow = row + oddRowDir[d][0];
-                *newCol = col + oddRowDir[d][1];
-        }
+        *newRow = row + hexDir[d][0];
+        *newCol = col + hexDir[d][1];
 }
 
 /************************************************************************
