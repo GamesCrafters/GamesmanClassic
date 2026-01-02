@@ -23,7 +23,7 @@ CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
 CONST_STRING kDBName = "CCheckers";
 
-POSITION gNumberOfPositions/* 3542000 Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
+POSITION gNumberOfPositions; /* 3542000 Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
 POSITION kBadPosition        = -1;
 POSITION gInitialPosition;
 POSITION gMinimalPosition    =  0;
@@ -40,14 +40,14 @@ CONST_STRING kHelpGraphicInterface =
         "Not written yet";
 
 CONST_STRING kHelpTextInterface    =
-        "On your turn, choose the origin and target to make your move you desire and hit return. 
+        "On your turn, choose the origin and target to make your move you desire and hit return. \n\
 Describe the origin and target coordinates by the corresponding row (numeric)\n\
 and column (alphabet). If at any point you have made a mistake,\n\
 you can type u and hit return and the system will revert back to your most recent position.";
 
 CONST_STRING kHelpOnYourTurn =
         "You move one of your pieces to an empty spot. You can jump over other pieces,\n\
-        your own or your opponent's, if the space across the jumped piece is empty.\n\ 
+        your own or your opponent's, if the space across the jumped piece is empty.\n\
         You may chain as many jumps as possible.";
 
 CONST_STRING kHelpStandardObjective =
@@ -60,7 +60,7 @@ CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "No tie in this game";
 
 CONST_STRING kHelpExample =
-        ""                   
+        "";
 
 /*************************************************************************
 **
@@ -74,9 +74,9 @@ CONST_STRING kHelpExample =
 **
 **************************************************************************/
 
-int boardsize = 25           
-int side = 5
-int numpegs = 3
+int boardsize = 25;
+int side = 5;
+int numpegs = 3;
 
 #define BLUE 1
 #define RED 2
@@ -86,11 +86,31 @@ int numpegs = 3
 
 char start_standard_board[] = {
 'B', 'B', ' ', ' ', ' ',
-'B', ' ', ' ', ' ', ' ', 
+'B', ' ', ' ', ' ', ' ',
 ' ', ' ', ' ', ' ', ' ',
 ' ', ' ', ' ', ' ', 'R',
-' ', ' ', ' ', 'R', 'R' 
-}
+' ', ' ', ' ', 'R', 'R'
+};
+
+/************************************************************************
+** Forward Declarations for Helper Functions
+************************************************************************/
+
+// Board navigation
+int IndexToRow(int index);
+int IndexToCol(int index);
+int RowColToIndex(int row, int col);
+BOOLEAN IsValidPosition(int row, int col);
+void GetNeighbor(int row, int col, int d, int *newRow, int *newCol);
+
+// Move encoding
+MOVE EncodeMove(int source, int dest);
+int GetMoveSource(MOVE move);
+int GetMoveDestination(MOVE move);
+
+// Jump generation
+void GenerateJumpsFrom(int origSource, int currentPos, char *board,
+                       BOOLEAN *visited, MOVELIST **moves);
 
 /************************************************************************
 **
@@ -102,21 +122,22 @@ char start_standard_board[] = {
 ************************************************************************/
 
 void InitializeGame() {
-        
-        int piecesArray[10]
+
+        int piecesArray[10];
 
         piecesArray[0] = BLANK;
-        piecesArray[1] = boardsize - 2*(numpegs)
-        piecesArray[2] = boardsize - 2*(numpegs)
-        piecesArray[3] = BLUEPEG
-        piecesArray[4] = numpegs
-        piecesArray[5] = numpegs
-        piecesArray[6] = REDPEG
-        piecesArray[7] = numpegs
-        piecesArray[8] = numpegs
-        piecesArray[9] = -1
+        piecesArray[1] = boardsize - 2*(numpegs);
+        piecesArray[2] = boardsize - 2*(numpegs);
+        piecesArray[3] = BLUEPEG;
+        piecesArray[4] = numpegs;
+        piecesArray[5] = numpegs;
+        piecesArray[6] = REDPEG;
+        piecesArray[7] = numpegs;
+        piecesArray[8] = numpegs;
+        piecesArray[9] = -1;
 
-        gNumberOfPositions = generic_hash_init(boardsize, picesArray, NULL, 0)
+        gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL, 0);
+        gInitialPosition = generic_hash_hash(start_standard_board, BLUE);
 }
 
 /************************************************************************
@@ -171,7 +192,19 @@ void SetTclCGameSpecificOptions (int options[]) {
 **              Unhash ()
 **	            LIST OTHER CALLS HERE
 *************************************************************************/
-POSITION DoMove (POSITION thePosition, MOVE theMove) {}
+POSITION DoMove (POSITION thePosition, MOVE theMove) {
+        char board[boardsize];
+        int turn = generic_hash_turn(thePosition);
+        int source = GetMoveSource(theMove);
+        int dest = GetMoveDestination(theMove);
+
+        generic_hash_unhash(thePosition, board);
+        board[dest] = board[source];
+        board[source] = BLANK;
+
+        int newTurn = (turn == BLUE) ? RED : BLUE;
+        return generic_hash_hash(board, newTurn);
+}
 
 /************************************************************************
 **
@@ -184,7 +217,9 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {}
 **
 ************************************************************************/
 
-POSITION GetInitialPosition() {}
+POSITION GetInitialPosition() {
+        return gInitialPosition;
+}
 
 /************************************************************************
 **
@@ -197,7 +232,11 @@ POSITION GetInitialPosition() {}
 **
 ************************************************************************/
 
-void PrintComputersMove(MOVE computersMove, STRING computersName) {}
+void PrintComputersMove(MOVE computersMove, STRING computersName) {
+        char moveStr[20];
+        MoveToString(computersMove, moveStr);
+        printf("%s's move: %s\n", computersName, moveStr);
+}
 
 /************************************************************************
 **
@@ -218,15 +257,40 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {}
 **
 ************************************************************************/
 
-VALUE Primitive(POSITION pos) {
-        // pseudocode
-        // for peg of color blue:
-            // if peg in (red start area):
-                 //continue
-            // return WIN if turn == BLUE else LOSE
-        // for peg of color red:
-            // same logic
-        //return UNDECIDED
+VALUE Primitive(POSITION position) {
+        char board[boardsize];
+        int turn = generic_hash_turn(position);
+        int redStart[3] = {19, 23, 24};
+        int blueStart[3] = {0, 1, 5};
+        int blueInRedZone = 0, redInBlueZone = 0;
+
+        generic_hash_unhash(position, board);
+
+        // Count Blue pieces in Red's starting zone
+        for (int i = 0; i < 3; i++) {
+                if (board[redStart[i]] == BLUEPEG) {
+                        blueInRedZone++;
+                }
+        }
+
+        // Count Red pieces in Blue's starting zone
+        for (int i = 0; i < 3; i++) {
+                if (board[blueStart[i]] == REDPEG) {
+                        redInBlueZone++;
+                }
+        }
+
+        // If all 3 Blue pieces in Red zone: Blue won
+        if (blueInRedZone == 3) {
+                return (turn == BLUE) ? win : lose;
+        }
+
+        // If all 3 Red pieces in Blue zone: Red won
+        if (redInBlueZone == 3) {
+                return (turn == RED) ? win : lose;
+        }
+
+        return undecided;
 }
 
 /************************************************************************
@@ -246,7 +310,21 @@ VALUE Primitive(POSITION pos) {
 **
 ************************************************************************/
 
-void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {}
+void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
+        char board[boardsize];
+        generic_hash_unhash(position, board);
+
+        printf("\n  0 1 2 3 4\n");
+        for (int i = 0; i < side; i++) {
+                printf("%d ", i);
+                for (int j = 0; j < side; j++) {
+                        printf("%c ", board[RowColToIndex(i, j)]);
+                }
+                printf("\n");
+        }
+        printf("\n%s's turn\n", playerName);
+        (void)usersTurn;
+}
 
 /************************************************************************
 **
@@ -266,23 +344,42 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {}
 **
 ************************************************************************/
 MOVELIST *GenerateMoves(POSITION position) {
-        // Pseudocode
-        // movelist[]
-        // turn = whoseturn?
-        // for peg in turn:
-            // start_coord of peg
-            // for dest in Reachable(start_coord)
-            // movelist append (start_coord, dest)
-        // return movelist
-}
+        MOVELIST *moves = NULL;
+        char board[boardsize];
+        int turn = generic_hash_turn(position);
+        char myPiece = (turn == BLUE) ? BLUEPEG : REDPEG;
 
-// coord Reachable(start_coord){
-    // consider six directions
-        // if adjacent open, add to return list
-        // if can jump (exists adjacent and empty space behind)
-        // recursive call (that only allows jumping)
-    // return list of (end_coord)
-//}
+        generic_hash_unhash(position, board);
+
+        // For each piece of current player
+        for (int source = 0; source < boardsize; source++) {
+                if (board[source] != myPiece) continue;
+
+                int row = IndexToRow(source);
+                int col = IndexToCol(source);
+
+                // Generate simple adjacent moves (6 directions)
+                for (int d = 0; d < 6; d++) {
+                        int newRow, newCol;
+                        GetNeighbor(row, col, d, &newRow, &newCol);
+
+                        if (IsValidPosition(newRow, newCol)) {
+                                int dest = RowColToIndex(newRow, newCol);
+                                if (board[dest] == BLANK) {
+                                        moves = CreateMovelistNode(EncodeMove(source, dest), moves);
+                                }
+                        }
+                }
+
+                // Generate all jump destinations (including chain jumps)
+                BOOLEAN visited[boardsize];
+                for (int i = 0; i < boardsize; i++) visited[i] = FALSE;
+                visited[source] = TRUE;
+                GenerateJumpsFrom(source, source, board, visited, &moves);
+        }
+
+        return moves;
+}
 
 /************************************************************************
 **
@@ -303,7 +400,19 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ************************************************************************/
 
-USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {}
+USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING playerName) {
+        USERINPUT ret;
+
+        do {
+                printf("%s's move [(u)ndo/(MOVE: source dest)] : ", playerName);
+                ret = HandleDefaultTextInput(thePosition, theMove, playerName);
+                if (ret != Continue) {
+                        return ret;
+                }
+        } while (TRUE);
+
+        return Continue;
+}
 
 /************************************************************************
 **
@@ -322,7 +431,16 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 **
 ************************************************************************/
 
-BOOLEAN ValidTextInput(STRING input) {}
+BOOLEAN ValidTextInput(STRING input) {
+        int source, dest;
+
+        if (sscanf(input, "%d %d", &source, &dest) != 2) {
+                return FALSE;
+        }
+
+        return (source >= 0 && source < boardsize &&
+                dest >= 0 && dest < boardsize);
+}
 
 /************************************************************************
 **
@@ -338,7 +456,11 @@ BOOLEAN ValidTextInput(STRING input) {}
 **
 ************************************************************************/
 
-MOVE ConvertTextInputToMove(STRING input) {}
+MOVE ConvertTextInputToMove(STRING input) {
+        int source, dest;
+        sscanf(input, "%d %d", &source, &dest);
+        return EncodeMove(source, dest);
+}
 
 /************************************************************************
 **
@@ -351,7 +473,10 @@ MOVE ConvertTextInputToMove(STRING input) {}
 **
 ************************************************************************/
 
-void MoveToString(MOVE theMove, char *moveStringBuffer) {}
+void MoveToString(MOVE theMove, char *moveStringBuffer) {
+        sprintf(moveStringBuffer, "%d %d",
+                GetMoveSource(theMove), GetMoveDestination(theMove));
+}
 
 /************************************************************************
 **
@@ -364,7 +489,9 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {}
 **
 ************************************************************************/
 
-int NumberOfOptions() {}
+int NumberOfOptions() {
+        return 1;
+}
 
 /************************************************************************
 **
@@ -378,7 +505,9 @@ int NumberOfOptions() {}
 **
 ************************************************************************/
 
-int getOption() {}
+int getOption() {
+        return 0;
+}
 
 /************************************************************************
 **
@@ -392,7 +521,9 @@ int getOption() {}
 **
 ************************************************************************/
 
-void setOption(int option) {}
+void setOption(int option) {
+        (void)option;
+}
 
 /************************************************************************
 *************************************************************************
@@ -406,3 +537,106 @@ void setOption(int option) {}
 ** hash and unhash functions if you are not using one of the existing
 ** ones.
 ************************************************************************/
+
+/************************************************************************
+** Helper Functions for Board Navigation
+************************************************************************/
+
+// Convert index ↔ row/col for 5x5 board
+int IndexToRow(int index) {
+        return index / side;
+}
+
+int IndexToCol(int index) {
+        return index % side;
+}
+
+int RowColToIndex(int row, int col) {
+        return row * side + col;
+}
+
+BOOLEAN IsValidPosition(int row, int col) {
+        return (row >= 0 && row < side && col >= 0 && col < side);
+}
+
+// 6 hexagonal directions using offset row pattern
+// Order: NE, E, SE, SW, W, NW
+// Even rows (0,2,4) have different offsets than odd rows (1,3)
+int evenRowDir[6][2] = {
+        {-1, 0},  // NE
+        { 0, 1},  // E
+        { 1, 0},  // SE
+        { 1,-1},  // SW
+        { 0,-1},  // W
+        {-1,-1}   // NW
+};
+
+int oddRowDir[6][2] = {
+        {-1, 1},  // NE
+        { 0, 1},  // E
+        { 1, 1},  // SE
+        { 1, 0},  // SW
+        { 0,-1},  // W
+        {-1, 0}   // NW
+};
+
+// Get neighbor in direction d from position (row, col)
+void GetNeighbor(int row, int col, int d, int *newRow, int *newCol) {
+        if (row % 2 == 0) {
+                *newRow = row + evenRowDir[d][0];
+                *newCol = col + evenRowDir[d][1];
+        } else {
+                *newRow = row + oddRowDir[d][0];
+                *newCol = col + oddRowDir[d][1];
+        }
+}
+
+/************************************************************************
+** Helper Functions for Move Encoding
+************************************************************************/
+
+MOVE EncodeMove(int source, int dest) {
+        return source * 100 + dest;
+}
+
+int GetMoveSource(MOVE move) {
+        return move / 100;
+}
+
+int GetMoveDestination(MOVE move) {
+        return move % 100;
+}
+
+/************************************************************************
+** Helper Function for Jump Generation
+************************************************************************/
+
+void GenerateJumpsFrom(int origSource, int currentPos, char *board,
+                       BOOLEAN *visited, MOVELIST **moves) {
+        int currentRow = IndexToRow(currentPos);
+        int currentCol = IndexToCol(currentPos);
+
+        // For each of 6 hexagonal directions:
+        for (int d = 0; d < 6; d++) {
+                int jumpRow, jumpCol, landRow, landCol;
+
+                // Get adjacent position (where jumped piece is)
+                GetNeighbor(currentRow, currentCol, d, &jumpRow, &jumpCol);
+                if (!IsValidPosition(jumpRow, jumpCol)) continue;
+
+                // Get landing position (2 steps in same direction)
+                GetNeighbor(jumpRow, jumpCol, d, &landRow, &landCol);
+                if (!IsValidPosition(landRow, landCol)) continue;
+
+                int jumpPos = RowColToIndex(jumpRow, jumpCol);
+                int landPos = RowColToIndex(landRow, landCol);
+
+                // Can jump if: piece at jumpPos, empty at landPos, not visited
+                if (board[jumpPos] != BLANK && board[landPos] == BLANK && !visited[landPos]) {
+                        visited[landPos] = TRUE;
+                        *moves = CreateMovelistNode(EncodeMove(origSource, landPos), *moves);
+                        GenerateJumpsFrom(origSource, landPos, board, visited, moves);
+                        visited[landPos] = FALSE;  // Backtrack
+                }
+        }
+}
