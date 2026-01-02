@@ -526,6 +526,46 @@ void setOption(int option) {
 }
 
 /************************************************************************
+**
+** NAME:        PositionToAutoGUIString
+**
+** DESCRIPTION: Converts position to AutoGUI string representation
+**
+************************************************************************/
+
+STRING PositionToAutoGUIString(POSITION position) {
+        (void)position;
+        return "0";  // Stub implementation
+}
+
+/************************************************************************
+**
+** NAME:        MoveToAutoGUIString
+**
+** DESCRIPTION: Converts move to AutoGUI string representation
+**
+************************************************************************/
+
+STRING MoveToAutoGUIString(POSITION position, MOVE move) {
+        (void)position;
+        (void)move;
+        return "0_0";  // Stub implementation
+}
+
+/************************************************************************
+**
+** NAME:        StringToPosition
+**
+** DESCRIPTION: Converts string to position
+**
+************************************************************************/
+
+POSITION StringToPosition(STRING positionString) {
+        (void)positionString;
+        return gInitialPosition;  // Stub implementation
+}
+
+/************************************************************************
 *************************************************************************
 **         EVERYTHING BELOW THESE LINES IS LOCAL TO THIS FILE
 *************************************************************************
