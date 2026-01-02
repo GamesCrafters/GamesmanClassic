@@ -311,19 +311,66 @@ VALUE Primitive(POSITION position) {
 ************************************************************************/
 
 void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
-        char board[boardsize];
-        generic_hash_unhash(position, board);
 
-        printf("\n  0 1 2 3 4\n");
-        for (int i = 0; i < side; i++) {
-                printf("%d ", i);
-                for (int j = 0; j < side; j++) {
-                        printf("%c ", board[RowColToIndex(i, j)]);
-                }
-                printf("\n");
-        }
-        printf("\n%s's turn\n", playerName);
-        (void)usersTurn;
+  /*
+                               _ _  
+                             /     \
+                        _ _ /       \ _ _ 
+                      /     \       /     \
+                 _ _ /       \ _ _ /       \ _ _
+               /     \       /     \       /     \
+          _ _ /       \ _ _ /       \ _ _ /       \ _ _
+        /     \       /     \       /     \       /     \
+   _ _ /       \ _ _ /       \ _ _ /       \ _ _ /       \ _ _
+ /     \       /     \       /     \       /     \       /     \
+/       \ _ _ /       \ _ _ /       \ _ _ /       \ _ _ /       \
+\       /     \       /     \       /     \       /     \       /
+ \ _ _ /       \ _ _ /       \ _ _ /       \ _ _ /       \ _ _ /
+       \       /     \       /     \       /     \       /
+        \ _ _ /       \ _ _ /       \ _ _ /       \ _ _ /
+              \       /     \       /     \       /
+               \ _ _ /       \ _ _ /       \ _ _ /
+                     \       /     \       /
+                      \ _ _ /       \ _ _ /
+                            \       /
+                             \ _ _ /
+
+  */
+
+  char board[boardsize];
+
+  generic_hash_unhash(position, board);
+
+  printf("\t                               _ _\n");
+  printf("\t                             /     \\\n");
+  printf("\t                        _ _ /   %c   \\ _ _\n", board[4]);
+  printf("\t                      /     \\       /     \\\n");
+  printf("\t                 _ _ /   %c   \\ _ _ /   %c   \\ _ _\n", board[3], board[9]);
+  printf("\t               /     \\       /     \\       /     \\\n");
+  printf("\t          _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _\n",
+         board[2], board[8], board[14]);
+  printf("\t        /     \\       /     \\       /     \\       /     \\\n");
+  printf("\t   _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _\n",
+         board[1], board[7], board[13], board[19]);
+  printf("\t /     \\       /     \\       /     \\       /     \\       /     \\\n");
+  printf("\t/   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\\n",
+         board[0], board[6], board[12], board[18], board[24]);
+  printf("\t\\       /     \\       /     \\       /     \\       /     \\       /\n");
+  printf("\t \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /\n",
+         board[5], board[11], board[17], board[23]);
+  printf("\t       \\       /     \\       /     \\       /     \\       /\n");
+  printf("\t        \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /\n",
+         board[10], board[16], board[22]);
+  printf("\t              \\       /     \\       /     \\       /\n");
+  printf("\t               \\ _ _ /   %c   \\ _ _ /   %c   \\ _ _ /\n",
+         board[15], board[21]);
+  printf("\t                     \\       /     \\       /\n");
+  printf("\t                      \\ _ _ /   %c   \\ _ _ /\n", board[20]);
+  printf("\t                            \\       /\n");
+  printf("\t                             \\ _ _ /\n");
+
+  printf("\n\t%s\n\n", GetPrediction(position,playerName,usersTurn));
+
 }
 
 /************************************************************************
