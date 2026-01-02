@@ -41,9 +41,10 @@ CONST_STRING kHelpGraphicInterface =
 
 CONST_STRING kHelpTextInterface    =
         "On your turn, choose the origin and target to make your move you desire and hit return. \n\
-Describe the origin and target coordinates by the corresponding row (numeric)\n\
-and column (alphabet). If at any point you have made a mistake,\n\
-you can type u and hit return and the system will revert back to your most recent position.";
+Describe the origin and target coordinates using column (A-E) followed by row (1-5).\n\
+For example, type 'A1 C1' to move from position A1 to position C1. If at any point\n\
+you have made a mistake, you can type u and hit return and the system will revert\n\
+back to your most recent position.";
 
 CONST_STRING kHelpOnYourTurn =
         "You move one of your pieces to an empty spot. You can jump over other pieces,\n\
@@ -111,6 +112,10 @@ int GetMoveDestination(MOVE move);
 // Jump generation
 void GenerateJumpsFrom(int origSource, int currentPos, char *board,
                        BOOLEAN *visited, MOVELIST **moves);
+
+// Coordinate conversion (e.g., "1A" <-> index 0)
+int CoordToIndex(const char *coord);
+void IndexToCoord(int index, char *coord);
 
 /************************************************************************
 **
@@ -365,7 +370,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\t                                ↗       \n");
   printf("\t                               5       \n");
   printf("\n\tLegend: B=Blue, R=Red, ' '=Empty\n");
-  printf("\tMove format: <origin> <target> (e.g., \"1A 3C\" to move from 1A to 3C)\n");
+  printf("\tMove format: <origin> <target> (e.g., \"A1 C1\" to move from A1 to C1)\n");
   printf("\n\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 
 }
@@ -476,12 +481,18 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
-        int source, dest;
+        char sourceCoord[10], destCoord[10];
 
-        if (sscanf(input, "%d %d", &source, &dest) != 2) {
+        // Parse input as "A1 C3" format (column A-E, row 1-5)
+        if (sscanf(input, "%s %s", sourceCoord, destCoord) != 2) {
                 return FALSE;
         }
 
+        // Convert coordinates to indices
+        int source = CoordToIndex(sourceCoord);
+        int dest = CoordToIndex(destCoord);
+
+        // Check if both coordinates are valid
         return (source >= 0 && source < boardsize &&
                 dest >= 0 && dest < boardsize);
 }
@@ -501,8 +512,12 @@ BOOLEAN ValidTextInput(STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(STRING input) {
-        int source, dest;
-        sscanf(input, "%d %d", &source, &dest);
+        char sourceCoord[10], destCoord[10];
+        sscanf(input, "%s %s", sourceCoord, destCoord);
+
+        int source = CoordToIndex(sourceCoord);
+        int dest = CoordToIndex(destCoord);
+
         return EncodeMove(source, dest);
 }
 
@@ -518,8 +533,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 ************************************************************************/
 
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
-        sprintf(moveStringBuffer, "%d %d",
-                GetMoveSource(theMove), GetMoveDestination(theMove));
+        char sourceCoord[4], destCoord[4];
+        IndexToCoord(GetMoveSource(theMove), sourceCoord);
+        IndexToCoord(GetMoveDestination(theMove), destCoord);
+        sprintf(moveStringBuffer, "%s %s", sourceCoord, destCoord);
 }
 
 /************************************************************************
@@ -723,4 +740,54 @@ void GenerateJumpsFrom(int origSource, int currentPos, char *board,
                         visited[landPos] = FALSE;  // Backtrack
                 }
         }
+}
+
+/************************************************************************
+** Helper Functions for Coordinate Conversion
+************************************************************************/
+
+// Convert coordinate string (e.g., "A1", "C3") to board index (0-24)
+// Format: <column><row> where column is A-E and row is 1-5
+// Returns -1 if invalid coordinate
+int CoordToIndex(const char *coord) {
+        if (coord == NULL || coord[0] == '\0' || coord[1] == '\0') {
+                return -1;
+        }
+
+        // Extract col (A-E or a-e)
+        char colChar = coord[0];
+        if (colChar >= 'a' && colChar <= 'e') {
+                colChar = colChar - 'a' + 'A';  // Convert to uppercase
+        }
+        if (colChar < 'A' || colChar > 'E') {
+                return -1;
+        }
+        int col = colChar - 'A';
+
+        // Extract row (1-5)
+        int row = coord[1] - '0';
+        if (row < 1 || row > 5) {
+                return -1;
+        }
+
+        // Convert to index
+        return (row - 1) * side + col;
+}
+
+// Convert board index (0-24) to coordinate string (e.g., "A1", "C3")
+// Format: <column><row> where column is A-E and row is 1-5
+void IndexToCoord(int index, char *coord) {
+        if (index < 0 || index >= boardsize) {
+                coord[0] = '?';
+                coord[1] = '?';
+                coord[2] = '\0';
+                return;
+        }
+
+        int row = (index / side) + 1;
+        int col = index % side;
+
+        coord[0] = 'A' + col;           // Column: A-E
+        coord[1] = '0' + row;           // Row: 1-5
+        coord[2] = '\0';
 }
