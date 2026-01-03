@@ -89,7 +89,7 @@ void DebugModule()
 			printf("\n");
 			(void) GetAndPrintPlayersMove(gInitialPosition, &theMove, gPlayerName[kPlayerOneTurn]);
 			printf("You Chose: ");
-			MoveToString(ptr->move, moveStringBuffer);
+			MoveToString(theMove, moveStringBuffer);
 			printf("%s", moveStringBuffer);
 			haveMove = TRUE;
 			break;
