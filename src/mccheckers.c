@@ -1196,13 +1196,29 @@ POSITION BuildCustomBoardPosition() {
         const int MAX_RETRIES = 3;
 
         printf("\n\n\t=== Custom Board Position Setup ===\n");
-        printf("\n\tCoordinate System Reference:\n");
-        printf("\t     A   B   C   D   E\n");
-        printf("\t  1  0   1   2   3   4\n");
-        printf("\t  2  5   6   7   8   9\n");
-        printf("\t  3  10  11  12  13  14\n");
-        printf("\t  4  15  16  17  18  19\n");
-        printf("\t  5  20  21  22  23  24\n");
+        printf("\n\t                             E ↘  _ _\n");
+        printf("\t                                /     \\\n");
+        printf("\t                      D ↘  _ _ /   %s  \\ _ _                   \n", "E1");
+        printf("\t                         /     \\       /     \\\n");
+        printf("\t               C ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _          \n", "D1", "E2");
+        printf("\t                  /     \\       /     \\       /     \\\n");
+        printf("\t        B ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "C1", "D2", "E3");
+        printf("\t           /     \\       /     \\       /     \\       /     \\\n");
+        printf("\t A ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "B1", "C2", "D3", "E4");
+        printf("\t    /     \\       /     \\       /     \\       /     \\       /     \\\n");
+        printf("\t   /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\   \n", "A1", "B2", "C3", "D4", "E5");
+        printf("\t   \\       /     \\       /     \\       /     \\       /     \\       /\n");
+        printf("\t    \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   \n", "A2", "B3", "C4", "D5");
+        printf("\t    ↗     \\       /     \\       /     \\       /     \\       /\n");
+        printf("\t   1       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /        \n", "A3", "B4", "C5");
+        printf("\t           ↗     \\       /     \\       /     \\       /\n");
+        printf("\t          2       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /            \n", "A4", "B5");
+        printf("\t                  ↗     \\       /     \\       /\n");
+        printf("\t                 3       \\ _ _ /   %s  \\ _ _ /                 \n", "A5");
+        printf("\t                         ↗     \\       /\n");
+        printf("\t                        4       \\ _ _ /\n");
+        printf("\t                                ↗       \n");
+        printf("\t                               5       \n");
         printf("\n\tYou need exactly %d Blue pieces and %d Red pieces.\n\n", numpegs, numpegs);
 
         // Get Blue piece positions
