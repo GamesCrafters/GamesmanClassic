@@ -447,7 +447,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\t                               5       \n");
   printf("\n\tLegend: B=Blue, R=Red, ' '=Empty\n");
   printf("\tMove format: <origin> <target> (e.g., \"A1 C1\" to move from A1 to C1)\n");
-  printf("\tTurn: %s\n", (generic_hash_turn(position) == BLUE) ? "Blue" : "Red");
+  printf("\tTo Play: %s\n", (generic_hash_turn(position) == BLUE) ? "Blue" : "Red");
   printf("\n\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 
 }
@@ -741,12 +741,12 @@ BOOLEAN IsValidPosition(int row, int col) {
 // This layout uses the same offsets for all positions (no even/odd distinction)
 // Directions: up-left, up, left, right, down, down-right
 int hexDir[6][2] = {
-        {-1, 1},  // up-left diagonal
-        {-1,  0},  // up
-        { 0, -1},  // left
+        {-1, 1},  // up-right diagonal
         { 0,  1},  // right
         { 1,  0},  // down
-        { 1,  -1}   // down-right diagonal
+        { 1,  -1},   // down-left diagonal
+        { 0, -1},  // left
+        {-1,  0}  // up
 };
 
 // Get neighbor in direction d from position (row, col)
@@ -922,7 +922,7 @@ void TestCoordConversion() {
 }
 
 void TestMoveGeneration() {
-        POSITION position = gInitialPosition;
+        POSITION position = GetInitialPosition();
         MOVELIST *moves, *curr;
         int moveCount = 0, jumpCount = 0, regularCount = 0;
 
@@ -933,7 +933,7 @@ void TestMoveGeneration() {
         int turn = generic_hash_turn(position);
         generic_hash_unhash(position, board);
 
-        printf("\tCurrent turn: %s\n", (turn == BLUE) ? "Blue" : "Red");
+        PrintPosition(position, "Tester", TRUE);
 
         moves = GenerateMoves(position);
 
