@@ -18,6 +18,9 @@
 **************************************************************************/
 
 #include "gamesman.h"
+#include <string.h>
+#include <ctype.h>
+#include <stdlib.h>
 
 CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
@@ -29,8 +32,8 @@ POSITION gInitialPosition;
 POSITION gMinimalPosition    =  0;
 
 BOOLEAN kPartizan           = TRUE;
-BOOLEAN kDebugMenu          = FALSE;
-BOOLEAN kGameSpecificMenu   = FALSE;
+BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
@@ -55,13 +58,13 @@ CONST_STRING kHelpStandardObjective =
         "All your pieces reach the opposite starting position";
 
 CONST_STRING kHelpReverseObjective =
-        ""                                                                                                                                                             ;
+        "No Reverse Objective in this game";                                                                                                                                                             ;
 
 CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "No tie in this game";
 
 CONST_STRING kHelpExample =
-        "";
+        "No example play available at this time.";
 
 /*************************************************************************
 **
@@ -117,6 +120,19 @@ void GenerateJumpsFrom(int origSource, int currentPos, char *board,
 int CoordToIndex(const char *coord);
 void IndexToCoord(int index, char *coord);
 
+// Debug menu helpers
+void PrintBoardForDebug(POSITION position);
+void TestCoordConversion();
+void TestMoveGeneration();
+void TestPrimitive();
+
+// Custom position helpers for GetInitialPosition()
+BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int maxCount);
+POSITION BuildCustomBoardPosition();
+int PromptForTurn();
+BOOLEAN ValidateBoardConfiguration(char *board, int blueCount, int redCount);
+POSITION GetInitialPosition(void);
+
 /************************************************************************
 **
 ** NAME:        InitializeGame
@@ -154,8 +170,42 @@ void InitializeGame() {
 **
 ************************************************************************/
 
-void DebugMenu()
-{}
+void DebugMenu() {
+        do {
+                printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
+
+                printf("\tc)\tTest (C)oordinate Conversion\n");
+                printf("\ti)\t(I)nspect Board State\n");
+                printf("\tm)\tTest (M)ove Generation\n");
+                printf("\tp)\tTest (P)rimitive Function\n");
+                printf("\n\tb)\t(B)ack = Return to previous activity.\n");
+                printf("\n\nSelect an option: ");
+
+                switch(GetMyChar()) {
+                case 'Q': case 'q':
+                        ExitStageRight();
+                        break;
+                case 'C': case 'c':
+                        TestCoordConversion();
+                        break;
+                case 'I': case 'i':
+                        PrintBoardForDebug(gInitialPosition);
+                        break;
+                case 'M': case 'm':
+                        TestMoveGeneration();
+                        break;
+                case 'P': case 'p':
+                        TestPrimitive();
+                        break;
+                case 'B': case 'b':
+                        return;
+                default:
+                        BadMenuChoice();
+                        HitAnyKeyToContinue();
+                        break;
+                }
+        } while(TRUE);
+}
 
 /************************************************************************
 **
@@ -167,7 +217,33 @@ void DebugMenu()
 **
 ************************************************************************/
 
-void GameSpecificMenu() {}
+void GameSpecificMenu() {
+        do {
+                printf("\n\t----- Game-specific options for %s -----\n\n", kGameName);
+
+                printf("\ti)\t Change the (I)nitial Position.\n");
+                printf("\tb)\t (B)ack to the previous menu\n\n");
+                printf("Select an option: ");
+
+                switch(GetMyChar()) {
+                case 'Q': case 'q':
+                        ExitStageRight();
+                        break;
+                case 'H': case 'h':
+                        HelpMenus();
+                        break;
+                case 'I': case 'i':
+                        gInitialPosition = GetInitialPosition();
+                        break;
+                case 'B': case 'b':
+                        return;
+                default:
+                        BadMenuChoice();
+                        HitAnyKeyToContinue();
+                        break;
+                }
+        } while(TRUE);
+}
 
 /************************************************************************
 **
@@ -223,7 +299,7 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 ************************************************************************/
 
 POSITION GetInitialPosition() {
-        return gInitialPosition;
+        return BuildCustomBoardPosition();
 }
 
 /************************************************************************
@@ -777,4 +853,439 @@ void IndexToCoord(int index, char *coord) {
         coord[0] = 'A' + col;           // Column: A-E
         coord[1] = '0' + row;           // Row: 1-5
         coord[2] = '\0';
+}
+
+/************************************************************************
+** Debug Menu Helper Functions
+************************************************************************/
+
+void PrintBoardForDebug(POSITION position) {
+        char board[boardsize];
+        int turn = generic_hash_turn(position);
+        int blueCount = 0, redCount = 0;
+
+        generic_hash_unhash(position, board);
+
+        printf("\n\t=== Board State Debug ===\n");
+        printf("\tPosition: %llu\n", position);
+        printf("\tCurrent Turn: %s\n", (turn == BLUE) ? "Blue" : "Red");
+        printf("\n\tBoard Array (Index: Piece):\n");
+
+        for (int i = 0; i < boardsize; i++) {
+                char coord[4];
+                IndexToCoord(i, coord);
+                printf("\t%2d (%s): '%c'", i, coord, board[i]);
+
+                if (board[i] == BLUEPEG) blueCount++;
+                else if (board[i] == REDPEG) redCount++;
+
+                if ((i + 1) % 5 == 0) printf("\n");
+                else printf("  ");
+        }
+
+        printf("\n\tPiece Counts: Blue=%d, Red=%d\n", blueCount, redCount);
+        printf("\t========================\n\n");
+}
+
+void TestCoordConversion() {
+        char input[10];
+        char coord[4];
+
+        printf("\n\t=== Coordinate Conversion Test ===\n");
+        printf("\tEnter coordinate (e.g., A1, E5): ");
+
+        if (scanf("%s", input) != 1) {
+                printf("\tError: Invalid input\n");
+                return;
+        }
+
+        int index = CoordToIndex(input);
+
+        if (index < 0 || index >= boardsize) {
+                printf("\tError: Invalid coordinate '%s'\n", input);
+                printf("\tValid range: A-E (columns), 1-5 (rows)\n");
+        } else {
+                IndexToCoord(index, coord);
+                printf("\tInput: %s\n", input);
+                printf("\tConverted to index: %d\n", index);
+                printf("\tConverted back to coord: %s\n", coord);
+
+                if (strcmp(input, coord) == 0 ||
+                    (toupper(input[0]) == coord[0] && input[1] == coord[1])) {
+                        printf("\tStatus: Conversion OK ✓\n");
+                } else {
+                        printf("\tStatus: Conversion MISMATCH!\n");
+                }
+        }
+
+        printf("\t================================\n\n");
+}
+
+void TestMoveGeneration() {
+        POSITION position = gInitialPosition;
+        MOVELIST *moves, *curr;
+        int moveCount = 0, jumpCount = 0, regularCount = 0;
+
+        printf("\n\t=== Move Generation Test ===\n");
+        printf("\tTesting from initial position: %llu\n", position);
+
+        char board[boardsize];
+        int turn = generic_hash_turn(position);
+        generic_hash_unhash(position, board);
+
+        printf("\tCurrent turn: %s\n", (turn == BLUE) ? "Blue" : "Red");
+
+        moves = GenerateMoves(position);
+
+        if (moves == NULL) {
+                printf("\tNo moves available!\n");
+        } else {
+                printf("\n\tAvailable moves:\n");
+
+                for (curr = moves; curr != NULL; curr = curr->next) {
+                        int source = GetMoveSource(curr->move);
+                        int dest = GetMoveDestination(curr->move);
+                        char sourceCoord[4], destCoord[4];
+
+                        IndexToCoord(source, sourceCoord);
+                        IndexToCoord(dest, destCoord);
+
+                        int sourceRow = IndexToRow(source);
+                        int sourceCol = IndexToCol(source);
+                        int destRow = IndexToRow(dest);
+                        int destCol = IndexToCol(dest);
+
+                        int rowDiff = abs(destRow - sourceRow);
+                        int colDiff = abs(destCol - sourceCol);
+                        BOOLEAN isJump = (rowDiff > 1 || colDiff > 1);
+
+                        printf("\t  %s -> %s  (Move: %d)  [%s]\n",
+                               sourceCoord, destCoord, curr->move,
+                               isJump ? "JUMP" : "regular");
+
+                        moveCount++;
+                        if (isJump) jumpCount++;
+                        else regularCount++;
+                }
+
+                FreeMoveList(moves);
+        }
+
+        printf("\n\tTotal moves: %d (Regular: %d, Jumps: %d)\n",
+               moveCount, regularCount, jumpCount);
+        printf("\t============================\n\n");
+}
+
+void TestPrimitive() {
+        POSITION position = gInitialPosition;
+        char board[boardsize];
+        int turn = generic_hash_turn(position);
+        int redStart[3] = {19, 23, 24};
+        int blueStart[3] = {0, 1, 5};
+        int blueInRedZone = 0, redInBlueZone = 0;
+
+        printf("\n\t=== Primitive Function Test ===\n");
+        printf("\tTesting position: %llu\n", position);
+        printf("\tCurrent turn: %s\n", (turn == BLUE) ? "Blue" : "Red");
+
+        generic_hash_unhash(position, board);
+
+        for (int i = 0; i < 3; i++) {
+                if (board[redStart[i]] == BLUEPEG) {
+                        char coord[4];
+                        IndexToCoord(redStart[i], coord);
+                        printf("\tBlue piece at Red zone: %s\n", coord);
+                        blueInRedZone++;
+                }
+        }
+
+        for (int i = 0; i < 3; i++) {
+                if (board[blueStart[i]] == REDPEG) {
+                        char coord[4];
+                        IndexToCoord(blueStart[i], coord);
+                        printf("\tRed piece at Blue zone: %s\n", coord);
+                        redInBlueZone++;
+                }
+        }
+
+        printf("\n\tBlue in Red zone: %d/3\n", blueInRedZone);
+        printf("\tRed in Blue zone: %d/3\n", redInBlueZone);
+
+        VALUE result = Primitive(position);
+        printf("\n\tPrimitive result: ");
+
+        switch(result) {
+        case win:
+                printf("WIN (current player wins)\n");
+                break;
+        case lose:
+                printf("LOSE (current player loses)\n");
+                break;
+        case tie:
+                printf("TIE\n");
+                break;
+        case undecided:
+                printf("UNDECIDED (game continues)\n");
+                break;
+        default:
+                printf("UNKNOWN (%d)\n", result);
+        }
+
+        printf("\t===============================\n\n");
+}
+
+/************************************************************************
+**
+** NAME:        ParseCoordinateList
+**
+** DESCRIPTION: Parse comma-separated coordinates into board indices
+**
+** INPUTS:      const char *input : Input string (e.g., "A1,B1,A2")
+**              int maxCount      : Maximum allowed positions
+**
+** OUTPUTS:     int *positions : Array to store board indices
+**              int *count     : Number of positions found
+**
+** RETURNS:     TRUE if parsing successful, FALSE otherwise
+**
+************************************************************************/
+
+BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int maxCount) {
+        char coord[3];  // 2 chars + null terminator
+        int i = 0, coordIdx = 0;
+        int posCount = 0;
+
+        if (!input || maxCount <= 0) return FALSE;
+
+        while (input[i] != '\0' && posCount < maxCount) {
+                // Skip whitespace and commas
+                while (input[i] == ' ' || input[i] == ',') i++;
+
+                if (input[i] == '\0') break;
+
+                // Extract coordinate (2 characters: letter + digit)
+                coordIdx = 0;
+                while (input[i] != '\0' && input[i] != ',' && input[i] != ' ' && coordIdx < 2) {
+                        coord[coordIdx++] = input[i++];
+                }
+                coord[coordIdx] = '\0';
+
+                // Validate coordinate format (should be 2 characters)
+                if (coordIdx != 2) {
+                        printf("\tError: Invalid coordinate format '%s'\n", coord);
+                        return FALSE;
+                }
+
+                // Convert to index using existing CoordToIndex()
+                int index = CoordToIndex(coord);
+                if (index < 0 || index >= boardsize) {
+                        printf("\tError: Invalid coordinate '%s' (must be A-E, 1-5)\n", coord);
+                        return FALSE;
+                }
+
+                // Check for duplicates
+                for (int j = 0; j < posCount; j++) {
+                        if (positions[j] == index) {
+                                printf("\tError: Duplicate position '%s' detected\n", coord);
+                                return FALSE;
+                        }
+                }
+
+                positions[posCount++] = index;
+        }
+
+        *count = posCount;
+        return TRUE;
+}
+
+/************************************************************************
+**
+** NAME:        ValidateBoardConfiguration
+**
+** DESCRIPTION: Validate that board has correct number of pieces
+**
+** INPUTS:      char *board    : Board array to validate
+**              int blueCount  : Expected number of blue pieces
+**              int redCount   : Expected number of red pieces
+**
+** RETURNS:     TRUE if valid, FALSE otherwise
+**
+************************************************************************/
+
+BOOLEAN ValidateBoardConfiguration(char *board, int blueCount, int redCount) {
+        int actualBlue = 0, actualRed = 0, actualBlank = 0;
+
+        // Count pieces on board
+        for (int i = 0; i < boardsize; i++) {
+                if (board[i] == BLUEPEG) actualBlue++;
+                else if (board[i] == REDPEG) actualRed++;
+                else if (board[i] == BLANK) actualBlank++;
+                else {
+                        printf("\tError: Invalid character '%c' at position %d\n", board[i], i);
+                        return FALSE;
+                }
+        }
+
+        // Validate counts
+        if (actualBlue != blueCount) {
+                printf("\tError: Expected %d Blue pieces, found %d\n", blueCount, actualBlue);
+                return FALSE;
+        }
+        if (actualRed != redCount) {
+                printf("\tError: Expected %d Red pieces, found %d\n", redCount, actualRed);
+                return FALSE;
+        }
+        if (actualBlank != boardsize - blueCount - redCount) {
+                printf("\tError: Incorrect number of blank positions\n");
+                return FALSE;
+        }
+
+        return TRUE;
+}
+
+/************************************************************************
+**
+** NAME:        PromptForTurn
+**
+** DESCRIPTION: Ask user to select whose turn it is
+**
+** RETURNS:     BLUE or RED (int constants)
+**
+************************************************************************/
+
+int PromptForTurn() {
+        char choice;
+
+        while (TRUE) {
+                printf("\n\tWhose turn? Enter 'B' for Blue or 'R' for Red: ");
+                choice = GetMyChar();
+
+                // Convert to uppercase
+                if (choice >= 'a' && choice <= 'z') {
+                        choice = choice - 'a' + 'A';
+                }
+
+                if (choice == 'B') {
+                        return BLUE;
+                } else if (choice == 'R') {
+                        return RED;
+                } else {
+                        printf("\tInvalid choice. Please enter 'B' or 'R'.\n");
+                }
+        }
+}
+
+/************************************************************************
+**
+** NAME:        BuildCustomBoardPosition
+**
+** DESCRIPTION: Interactive function to build a custom board position
+**
+** RETURNS:     POSITION (custom position or standard if error)
+**
+************************************************************************/
+
+POSITION BuildCustomBoardPosition() {
+        char board[boardsize];
+        int bluePositions[numpegs];
+        int redPositions[numpegs];
+        int blueCount = 0, redCount = 0;
+        char input[100];
+        int turn;
+        int retries = 0;
+        const int MAX_RETRIES = 3;
+
+        printf("\n\n\t=== Custom Board Position Setup ===\n");
+        printf("\n\tCoordinate System Reference:\n");
+        printf("\t     A   B   C   D   E\n");
+        printf("\t  1  0   1   2   3   4\n");
+        printf("\t  2  5   6   7   8   9\n");
+        printf("\t  3  10  11  12  13  14\n");
+        printf("\t  4  15  16  17  18  19\n");
+        printf("\t  5  20  21  22  23  24\n");
+        printf("\n\tYou need exactly %d Blue pieces and %d Red pieces.\n\n", numpegs, numpegs);
+
+        // Get Blue piece positions
+        while (retries < MAX_RETRIES) {
+                printf("\tEnter Blue piece coordinates (e.g., 'A1,B1,A2'): ");
+                GetMyStr(input, sizeof(input));
+
+                if (ParseCoordinateList(input, bluePositions, &blueCount, numpegs)) {
+                        if (blueCount == numpegs) {
+                                break;
+                        } else {
+                                printf("\tError: Expected exactly %d pieces, got %d. Try again.\n",
+                                       numpegs, blueCount);
+                        }
+                }
+                retries++;
+        }
+
+        if (retries >= MAX_RETRIES) {
+                printf("\n\tMax retries exceeded. Using standard initial position.\n");
+                return generic_hash_hash(start_standard_board, BLUE);
+        }
+
+        // Get Red piece positions
+        retries = 0;
+        while (retries < MAX_RETRIES) {
+                printf("\tEnter Red piece coordinates (e.g., 'D4,D5,E5'): ");
+                GetMyStr(input, sizeof(input));
+
+                if (ParseCoordinateList(input, redPositions, &redCount, numpegs)) {
+                        if (redCount == numpegs) {
+                                // Check for overlap with Blue positions
+                                BOOLEAN overlap = FALSE;
+                                for (int i = 0; i < blueCount; i++) {
+                                        for (int j = 0; j < redCount; j++) {
+                                                if (bluePositions[i] == redPositions[j]) {
+                                                        printf("\tError: Position %d occupied by both Blue and Red\n",
+                                                               bluePositions[i]);
+                                                        overlap = TRUE;
+                                                        break;
+                                                }
+                                        }
+                                        if (overlap) break;
+                                }
+                                if (!overlap) break;
+                        } else {
+                                printf("\tError: Expected exactly %d pieces, got %d. Try again.\n",
+                                       numpegs, redCount);
+                        }
+                }
+                retries++;
+        }
+
+        if (retries >= MAX_RETRIES) {
+                printf("\n\tMax retries exceeded. Using standard initial position.\n");
+                return generic_hash_hash(start_standard_board, BLUE);
+        }
+
+        // Build board array
+        for (int i = 0; i < boardsize; i++) {
+                board[i] = BLANK;
+        }
+        for (int i = 0; i < blueCount; i++) {
+                board[bluePositions[i]] = BLUEPEG;
+        }
+        for (int i = 0; i < redCount; i++) {
+                board[redPositions[i]] = REDPEG;
+        }
+
+        // Validate board configuration
+        if (!ValidateBoardConfiguration(board, blueCount, redCount)) {
+                printf("\n\tBoard validation failed. Using standard initial position.\n");
+                return generic_hash_hash(start_standard_board, BLUE);
+        }
+
+        // Prompt for turn
+        turn = PromptForTurn();
+
+        // Create and return position
+        POSITION newPosition = generic_hash_hash(board, turn);
+
+        printf("\n\t=== Custom Position Created ===\n");
+        printf("\tPosition ID: %llu\n\n", newPosition);
+
+        return newPosition;
 }
