@@ -52,10 +52,13 @@ back to your most recent position.";
 CONST_STRING kHelpOnYourTurn =
         "You move one of your pieces to an empty spot. You can jump over other pieces,\n\
         your own or your opponent's, if the space across the jumped piece is empty.\n\
-        You may chain as many jumps as possible.";
+        You may chain as many jumps as possible in one move.";
 
 CONST_STRING kHelpStandardObjective =
-        "All your pieces reach the opposite starting position";
+        "All your pieces reach the opposite starting triangle. You cannot leave\n\
+        the destination triangle once you have entered it.\n\
+        If your opponent blocks all available spots in your destination triangle,\n\
+        you win by filling all remaining available spots.";
 
 CONST_STRING kHelpReverseObjective =
         "No Reverse Objective in this game";                                                                                                                                                             ;
@@ -87,6 +90,7 @@ int numpegs = 3;
 #define BLUEPEG 'B'
 #define REDPEG 'R'
 #define BLANK ' '
+#define MOVE_STRING_BUFFER_SIZE 8  // Buffer size for move strings (e.g., "A1 E5")
 
 char start_standard_board[] = {
 'B', 'B', ' ', ' ', ' ',
@@ -125,7 +129,6 @@ BOOLEAN IsInDestinationTriangle(int index, int turn);
 BOOLEAN IsInTriangle(int index, const int *triangle, int size);
 
 // Debug menu helpers
-void PrintBoardForDebug(POSITION position);
 void TestCoordConversion();
 void TestMoveGeneration();
 void TestPrimitive();
@@ -179,7 +182,6 @@ void DebugMenu() {
                 printf("\n\t----- Module DEBUGGER for %s -----\n\n", kGameName);
 
                 printf("\tc)\tTest (C)oordinate Conversion\n");
-                printf("\ti)\t(I)nspect Board State\n");
                 printf("\tm)\tTest (M)ove Generation\n");
                 printf("\tp)\tTest (P)rimitive Function\n");
                 printf("\n\tb)\t(B)ack = Return to previous activity.\n");
@@ -191,9 +193,6 @@ void DebugMenu() {
                         break;
                 case 'C': case 'c':
                         TestCoordConversion();
-                        break;
-                case 'I': case 'i':
-                        PrintBoardForDebug(gInitialPosition);
                         break;
                 case 'M': case 'm':
                         TestMoveGeneration();
@@ -318,7 +317,7 @@ POSITION GetInitialPosition() {
 ************************************************************************/
 
 void PrintComputersMove(MOVE computersMove, STRING computersName) {
-        char moveStr[20];
+        char moveStr[MOVE_STRING_BUFFER_SIZE];
         MoveToString(computersMove, moveStr);
         printf("%s's move: %s\n", computersName, moveStr);
 }
@@ -581,10 +580,10 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
-        char sourceCoord[10], destCoord[10];
+        char sourceCoord[4], destCoord[4];
 
         // Parse input as "A1 C3" format (column A-E, row 1-5)
-        if (sscanf(input, "%s %s", sourceCoord, destCoord) != 2) {
+        if (sscanf(input, "%3s %3s", sourceCoord, destCoord) != 2) {
                 return FALSE;
         }
 
@@ -612,8 +611,8 @@ BOOLEAN ValidTextInput(STRING input) {
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(STRING input) {
-        char sourceCoord[10], destCoord[10];
-        sscanf(input, "%s %s", sourceCoord, destCoord);
+        char sourceCoord[4], destCoord[4];
+        sscanf(input, "%3s %3s", sourceCoord, destCoord);
 
         int source = CoordToIndex(sourceCoord);
         int dest = CoordToIndex(destCoord);
@@ -636,7 +635,7 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {
         char sourceCoord[4], destCoord[4];
         IndexToCoord(GetMoveSource(theMove), sourceCoord);
         IndexToCoord(GetMoveDestination(theMove), destCoord);
-        sprintf(moveStringBuffer, "%s %s", sourceCoord, destCoord);
+        snprintf(moveStringBuffer, MOVE_STRING_BUFFER_SIZE, "%s %s", sourceCoord, destCoord);
 }
 
 /************************************************************************
@@ -917,42 +916,14 @@ void IndexToCoord(int index, char *coord) {
 ** Debug Menu Helper Functions
 ************************************************************************/
 
-void PrintBoardForDebug(POSITION position) {
-        char board[boardsize];
-        int turn = generic_hash_turn(position);
-        int blueCount = 0, redCount = 0;
-
-        generic_hash_unhash(position, board);
-
-        printf("\n\t=== Board State Debug ===\n");
-        printf("\tPosition: %llu\n", position);
-        printf("\tCurrent Turn: %s\n", (turn == BLUE) ? "Blue" : "Red");
-        printf("\n\tBoard Array (Index: Piece):\n");
-
-        for (int i = 0; i < boardsize; i++) {
-                char coord[4];
-                IndexToCoord(i, coord);
-                printf("\t%2d (%s): '%c'", i, coord, board[i]);
-
-                if (board[i] == BLUEPEG) blueCount++;
-                else if (board[i] == REDPEG) redCount++;
-
-                if ((i + 1) % 5 == 0) printf("\n");
-                else printf("  ");
-        }
-
-        printf("\n\tPiece Counts: Blue=%d, Red=%d\n", blueCount, redCount);
-        printf("\t========================\n\n");
-}
-
 void TestCoordConversion() {
-        char input[10];
+        char input[4];
         char coord[4];
 
         printf("\n\t=== Coordinate Conversion Test ===\n");
         printf("\tEnter coordinate (e.g., A1, E5): ");
 
-        if (scanf("%s", input) != 1) {
+        if (scanf("%3s", input) != 1) {
                 printf("\tError: Invalid input\n");
                 return;
         }
@@ -1034,7 +1005,7 @@ void TestMoveGeneration() {
 }
 
 void TestPrimitive() {
-        POSITION position = gInitialPosition;
+        POSITION position = GetInitialPosition();
         char board[boardsize];
         int turn = generic_hash_turn(position);
         int redStart[3] = {19, 23, 24};
@@ -1095,7 +1066,8 @@ void TestPrimitive() {
 **
 ** NAME:        ParseCoordinateList
 **
-** DESCRIPTION: Parse comma-separated coordinates into board indices
+** DESCRIPTION: Parse comma-separated coordinates into board indices.
+**              Used during custom board setup.
 **
 ** INPUTS:      const char *input : Input string (e.g., "A1,B1,A2")
 **              int maxCount      : Maximum allowed positions
@@ -1159,7 +1131,8 @@ BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int m
 **
 ** NAME:        ValidateBoardConfiguration
 **
-** DESCRIPTION: Validate that board has correct number of pieces
+** DESCRIPTION: Validate that board has correct number of pieces.
+**              Used during custom board setup.
 **
 ** INPUTS:      char *board    : Board array to validate
 **              int blueCount  : Expected number of blue pieces
@@ -1204,7 +1177,8 @@ BOOLEAN ValidateBoardConfiguration(char *board, int blueCount, int redCount) {
 **
 ** NAME:        PromptForTurn
 **
-** DESCRIPTION: Ask user to select whose turn it is
+** DESCRIPTION: Ask user to select whose turn it is.
+**              Used during custom board setup.
 **
 ** RETURNS:     BLUE or RED (int constants)
 **
@@ -1236,9 +1210,12 @@ int PromptForTurn() {
 **
 ** NAME:        BuildCustomBoardPosition
 **
-** DESCRIPTION: Interactive function to build a custom board position
+** DESCRIPTION: Interactive function to build a custom board position.
+                Used during testing and debugging.
 **
 ** RETURNS:     POSITION (custom position or standard if error)
+** 
+** CALLS:       ParseCoordinateList, ValidateBoardConfiguration, PromptForTurn
 **
 ************************************************************************/
 
