@@ -147,6 +147,8 @@ POSITION GetInitialPosition(void);
 ** DESCRIPTION: Initialize the gDatabase, a global variable. and the other
 **              local variables.
 **
+** CALLS:       (none - only uses generic_hash functions)
+**
 ************************************************************************/
 
 void InitializeGame() {
@@ -174,6 +176,10 @@ void InitializeGame() {
 **
 ** DESCRIPTION: Menu used to debub internal problems. Does nothing if
 **              kDebugMenu == FALSE
+**
+** CALLS:       TestCoordConversion()
+**              TestMoveGeneration()
+**              TestPrimitive()
 **
 ************************************************************************/
 
@@ -218,6 +224,8 @@ void DebugMenu() {
 **              the side of the board in an nxn Nim board, etc. Does
 **              nothing if kGameSpecificMenu == FALSE
 **
+** CALLS:       GetInitialPosition()
+**
 ************************************************************************/
 
 void GameSpecificMenu() {
@@ -255,6 +263,8 @@ void GameSpecificMenu() {
 ** DESCRIPTION: Set the C game-specific options (called from Tcl)
 **              Ignore if you don't care about Tcl for now.
 **
+** CALLS:       (none - stub implementation)
+**
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
@@ -272,9 +282,9 @@ void SetTclCGameSpecificOptions (int options[]) {
 **
 ** OUTPUTS:     (POSITION) : The position that results after the move.
 **
-** CALLS:       Hash ()
-**              Unhash ()
-**	            LIST OTHER CALLS HERE
+** CALLS:       GetMoveSource()
+**              GetMoveDestination()
+**
 *************************************************************************/
 POSITION DoMove (POSITION thePosition, MOVE theMove) {
         char board[boardsize];
@@ -299,6 +309,8 @@ POSITION DoMove (POSITION thePosition, MOVE theMove) {
 **
 ** OUTPUTS:     POSITION initialPosition : The position to fill.
 **
+** CALLS:       BuildCustomBoardPosition()
+**
 ************************************************************************/
 
 POSITION GetInitialPosition() {
@@ -313,6 +325,8 @@ POSITION GetInitialPosition() {
 **
 ** INPUTS:      MOVE    computersMove : The computer's move.
 **              STRING  computersName : The computer's name.
+**
+** CALLS:       MoveToString()
 **
 ************************************************************************/
 
@@ -336,7 +350,7 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 **
 ** OUTPUTS:     (VALUE) an enum which is oneof: (win,lose,tie,undecided)
 **
-** CALLS:       LIST FUNCTION CALLS
+** CALLS:       (none - only uses generic_hash functions)
 **
 **
 ************************************************************************/
@@ -401,9 +415,8 @@ VALUE Primitive(POSITION position) {
 **              STRING   playerName : The name of the player.
 **              BOOLEAN  usersTurn  : TRUE <==> it's a user's turn.
 **
-** CALLS:       Unhash()
-**              GetPrediction()
-**              LIST OTHER CALLS HERE
+** CALLS:       (none - only uses generic_hash and printf)
+**
 **
 ************************************************************************/
 
@@ -481,8 +494,14 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
 ** OUTPUTS:     (MOVELIST *), a pointer that points to the first item
 **              in the linked list of moves that can be generated.
 **
-** CALLS:       GENERIC_PTR SafeMalloc(int)
-**              LIST OTHER CALLS HERE
+** CALLS:       IndexToRow()
+**              IndexToCol()
+**              GetNeighbor()
+**              IsValidPosition()
+**              RowColToIndex()
+**              IsInDestinationTriangle()
+**              EncodeMove()
+**              GenerateJumpsFrom()
 **
 ************************************************************************/
 MOVELIST *GenerateMoves(POSITION position) {
@@ -543,8 +562,7 @@ MOVELIST *GenerateMoves(POSITION position) {
 **
 ** OUTPUTS:     USERINPUT             : Oneof( Undo, Abort, Continue )
 **
-** CALLS:       ValidMove(MOVE, POSITION)
-**              BOOLEAN PrintPossibleMoves(POSITION) ...Always True!
+** CALLS:       (none - only uses HandleDefaultTextInput from gamesman.h)
 **
 ************************************************************************/
 
@@ -577,6 +595,8 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 **
 ** OUTPUTS:     BOOLEAN : TRUE if the input is a valid text input.
 **
+** CALLS:       CoordToIndex()
+**
 ************************************************************************/
 
 BOOLEAN ValidTextInput(STRING input) {
@@ -608,6 +628,9 @@ BOOLEAN ValidTextInput(STRING input) {
 **
 ** OUTPUTS:     MOVE : The move corresponding to the user's input.
 **
+** CALLS:       CoordToIndex()
+**              EncodeMove()
+**
 ************************************************************************/
 
 MOVE ConvertTextInputToMove(STRING input) {
@@ -629,6 +652,10 @@ MOVE ConvertTextInputToMove(STRING input) {
 ** INPUTS:      MOVE *theMove         : The move to put into a string.
 **              char *moveStringBuffer : Buffer to write movestring to
 **
+** CALLS:       GetMoveSource()
+**              GetMoveDestination()
+**              IndexToCoord()
+**
 ************************************************************************/
 
 void MoveToString(MOVE theMove, char *moveStringBuffer) {
@@ -647,6 +674,8 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {
 **
 ** OUTPUTS:     int : the number of option combination there are.
 **
+** CALLS:       (none)
+**
 ************************************************************************/
 
 int NumberOfOptions() {
@@ -662,6 +691,8 @@ int NumberOfOptions() {
 **				variants.
 **
 ** OUTPUTS:     int : the number representation of the options.
+**
+** CALLS:       (none)
 **
 ************************************************************************/
 
@@ -679,6 +710,8 @@ int getOption() {
 **
 ** INPUT:     int : the number representation of the options.
 **
+** CALLS:       (none - stub implementation)
+**
 ************************************************************************/
 
 void setOption(int option) {
@@ -690,6 +723,8 @@ void setOption(int option) {
 ** NAME:        PositionToAutoGUIString
 **
 ** DESCRIPTION: Converts position to AutoGUI string representation
+**
+** CALLS:       (none - stub implementation)
 **
 ************************************************************************/
 
@@ -704,6 +739,8 @@ STRING PositionToAutoGUIString(POSITION position) {
 **
 ** DESCRIPTION: Converts move to AutoGUI string representation
 **
+** CALLS:       (none - stub implementation)
+**
 ************************************************************************/
 
 STRING MoveToAutoGUIString(POSITION position, MOVE move) {
@@ -717,6 +754,8 @@ STRING MoveToAutoGUIString(POSITION position, MOVE move) {
 ** NAME:        StringToPosition
 **
 ** DESCRIPTION: Converts string to position
+**
+** CALLS:       (none - stub implementation)
 **
 ************************************************************************/
 
@@ -1077,6 +1116,8 @@ void TestPrimitive() {
 **
 ** RETURNS:     TRUE if parsing successful, FALSE otherwise
 **
+** CALLS:       CoordToIndex()
+**
 ************************************************************************/
 
 BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int maxCount) {
@@ -1140,6 +1181,8 @@ BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int m
 **
 ** RETURNS:     TRUE if valid, FALSE otherwise
 **
+** CALLS:       (none - only validates board array)
+**
 ************************************************************************/
 
 BOOLEAN ValidateBoardConfiguration(char *board, int blueCount, int redCount) {
@@ -1181,6 +1224,8 @@ BOOLEAN ValidateBoardConfiguration(char *board, int blueCount, int redCount) {
 **              Used during custom board setup.
 **
 ** RETURNS:     BLUE or RED (int constants)
+**
+** CALLS:       (none - only uses GetMyChar from gamesman.h)
 **
 ************************************************************************/
 
