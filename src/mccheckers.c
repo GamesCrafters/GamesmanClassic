@@ -114,11 +114,15 @@ int GetMoveDestination(MOVE move);
 
 // Jump generation
 void GenerateJumpsFrom(int origSource, int currentPos, char *board,
-                       BOOLEAN *visited, MOVELIST **moves);
+                       BOOLEAN *visited, MOVELIST **moves, int turn);
 
 // Coordinate conversion (e.g., "1A" <-> index 0)
 int CoordToIndex(const char *coord);
 void IndexToCoord(int index, char *coord);
+
+// Triangle checking for end-game rules
+BOOLEAN IsInDestinationTriangle(int index, int turn);
+BOOLEAN IsInTriangle(int index, const int *triangle, int size);
 
 // Debug menu helpers
 void PrintBoardForDebug(POSITION position);
@@ -341,33 +345,46 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 VALUE Primitive(POSITION position) {
         char board[boardsize];
         int turn = generic_hash_turn(position);
-        int redStart[3] = {19, 23, 24};
-        int blueStart[3] = {0, 1, 5};
-        int blueInRedZone = 0, redInBlueZone = 0;
+        int redHomeTriangle[3] = {19, 23, 24};  // E4, D5, E5
+        int blueHomeTriangle[3] = {0, 1, 5};    // A1, B1, A2
 
         generic_hash_unhash(position, board);
 
-        // Count Blue pieces in Red's starting zone
+        // Check if BLUE has won (filled all available spots in Red's home)
+        // Available spot = not occupied by Red piece
+        int blueAvailableSpots = 0;
+        int blueFilledSpots = 0;
         for (int i = 0; i < 3; i++) {
-                if (board[redStart[i]] == BLUEPEG) {
-                        blueInRedZone++;
+                if (board[redHomeTriangle[i]] != REDPEG) {
+                        // Spot is available for Blue (not blocked by Red)
+                        blueAvailableSpots++;
+                        if (board[redHomeTriangle[i]] == BLUEPEG) {
+                                blueFilledSpots++;
+                        }
                 }
         }
 
-        // Count Red pieces in Blue's starting zone
+        // Check if RED has won (filled all available spots in Blue's home)
+        // Available spot = not occupied by Blue piece
+        int redAvailableSpots = 0;
+        int redFilledSpots = 0;
         for (int i = 0; i < 3; i++) {
-                if (board[blueStart[i]] == REDPEG) {
-                        redInBlueZone++;
+                if (board[blueHomeTriangle[i]] != BLUEPEG) {
+                        // Spot is available for Red (not blocked by Blue)
+                        redAvailableSpots++;
+                        if (board[blueHomeTriangle[i]] == REDPEG) {
+                                redFilledSpots++;
+                        }
                 }
         }
 
-        // If all 3 Blue pieces in Red zone: Blue won
-        if (blueInRedZone == 3) {
+        // Blue wins if all available spots in destination are filled
+        if (blueAvailableSpots > 0 && blueFilledSpots == blueAvailableSpots) {
                 return (turn == BLUE) ? win : lose;
         }
 
-        // If all 3 Red pieces in Blue zone: Red won
-        if (redInBlueZone == 3) {
+        // Red wins if all available spots in destination are filled
+        if (redAvailableSpots > 0 && redFilledSpots == redAvailableSpots) {
                 return (turn == RED) ? win : lose;
         }
 
@@ -492,6 +509,12 @@ MOVELIST *GenerateMoves(POSITION position) {
                         if (IsValidPosition(newRow, newCol)) {
                                 int dest = RowColToIndex(newRow, newCol);
                                 if (board[dest] == BLANK) {
+                                        // End-game rule: pieces in destination triangle cannot leave
+                                        if (IsInDestinationTriangle(source, turn)) {
+                                                if (!IsInDestinationTriangle(dest, turn)) {
+                                                        continue;  // Skip moves that leave destination triangle
+                                                }
+                                        }
                                         moves = CreateMovelistNode(EncodeMove(source, dest), moves);
                                 }
                         }
@@ -501,7 +524,7 @@ MOVELIST *GenerateMoves(POSITION position) {
                 BOOLEAN visited[boardsize];
                 for (int i = 0; i < boardsize; i++) visited[i] = FALSE;
                 visited[source] = TRUE;
-                GenerateJumpsFrom(source, source, board, visited, &moves);
+                GenerateJumpsFrom(source, source, board, visited, &moves, turn);
         }
 
         return moves;
@@ -772,11 +795,39 @@ int GetMoveDestination(MOVE move) {
 }
 
 /************************************************************************
+** Helper Functions for Triangle Checking (End-game Rules)
+************************************************************************/
+
+// Check if a position is within a given triangle
+BOOLEAN IsInTriangle(int index, const int *triangle, int size) {
+        for (int i = 0; i < size; i++) {
+                if (index == triangle[i]) {
+                        return TRUE;
+                }
+        }
+        return FALSE;
+}
+
+// Check if a position is in the destination triangle for the given player
+// Blue destination: Red's home triangle {19, 23, 24} = {E4, D5, E5}
+// Red destination: Blue's home triangle {0, 1, 5} = {A1, B1, A2}
+BOOLEAN IsInDestinationTriangle(int index, int turn) {
+        int blueDestTriangle[3] = {19, 23, 24};  // Red's home = Blue's destination
+        int redDestTriangle[3] = {0, 1, 5};      // Blue's home = Red's destination
+
+        if (turn == BLUE) {
+                return IsInTriangle(index, blueDestTriangle, 3);
+        } else {
+                return IsInTriangle(index, redDestTriangle, 3);
+        }
+}
+
+/************************************************************************
 ** Helper Function for Jump Generation
 ************************************************************************/
 
 void GenerateJumpsFrom(int origSource, int currentPos, char *board,
-                       BOOLEAN *visited, MOVELIST **moves) {
+                       BOOLEAN *visited, MOVELIST **moves, int turn) {
         int currentRow = IndexToRow(currentPos);
         int currentCol = IndexToCol(currentPos);
 
@@ -797,9 +848,16 @@ void GenerateJumpsFrom(int origSource, int currentPos, char *board,
 
                 // Can jump if: piece at jumpPos, empty at landPos, not visited
                 if (board[jumpPos] != BLANK && board[landPos] == BLANK && !visited[landPos]) {
+                        // End-game rule: pieces in destination triangle cannot leave
+                        if (IsInDestinationTriangle(origSource, turn)) {
+                                if (!IsInDestinationTriangle(landPos, turn)) {
+                                        continue;  // Skip jumps that leave destination triangle
+                                }
+                        }
+
                         visited[landPos] = TRUE;
                         *moves = CreateMovelistNode(EncodeMove(origSource, landPos), *moves);
-                        GenerateJumpsFrom(origSource, landPos, board, visited, moves);
+                        GenerateJumpsFrom(origSource, landPos, board, visited, moves, turn);
                         visited[landPos] = FALSE;  // Backtrack
                 }
         }
@@ -930,7 +988,6 @@ void TestMoveGeneration() {
         printf("\tTesting from initial position: %llu\n", position);
 
         char board[boardsize];
-        int turn = generic_hash_turn(position);
         generic_hash_unhash(position, board);
 
         PrintPosition(position, "Tester", TRUE);
