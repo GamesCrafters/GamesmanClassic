@@ -26,7 +26,7 @@ CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
 CONST_STRING kDBName = "CCheckers";
 
-POSITION gNumberOfPositions; /* 3542000 Can be reduced to half by reflection; 7x7 game is 85,251,690,988,464*/
+POSITION gNumberOfPositions; 
 POSITION kBadPosition        = -1;
 POSITION gInitialPosition;
 POSITION gMinimalPosition    =  0;
@@ -64,7 +64,7 @@ CONST_STRING kHelpStandardObjective =
         you win by filling all remaining available spots.";
 
 CONST_STRING kHelpReverseObjective =
-        "No Reverse Objective in this game";                                                                                                                                                             ;
+        "No Reverse Objective in this game";
 
 CONST_STRING kHelpTieOccursWhen =   /* Should follow 'A Tie occurs when... */
                             "No tie in this game";
@@ -123,7 +123,7 @@ int GetMoveDestination(MOVE move);
 void GenerateJumpsFrom(int origSource, int currentPos, char *board,
                        BOOLEAN *visited, MOVELIST **moves, int turn);
 
-// Coordinate conversion (e.g., "1A" <-> index 0)
+// Coordinate conversion (e.g., "A1" <-> index 0)
 int CoordToIndex(const char *coord);
 void IndexToCoord(int index, char *coord);
 
@@ -185,7 +185,7 @@ void InitializeGame() {
 **
 ** NAME:        DebugMenu
 **
-** DESCRIPTION: Menu used to debub internal problems. Does nothing if
+** DESCRIPTION: Menu used to debug internal problems. Does nothing if
 **              kDebugMenu == FALSE
 **
 ** CALLS:       TestCoordConversion()
@@ -279,7 +279,7 @@ void GameSpecificMenu() {
 ************************************************************************/
 
 void SetTclCGameSpecificOptions (int options[]) {
-	(void)options;
+        (void)options;
 }
 
 /************************************************************************
@@ -1307,7 +1307,7 @@ int PromptForTurn() {
 ** NAME:        BuildCustomBoardPosition
 **
 ** DESCRIPTION: Interactive function to build a custom board position.
-                Used during testing and debugging.
+**              Used during testing and debugging.
 **
 ** RETURNS:     POSITION (custom position or standard if error)
 ** 
