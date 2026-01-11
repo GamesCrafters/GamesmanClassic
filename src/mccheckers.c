@@ -37,6 +37,9 @@ BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = TRUE;
 BOOLEAN kDebugDetermineValue = FALSE;
+BOOLEAN kSupportsSymmetries  = TRUE;
+
+#define NUMSYMMETRIES 2  /* identity + diagonal reflection */
 void*    gGameSpecificTclInit = NULL;
 
 CONST_STRING kHelpGraphicInterface =
@@ -133,6 +136,11 @@ void TestCoordConversion();
 void TestMoveGeneration();
 void TestPrimitive();
 
+// Symmetry functions
+int ReflectIndex(int index);
+POSITION DoSymmetry(POSITION position);
+POSITION GetCanonicalPosition(POSITION position);
+
 // Custom position helpers for GetInitialPosition()
 BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int maxCount);
 POSITION BuildCustomBoardPosition();
@@ -168,6 +176,9 @@ void InitializeGame() {
 
         gNumberOfPositions = generic_hash_init(boardsize, piecesArray, NULL, 0);
         gInitialPosition = generic_hash_hash(start_standard_board, BLUE);
+
+        // Enable symmetry solving via diagonal reflection
+        gCanonicalPosition = GetCanonicalPosition;
 }
 
 /************************************************************************
@@ -899,6 +910,46 @@ void GenerateJumpsFrom(int origSource, int currentPos, char *board,
                         visited[landPos] = FALSE;  // Backtrack
                 }
         }
+}
+
+/************************************************************************
+** Helper Functions for Symmetry (Diagonal Reflection)
+**
+** The board has diagonal symmetry across the A1-E5 diagonal.
+** Reflection maps position (row, col) to (col, row).
+** This reduces the state space by approximately half.
+**
+** Blue's home {0,1,5} and Red's home {19,23,24} both map to themselves
+** under this reflection, preserving game-theoretic equivalence.
+************************************************************************/
+
+// Reflect index across the main diagonal: (row, col) -> (col, row)
+int ReflectIndex(int index) {
+        int row = index / side;
+        int col = index % side;
+        return col * side + row;
+}
+
+// Apply diagonal reflection to create symmetric position
+POSITION DoSymmetry(POSITION position) {
+        char board[boardsize];
+        char reflectedBoard[boardsize];
+        int turn = generic_hash_turn(position);
+
+        generic_hash_unhash(position, board);
+
+        // Reflect: reflectedBoard[i] = board[ReflectIndex(i)]
+        for (int i = 0; i < boardsize; i++) {
+                reflectedBoard[i] = board[ReflectIndex(i)];
+        }
+
+        return generic_hash_hash(reflectedBoard, turn);
+}
+
+// Return canonical (minimum) position from equivalence class
+POSITION GetCanonicalPosition(POSITION position) {
+        POSITION reflected = DoSymmetry(position);
+        return (reflected < position) ? reflected : position;
 }
 
 /************************************************************************
