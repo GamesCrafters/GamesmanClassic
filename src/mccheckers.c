@@ -731,6 +731,33 @@ void setOption(int option) {
 
 /************************************************************************
 **
+** NAME:        StringToPosition
+**
+** DESCRIPTION: Converts string to position
+**
+** CALLS:       (none - stub implementation)
+**
+************************************************************************/
+
+POSITION StringToPosition(char *positionString) {
+	int turn;
+	char *board;
+	if (ParseStandardOnelinePositionString(positionString, &turn, &board)) {
+                char result[boardsize];
+                for (int i = 0; i < boardsize; i++) {
+                        if (board[i] == '-') {
+                                result[i] = ' ';
+                        } else {
+                                result[i] = board[i];
+                        }
+                }
+                return generic_hash_hash(result, turn);
+        }
+        return NULL_POSITION;
+}
+
+/************************************************************************
+**
 ** NAME:        PositionToAutoGUIString
 **
 ** DESCRIPTION: Converts position to AutoGUI string representation
@@ -739,9 +766,23 @@ void setOption(int option) {
 **
 ************************************************************************/
 
-STRING PositionToAutoGUIString(POSITION position) {
-        (void)position;
-        return "0";  // Stub implementation
+void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+        char board[boardsize];
+        generic_hash_unhash(position, board);
+        char result[boardsize + 1];
+        for (int i = 0; i < boardsize; i++) {
+                if (board[i] == ' ') {
+                        result[i] = '-';
+                } else {
+                        result[i] = board[i];
+                }
+        }
+        result[boardsize] = '\0';
+        AutoGUIMakePositionString(
+                generic_hash_turn(position),
+                result,
+                autoguiPositionStringBuffer
+        );
 }
 
 /************************************************************************
@@ -754,25 +795,11 @@ STRING PositionToAutoGUIString(POSITION position) {
 **
 ************************************************************************/
 
-STRING MoveToAutoGUIString(POSITION position, MOVE move) {
+void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
         (void)position;
-        (void)move;
-        return "0_0";  // Stub implementation
-}
-
-/************************************************************************
-**
-** NAME:        StringToPosition
-**
-** DESCRIPTION: Converts string to position
-**
-** CALLS:       (none - stub implementation)
-**
-************************************************************************/
-
-POSITION StringToPosition(STRING positionString) {
-        (void)positionString;
-        return gInitialPosition;  // Stub implementation
+        int source = GetMoveSource(move);
+        int dest = GetMoveDestination(move);
+        AutoGUIMakeMoveButtonStringM(source, dest, 'x', autoguiMoveStringBuffer);
 }
 
 /************************************************************************
