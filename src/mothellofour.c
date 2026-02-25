@@ -52,29 +52,26 @@ CONST_STRING kHelpExample = "";
 **
 **************************************************************************/
 
-int N = 4;
-int CELLS = N * N;
 
-/* Full Board Mask */
-BITBOARD FULL = (1ULL << CELLS) - 1ULL;
+#define N 4
+#define CELLS (N * N)
+#define FULL ((1ULL << CELLS) - 1ULL)
 
-/* Row Masks */
-BITBOARD R0 = 0x000FULL;
-BITBOARD R1 = R0 << 4;
-BITBOARD R2 = R0 << 8;
-BITBOARD R3 = R0 << 12;
+#define R0 0xFULL
+#define R1 (R0 << 4)
+#define R2 (R0 << 8)
+#define R3 (R0 << 12)
 
-/* Column Masks */
-BITBOARD C0 = 0x00001111ULL;
-BITBOARD C1 = 0x00002222ULL;
-BITBOARD C2 = 0x00004444ULL;
-BITBOARD C3 = 0x00008888ULL;
+#define C0 0x1111ULL
+#define C1 0x2222ULL
+#define C2 0x4444ULL
+#define C3 0x8888ULL
 
-/* Other Useful Masks */
-BITBOARD A_FILE = C0;
-BITBOARD D_FILE = C3;
-BITBOARD NOT_A  = FULL ^ A_FILE;
-BITBOARD NOT_D  = FULL ^ D_FILE;
+#define A_FILE C0
+#define D_FILE C3
+#define NOT_A (FULL ^ A_FILE)
+#define NOT_D (FULL ^ D_FILE)
+
 
 /* Utility Functions for Computing Canonical Positions */
 BITBOARD vertical4(BITBOARD b) {
