@@ -24,11 +24,6 @@ typedef char*                   STRING;
 typedef const char*				CONST_STRING;
 typedef void*                   GENERIC_PTR;
 
-// Tier Gamesman typedefs
-typedef unsigned long long TIER;
-typedef POSITION TIERPOSITION; /* Used to differentiate "tier-specific" positions */
-typedef int UNDOMOVE; /* Just like MOVE but used specifically for undo-moves */
-
 // BPDB
 typedef unsigned char BYTE;
 typedef unsigned char UINT8;
@@ -62,8 +57,12 @@ typedef unsigned long long POSITION;
 
 typedef int MOVE;
 typedef int MOVES;
-
 #endif
+
+// Tier Gamesman typedefs
+typedef unsigned long long TIER;
+typedef POSITION TIERPOSITION; /* Used to differentiate "tier-specific" positions */
+typedef int UNDOMOVE; /* Just like MOVE but used specifically for undo-moves */
 
 // SEval
 typedef float (*featureEvaluatorCustom)(POSITION);

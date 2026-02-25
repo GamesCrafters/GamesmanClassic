@@ -64,6 +64,7 @@ QUARTODB_OBJ= quartodb$(OBJSUFFIX)
 TIERDB_OBJ	= tierdb$(OBJSUFFIX)
 SHARDDB_OBJ = sharddb$(OBJSUFFIX)
 SYMDB_OBJ	= symdb$(OBJSUFFIX)
+BLOBDB_OBJ  = blobdb$(OBJSUFFIX)
 
 ifneq (@GMPCFLAGS@,)
 UNIVHT_OBJ	= univht$(OBJSUFFIX)
@@ -96,7 +97,8 @@ CORE=$(ANALYSIS_OBJ) $(AUTOGUI_STRINGS_OBJ) $(CONSTANTS_OBJ) $(GLOBALS_OBJ) $(DE
      $(DB_OBJ) $(MEMDB_OBJ) $(BPDB_OBJ) $(BPDB_BITLIB_OBJ) $(BPDB_SCHEMES_OBJ) $(BPDB_MISC_OBJ) \
      $(TWOBITDB_OBJ) $(COLLDB_OBJ) $(UNIVHT_OBJ) $(UNIVDB_OBJ) \
      $(STRINGBUILDER_OBJ) $(HTTPCLIENT_OBJ) $(NETDB_OBJ) $(VISUALIZATION_OBJ) \
-     $(FILEDB_OBJ) $(HASHWINDOW_OBJ) $(TIERDB_OBJ) $(LEVELFILE_OBJ) $(SYMDB_OBJ) $(INTERACT_OBJ) $(SHARDDB_OBJ) $(QUARTODB_OBJ)
+     $(FILEDB_OBJ) $(HASHWINDOW_OBJ) $(TIERDB_OBJ) $(LEVELFILE_OBJ) $(SYMDB_OBJ) $(INTERACT_OBJ) $(SHARDDB_OBJ) $(QUARTODB_OBJ) \
+	 $(BLOBDB_OBJ)
 
 SOLVERS=$(SOLVER_STD) $(SOLVER_LOOPY) $(SOLVER_LOOPYGA) $(SOLVER_ZERO) \
 	$(SOLVER_LOOPYUP) $(SOLVER_BOTTOMUP) $(SOLVER_ALPHABETA) \
@@ -111,7 +113,7 @@ INCLUDES=analysis.h autoguistrings.h constants.h debug.h filedb.h gameplay.h gam
 	 solvezero.h solveloopyup.h solveretrograde.h solvevsstd.h solvevsloopy.h \
 	 textui.h setup.h httpclient.h netdb.h openPositions.h visualization.h filedb.h \
 	 filedb/db.h hashwindow.h tierdb.h sharddb.h quartodb.h memwatch.h levelfile_generator.h symdb.h interact.h\
-	 solveloopypd.h
+	 solveloopypd.h blobdb.h
 
 
 
