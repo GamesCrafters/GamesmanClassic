@@ -71,6 +71,7 @@ CONST_STRING kHelpExample = "";
 #define D_FILE C3
 #define NOT_A (FULL ^ A_FILE)
 #define NOT_D (FULL ^ D_FILE)
+#define min(a,b) (((a) < (b)) ? (a) : (b))
 
 
 /* Utility Functions for Computing Canonical Positions */
