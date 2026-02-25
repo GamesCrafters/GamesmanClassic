@@ -3,6 +3,7 @@
 #include "hashwindow.h"
 #include "sharddb.h"
 #include "quartodb.h"
+#include "blobdb.h"
 #include <stdarg.h>
 
 POSITION StringToPosition(char *positionString);
@@ -175,6 +176,10 @@ void ServerInteractLoop(void) {
 			}
 			if (kUsesQuartoGamesman) {
 				quartoDetailedPositionResponse(inputPositionString, positionStringBuffer);
+				continue;
+			}
+			if (kUsesBlobGamesman) {
+				blobDetailedPositionResponse(inputPositionString, positionStringBuffer);
 				continue;
 			}
 			char oppTurnChar = (inputPositionString[0] == '1') ? '2' : '1';

@@ -24,6 +24,7 @@ CONST_STRING kDBName;
 POSITION kBadPosition;
 POSITION gInitialPosition;
 POSITION gNumberOfPositions;
+UINT64 kBlobdbPageSize;
 
 #define PyPosition_FromPosition(x) PyLong_FromUnsignedLongLong(x)
 #define PyPosition_AsPosition(x) PyLong_AsUnsignedLongLong(x)

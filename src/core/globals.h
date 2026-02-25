@@ -159,6 +159,7 @@ extern BOOLEAN*         gTierDBExists;
 extern BOOLEAN kSupportsTierGamesman;
 extern BOOLEAN kSupportsShardGamesman;
 extern BOOLEAN kUsesQuartoGamesman;
+extern BOOLEAN kUsesBlobGamesman;
 extern BOOLEAN kExclusivelyTierGamesman;
 extern BOOLEAN kDebugTierMenu;
 extern TIERPOSITION gInitialTierPosition;

@@ -19,12 +19,6 @@ typedef int WINBY;                       /* WinBy can be positive or negative */
 typedef int DRAWLEVEL;                   /* DrawLevel will be a typically small number */
 typedef unsigned long int MEXCALC;       /* ...since we use a long int here */
 
-typedef unsigned long long POSITION;           /* This used to be determined by mTempTypedef.h */
-#define INVALID_POSITION ~((POSITION)0)
-#define NULL_POSITION ~((POSITION)0)
-typedef int MOVE;                              /* but I decided to hardcode it for now, so as  */
-typedef int MOVES;                              /* to make it a leeeetle bit easier and cleaner */
-
 typedef int REMOTENESS;
 typedef char*                   STRING;
 typedef const char*				CONST_STRING;
@@ -41,6 +35,35 @@ typedef unsigned char UINT8;
 typedef unsigned int UINT32;
 typedef long long int INT64;
 typedef unsigned long long int UINT64;
+typedef unsigned long long int BITBOARD;
+
+#ifdef USE_ENCODING_POSITION /* Adding this for larger games that require bigger boards */
+typedef struct Encoding {
+    BITBOARD player;
+    BITBOARD opponent;
+    // or whatever you need >64 bits (could be __int128, array, etc.)
+} POSITION;
+
+#define POSITION_MAKE(p,o) ((POSITION){ .player = (p), .opponent = (o) })
+#define POSITION_EQ(a,b) \
+    ((a).player == (b).player && (a).opponent == (b).opponent)
+
+#define INVALID_POSITION POSITION_MAKE(~0ULL, ~0ULL)
+#define NULL_POSITION    POSITION_MAKE(~0ULL, ~0ULL)
+
+typedef unsigned long long int MOVE;
+typedef unsigned long long int MOVES;
+
+#else /* Otherwise, use the original implementation */
+typedef unsigned long long POSITION;
+
+#define INVALID_POSITION ~((POSITION)0)
+#define NULL_POSITION ~((POSITION)0)
+
+typedef int MOVE;
+typedef int MOVES;
+
+#endif
 
 // SEval
 typedef float (*featureEvaluatorCustom)(POSITION);
@@ -50,6 +73,7 @@ typedef UINT32 GMSTATUS;
 #ifndef BOOLEAN             /* To satisfy Visual C++ 6.0 compiler */
 typedef int BOOLEAN;
 #endif /* BOOLEAN */
+
 
 typedef enum value_enum
 {

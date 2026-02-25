@@ -157,6 +157,9 @@ VALUE DetermineValue(POSITION position)
 	} else if (kUsesQuartoGamesman) {
 		InitializeQuartoDB();
 		printf("Done loading quarto database.\n");
+	} else if (kUsesBlobGamesman) {
+		InitializeBlobDB();
+		printf("Done loading blob database.\n");
 	} else if(kSupportsTierGamesman && gTierGamesman) { //TIER GAMESMAN
 		BOOLEAN usingLookupTierDB = FALSE;
 		if (gIsInteract) {

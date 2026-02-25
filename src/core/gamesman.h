@@ -60,6 +60,11 @@ void                    setOption                       (int option);
 void                    SetTclCGameSpecificOptions      (int theOptions[]);
 void                    GameSpecificMenu                (void);
 void                    DebugMenu                       (void);
+void                    GetBlobFileNameFromPosition     (POSITION p, char *f);
+UINT64                  GetInfoFromBlobFile             (POSITION p, FILE *f);
+VALUE                   GetPrimitiveFromInfo            (UINT64 info);
+REMOTENESS              GetRemotenessFromInfo           (UINT64 info);
+
 
 #endif /* GMCORE_GAMESMAN_H */
 

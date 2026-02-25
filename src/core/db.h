@@ -105,6 +105,7 @@ void            DestroyDatabases        (void);
 BOOLEAN         ReinitializeTierDB      (void);
 void            InitializeShardDB       (void);
 void            InitializeQuartoDB      (void);
+void			InitializeBlobDB		(void);
 
 UINT64
 GetSlot(
