@@ -12,11 +12,11 @@
 
 #include "gamesman.h"
 
-POSITION gNumberOfPositions = 0;
-POSITION kBadPosition = -1;
+POSITION gNumberOfPositions;
+POSITION kBadPosition = INVALID_POSITION;
 
-POSITION gInitialPosition = 0;
-POSITION gMinimalPosition = 0;
+POSITION gInitialPosition;
+POSITION gMinimalPosition;
 
 CONST_STRING kAuthorName = "Abraham Hsu, Aryaman Asthana";
 CONST_STRING kGameName = "mothellofour";
