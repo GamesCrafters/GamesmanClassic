@@ -2,7 +2,7 @@
 **
 ** NAME:        mccheckers.c
 **
-** DESCRIPTION: Chinese Checkers
+** DESCRIPTION: Chinese Checkers (Diamond Game)
 **
 ** AUTHORS:     Seungyou 'Bruce' Kim
 **
@@ -614,7 +614,7 @@ BOOLEAN ValidTextInput(STRING input) {
         char sourceCoord[4], destCoord[4];
 
         // Parse input as "A1 C3" format (column A-E, row 1-5)
-        if (sscanf(input, "%3s %3s", sourceCoord, destCoord) != 2) {
+        if (sscanf(input, "%2s%2s", sourceCoord, destCoord) != 2) {
                 return FALSE;
         }
 
@@ -646,7 +646,7 @@ BOOLEAN ValidTextInput(STRING input) {
 
 MOVE ConvertTextInputToMove(STRING input) {
         char sourceCoord[4], destCoord[4];
-        sscanf(input, "%3s %3s", sourceCoord, destCoord);
+        sscanf(input, "%2s%2s", sourceCoord, destCoord);
 
         int source = CoordToIndex(sourceCoord);
         int dest = CoordToIndex(destCoord);
@@ -673,7 +673,7 @@ void MoveToString(MOVE theMove, char *moveStringBuffer) {
         char sourceCoord[4], destCoord[4];
         IndexToCoord(GetMoveSource(theMove), sourceCoord);
         IndexToCoord(GetMoveDestination(theMove), destCoord);
-        snprintf(moveStringBuffer, MOVE_STRING_BUFFER_SIZE, "%s %s", sourceCoord, destCoord);
+        snprintf(moveStringBuffer, MOVE_STRING_BUFFER_SIZE, "%s%s", sourceCoord, destCoord);
 }
 
 /************************************************************************
@@ -983,8 +983,8 @@ POSITION GetCanonicalPosition(POSITION position) {
 ** Helper Functions for Coordinate Conversion
 ************************************************************************/
 
-// Convert coordinate string (e.g., "A1", "C3") to board index (0-24)
-// Format: <column><row> where column is A-E and row is 1-5
+// Convert coordinate string (e.g., "a1", "c3") to board index (0-24)
+// Format: <column><row> where column is a-e and row is 1-5
 // Returns -1 if invalid coordinate
 int CoordToIndex(const char *coord) {
         if (coord == NULL || coord[0] == '\0' || coord[1] == '\0') {
@@ -1011,8 +1011,8 @@ int CoordToIndex(const char *coord) {
         return (row - 1) * side + col;
 }
 
-// Convert board index (0-24) to coordinate string (e.g., "A1", "C3")
-// Format: <column><row> where column is A-E and row is 1-5
+// Convert board index (0-24) to coordinate string (e.g., "a1", "c3")
+// Format: <column><row> where column is a-e and row is 1-5
 void IndexToCoord(int index, char *coord) {
         if (index < 0 || index >= boardsize) {
                 coord[0] = '?';
@@ -1024,7 +1024,7 @@ void IndexToCoord(int index, char *coord) {
         int row = (index / side) + 1;
         int col = index % side;
 
-        coord[0] = 'A' + col;           // Column: A-E
+        coord[0] = 'a' + col;           // Column: a-e
         coord[1] = '0' + row;           // Row: 1-5
         coord[2] = '\0';
 }
@@ -1049,7 +1049,7 @@ void TestCoordConversion() {
 
         if (index < 0 || index >= boardsize) {
                 printf("\tError: Invalid coordinate '%s'\n", input);
-                printf("\tValid range: A-E (columns), 1-5 (rows)\n");
+                printf("\tValid range: a-e (columns), 1-5 (rows)\n");
         } else {
                 IndexToCoord(index, coord);
                 printf("\tInput: %s\n", input);
@@ -1057,7 +1057,7 @@ void TestCoordConversion() {
                 printf("\tConverted back to coord: %s\n", coord);
 
                 if (strcmp(input, coord) == 0 ||
-                    (toupper(input[0]) == coord[0] && input[1] == coord[1])) {
+                    (tolower(input[0]) == coord[0] && input[1] == coord[1])) {
                         printf("\tStatus: Conversion OK ✓\n");
                 } else {
                         printf("\tStatus: Conversion MISMATCH!\n");
@@ -1227,7 +1227,7 @@ BOOLEAN ParseCoordinateList(const char *input, int *positions, int *count, int m
                 // Convert to index using existing CoordToIndex()
                 int index = CoordToIndex(coord);
                 if (index < 0 || index >= boardsize) {
-                        printf("\tError: Invalid coordinate '%s' (must be A-E, 1-5)\n", coord);
+                        printf("\tError: Invalid coordinate '%s' (must be a-e, 1-5)\n", coord);
                         return FALSE;
                 }
 
