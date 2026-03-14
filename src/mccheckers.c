@@ -4,7 +4,7 @@
 **
 ** DESCRIPTION: Chinese Checkers
 **
-** AUTHORS:     Seungyou(Bruce) Kim - University of California Berkeley
+** AUTHORS:     Seungyou 'Bruce' Kim
 **
 **
 ** DATE:        12/21/2025
@@ -22,7 +22,7 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-CONST_STRING kAuthorName         = "Seungyou(Bruce) Kim";
+CONST_STRING kAuthorName         = "Seungyou 'Bruce' Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
 CONST_STRING kDBName = "CCheckers";
 
@@ -32,7 +32,7 @@ POSITION gInitialPosition;
 POSITION gMinimalPosition    =  0;
 
 BOOLEAN kPartizan           = TRUE;
-BOOLEAN kDebugMenu          = TRUE;
+BOOLEAN kDebugMenu          = FALSE;
 BOOLEAN kGameSpecificMenu   = TRUE;
 BOOLEAN kTieIsPossible      = FALSE;
 BOOLEAN kLoopy               = TRUE;
