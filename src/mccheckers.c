@@ -47,8 +47,8 @@ CONST_STRING kHelpGraphicInterface =
 
 CONST_STRING kHelpTextInterface    =
         "On your turn, choose the origin and target to make your move you desire and hit return. \n\
-Describe the origin and target coordinates using column (A-E) followed by row (1-5).\n\
-For example, type 'A1 C1' to move from position A1 to position C1. If at any point\n\
+Describe the origin and target coordinates using column (a-e) followed by row (1-5).\n\
+For example, type 'a1c1' to move from position a1 to position c1. If at any point\n\
 you have made a mistake, you can type u and hit return and the system will revert\n\
 back to your most recent position.";
 
@@ -93,7 +93,7 @@ int numpegs = 3;
 #define BLUEPEG 'B'
 #define REDPEG 'R'
 #define BLANK ' '
-#define MOVE_STRING_BUFFER_SIZE 8  // Buffer size for move strings (e.g., "A1 E5")
+#define MOVE_STRING_BUFFER_SIZE 8  // Buffer size for move strings (e.g., "a1e5")
 
 char start_standard_board[] = {
 'B', 'B', ' ', ' ', ' ',
@@ -123,7 +123,7 @@ int GetMoveDestination(MOVE move);
 void GenerateJumpsFrom(int origSource, int currentPos, char *board,
                        BOOLEAN *visited, MOVELIST **moves, int turn);
 
-// Coordinate conversion (e.g., "A1" <-> index 0)
+// Coordinate conversion (e.g., "a1" <-> index 0)
 int CoordToIndex(const char *coord);
 void IndexToCoord(int index, char *coord);
 
@@ -369,8 +369,8 @@ void PrintComputersMove(MOVE computersMove, STRING computersName) {
 VALUE Primitive(POSITION position) {
         char board[boardsize];
         int turn = generic_hash_turn(position);
-        int redHomeTriangle[3] = {19, 23, 24};  // E4, D5, E5
-        int blueHomeTriangle[3] = {0, 1, 5};    // A1, B1, A2
+        int redHomeTriangle[3] = {19, 23, 24};  // e4, d5, e5
+        int blueHomeTriangle[3] = {0, 1, 5};    // a1, b1, a2
 
         generic_hash_unhash(position, board);
 
@@ -486,7 +486,7 @@ void PrintPosition (POSITION position, STRING playerName, BOOLEAN usersTurn) {
   printf("\t                                ↗       \n");
   printf("\t                               5       \n");
   printf("\n\tLegend: B=Blue, R=Red, ' '=Empty\n");
-  printf("\tMove format: <origin> <target> (e.g., \"A1 C1\" to move from A1 to C1)\n");
+  printf("\tMove format: <origin><target> (e.g., \"a1c1\" to move from a1 to c1)\n");
   printf("\tTo Play: %s\n", (generic_hash_turn(position) == BLUE) ? "Blue" : "Red");
   printf("\n\t%s\n\n", GetPrediction(position,playerName,usersTurn));
 
@@ -613,7 +613,7 @@ USERINPUT GetAndPrintPlayersMove(POSITION thePosition, MOVE *theMove, STRING pla
 BOOLEAN ValidTextInput(STRING input) {
         char sourceCoord[4], destCoord[4];
 
-        // Parse input as "A1 C3" format (column A-E, row 1-5)
+        // Parse input as "a1c3" format (column a-e, row 1-5)
         if (sscanf(input, "%2s%2s", sourceCoord, destCoord) != 2) {
                 return FALSE;
         }
@@ -885,8 +885,8 @@ BOOLEAN IsInTriangle(int index, const int *triangle, int size) {
 }
 
 // Check if a position is in the destination triangle for the given player
-// Blue destination: Red's home triangle {19, 23, 24} = {E4, D5, E5}
-// Red destination: Blue's home triangle {0, 1, 5} = {A1, B1, A2}
+// Blue destination: Red's home triangle {19, 23, 24} = {e4, d5, e5}
+// Red destination: Blue's home triangle {0, 1, 5} = {a1, b1, a2}
 BOOLEAN IsInDestinationTriangle(int index, int turn) {
         int blueDestTriangle[3] = {19, 23, 24};  // Red's home = Blue's destination
         int redDestTriangle[3] = {0, 1, 5};      // Blue's home = Red's destination
@@ -942,7 +942,7 @@ void GenerateJumpsFrom(int origSource, int currentPos, char *board,
 /************************************************************************
 ** Helper Functions for Symmetry (Diagonal Reflection)
 **
-** The board has diagonal symmetry across the A1-E5 diagonal.
+** The board has diagonal symmetry across the a1-e5 diagonal.
 ** Reflection maps position (row, col) to (col, row).
 ** This reduces the state space by approximately half.
 **
@@ -991,7 +991,7 @@ int CoordToIndex(const char *coord) {
                 return -1;
         }
 
-        // Extract col (A-E or a-e)
+        // Extract col (a-e, uppercase also accepted)
         char colChar = coord[0];
         if (colChar >= 'a' && colChar <= 'e') {
                 colChar = colChar - 'a' + 'A';  // Convert to uppercase
@@ -1038,7 +1038,7 @@ void TestCoordConversion() {
         char coord[4];
 
         printf("\n\t=== Coordinate Conversion Test ===\n");
-        printf("\tEnter coordinate (e.g., A1, E5): ");
+        printf("\tEnter coordinate (e.g., a1, e5): ");
 
         if (scanf("%3s", input) != 1) {
                 printf("\tError: Invalid input\n");
@@ -1186,7 +1186,7 @@ void TestPrimitive() {
 ** DESCRIPTION: Parse comma-separated coordinates into board indices.
 **              Used during custom board setup.
 **
-** INPUTS:      const char *input : Input string (e.g., "A1,B1,A2")
+** INPUTS:      const char *input : Input string (e.g., "a1,b1,a2")
 **              int maxCount      : Maximum allowed positions
 **
 ** OUTPUTS:     int *positions : Array to store board indices
@@ -1355,23 +1355,23 @@ POSITION BuildCustomBoardPosition() {
         printf("\n\n\t=== Custom Board Position Setup ===\n");
         printf("\n\t                             E ↘  _ _\n");
         printf("\t                                /     \\\n");
-        printf("\t                      D ↘  _ _ /   %s  \\ _ _                   \n", "E1");
+        printf("\t                      D ↘  _ _ /   %s  \\ _ _                   \n", "e1");
         printf("\t                         /     \\       /     \\\n");
-        printf("\t               C ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _          \n", "D1", "E2");
+        printf("\t               C ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _          \n", "d1", "e2");
         printf("\t                  /     \\       /     \\       /     \\\n");
-        printf("\t        B ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "C1", "D2", "E3");
+        printf("\t        B ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "c1", "d2", "e3");
         printf("\t           /     \\       /     \\       /     \\       /     \\\n");
-        printf("\t A ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "B1", "C2", "D3", "E4");
+        printf("\t A ↘  _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _   \n", "b1", "c2", "d3", "e4");
         printf("\t    /     \\       /     \\       /     \\       /     \\       /     \\\n");
-        printf("\t   /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\   \n", "A1", "B2", "C3", "D4", "E5");
+        printf("\t   /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\   \n", "a1", "b2", "c3", "d4", "e5");
         printf("\t   \\       /     \\       /     \\       /     \\       /     \\       /\n");
-        printf("\t    \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   \n", "A2", "B3", "C4", "D5");
+        printf("\t    \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   \n", "a2", "b3", "c4", "d5");
         printf("\t    ↗     \\       /     \\       /     \\       /     \\       /\n");
-        printf("\t   1       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /        \n", "A3", "B4", "C5");
+        printf("\t   1       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /        \n", "a3", "b4", "c5");
         printf("\t           ↗     \\       /     \\       /     \\       /\n");
-        printf("\t          2       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /            \n", "A4", "B5");
+        printf("\t          2       \\ _ _ /   %s  \\ _ _ /   %s  \\ _ _ /            \n", "a4", "b5");
         printf("\t                  ↗     \\       /     \\       /\n");
-        printf("\t                 3       \\ _ _ /   %s  \\ _ _ /                 \n", "A5");
+        printf("\t                 3       \\ _ _ /   %s  \\ _ _ /                 \n", "a5");
         printf("\t                         ↗     \\       /\n");
         printf("\t                        4       \\ _ _ /\n");
         printf("\t                                ↗       \n");
@@ -1380,7 +1380,7 @@ POSITION BuildCustomBoardPosition() {
 
         // Get Blue piece positions
         while (retries < MAX_RETRIES) {
-                printf("\tEnter Blue piece coordinates (e.g., 'A1,B1,A2'): ");
+                printf("\tEnter Blue piece coordinates (e.g., 'a1,b1,a2'): ");
                 GetMyStr(input, sizeof(input));
 
                 if (ParseCoordinateList(input, bluePositions, &blueCount, numpegs)) {
@@ -1402,7 +1402,7 @@ POSITION BuildCustomBoardPosition() {
         // Get Red piece positions
         retries = 0;
         while (retries < MAX_RETRIES) {
-                printf("\tEnter Red piece coordinates (e.g., 'D4,D5,E5'): ");
+                printf("\tEnter Red piece coordinates (e.g., 'd4,d5,e5'): ");
                 GetMyStr(input, sizeof(input));
 
                 if (ParseCoordinateList(input, redPositions, &redCount, numpegs)) {
