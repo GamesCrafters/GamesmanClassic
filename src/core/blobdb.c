@@ -11,7 +11,6 @@
 **
 **************************************************************************/
 
-#include <zlib.h>
 #include "gamesman.h"
 #include "interact.h"
 #include "blobdb.h"
@@ -83,7 +82,7 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     gameBoard = StringToPosition(board);
 
     GetBlobFileNameFromPosition(gameBoard, filename);
-    f = gzopen(filename, "rb");
+    f = fopen(filename, "rb");
     UINT64 information = GetInfoFromBlobFile(gameBoard, f);
     value = GetPrimitiveFromInfo(information);
     remoteness = GetRemotenessFromInfo(information);
@@ -103,7 +102,7 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         POSITION newBoard = DoMove(gameBoard, moveHead->move);
 
         GetBlobFileNameFromPosition(newBoard, filename);
-        f = gzopen(filename, "rb");
+        f = fopen(filename, "rb");
         UINT64 information = GetInfoFromBlobFile(newBoard, f);
         value = GetPrimitiveFromInfo(information);
         remoteness = GetRemotenessFromInfo(information);
@@ -119,4 +118,5 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     }
 
     printf("]}");
+    fclose(f);
 }
