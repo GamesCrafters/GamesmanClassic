@@ -24,7 +24,7 @@
 
 CONST_STRING kAuthorName         = "Seungyou 'Bruce' Kim";
 CONST_STRING kGameName           = "Chinese Checkers";
-CONST_STRING kDBName = "CCheckers";
+CONST_STRING kDBName = "ccheckers";
 
 POSITION gNumberOfPositions; 
 POSITION kBadPosition        = -1;
