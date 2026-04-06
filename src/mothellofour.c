@@ -740,7 +740,6 @@ uint64_t get_next_offset(const uint64_t *vec, size_t n, uint64_t curr) {
 void GetBlobFileNameFromPosition(POSITION p, char *filename) {
     const POSITION c  = GetCanonicalPosition(p);
     uint8_t tier = tier_of(shape(&c));
-    printf("tier: %u\n", tier);
     snprintf(filename, 256, "./data/tier_%02u/tier.dat", (int)tier);
     return;
 }
@@ -752,12 +751,12 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 
     FILE* metadata = fopen("./data/metadata.bin", "rb");
     if (!metadata) {
-        printf("Metadata open error\n");
+        printf("Error: Metadata open error\n");
         return 0;
     }
 
     if ((fread(&W, sizeof(W)/2, 1, metadata)) != 1) {
-        printf("Metadata read error\n");
+        printf("Error: Metadata read error\n");
         return 0;
     }
 
@@ -778,19 +777,19 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 
     FILE* offsets = fopen("./data/offsets.bin", "rb");
     if (!offsets) {
-        printf("Offset open error\n");
+        printf("Error: Offset open error\n");
         return 0;
     }
 
     fseek(offsets, tier_idx, SEEK_SET);
     if ((fread(comp_data_offsets, sizeof(uint64_t), W, offsets)) != W) {
-        printf("Offset read error\n");
+        printf("Error: Offset read error\n");
         fclose(offsets);
         return 0;
     }
 
     if ((fread(comp_idx_offsets, sizeof(uint64_t), W, offsets)) != W) {
-        printf("Offset read error\n");
+        printf("Error: Offset read error\n");
         fclose(offsets);
         return 0;
     }
@@ -804,7 +803,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     snprintf(filename, 256, "./data/tier_%02u/tier.idx", (int)tier);
     FILE* rec_file = fopen(filename, "rb");
     if (!rec_file) {
-        printf("Record open error\n");
+        printf("Error: Record open error\n");
         return 0;
     }
     fseek(rec_file, 0, SEEK_END);
@@ -825,13 +824,13 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     char idx_buffer[comp_idx_size];
 
     if ((fread(data_buffer, 1, comp_data_size, f)) != comp_data_size) {
-        printf("Compressed data read error\n");
+        printf("Error: Compressed data read error\n");
         fclose(rec_file);
         return 0;
     }
 
     if ((fread(idx_buffer, 1, comp_idx_size, rec_file)) != comp_idx_size) {
-        printf("Compressed record read error\n");
+        printf("Error: Compressed record read error\n");
         fclose(rec_file);
         return 0;
     }
@@ -850,7 +849,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     }
 
     if (!match) {
-        printf("No matching page record for shape %lu\n", (unsigned long)sh);
+        printf("Error: No matching page record for shape %lu\n", (unsigned long)sh);
         fclose(rec_file);
         return 0;
     }
@@ -874,21 +873,21 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Get decompressed size and allocate */
     size_t decomp_size = ZSTD_getFrameContentSize(chunk, chunk_size);
     if (decomp_size == ZSTD_CONTENTSIZE_UNKNOWN || decomp_size == ZSTD_CONTENTSIZE_ERROR) {
-        printf("Decompression size error\n");
+        printf("Error: Decompression size error\n");
         fclose(rec_file);
         return 0;
     }
 
     uint8_t *decomp = malloc(decomp_size);
     if (!decomp) {
-        printf("Allocation error\n");
+        printf("Error: Allocation error\n");
         fclose(rec_file);
         return 0;
     }
 
     size_t result = ZSTD_decompress(decomp, decomp_size, chunk, chunk_size);
     if (ZSTD_isError(result)) {
-        printf("Decompression error: %s\n", ZSTD_getErrorName(result));
+        printf("Error: Decompression error: %s\n", ZSTD_getErrorName(result));
         free(decomp);
         fclose(rec_file);
         return 0;
@@ -900,21 +899,17 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     uint8_t value;
 
     if (comp_mode == 0) {
-        printf("Case 0\n");
         uint8_t page[1 << PAGE_BITS];
         decode_key_value_pairs(decomp, decomp_size, page);
         value = page[pos_off];
     } else if (comp_mode == 1) {
-        printf("Case 1\n");
         // simply index into buffer
         value = decomp[pos_off];
     } else if (comp_mode == 2) {
-        printf("Case 2\n");
         uint8_t page[1 << PAGE_BITS];
         decode_group_combinations(decomp, page);
         value = page[pos_off];
     } else {
-        printf("Case 3\n");
         uint8_t page[1 << PAGE_BITS];
         decode_collect_leaves((const uint16_t *)decomp,
                                   decomp_size / sizeof(uint16_t),
@@ -928,7 +923,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     fclose(rec_file);
     if (value) return value;
 
-    printf("SKIP MOVE\n");
+    // printf("SKIP MOVE\n");
 
     /* If skip, make one more function call */
     return GetInfoFromBlobFile(flip(p), f);
