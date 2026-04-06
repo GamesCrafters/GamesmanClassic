@@ -58,6 +58,9 @@ CONST_STRING kHelpExample = "";
 #define N 4
 #define CELLS (N * N)
 #define FULL ((1ULL << CELLS) - 1ULL)
+#define WIN 0b1100'0000
+#define LOSE 0b0100'0000
+#define REMOTENESS_MASK 0b1000'0000
 
 #define R0 0xFULL
 #define R1 (R0 << 4)
@@ -776,6 +779,18 @@ uint64_t get_next_offset(const uint64_t *vec, size_t n, uint64_t curr) {
     return 0;
 }
 
+uint8_t invert(uint8_t child) {
+    uint8_t v = child & 0b11000000; // extract value bits
+
+    if (v == WIN) {
+        return LOSE | ((child & REMOTENESS_MASK) + 1); // WIN becomes LOSE
+    }
+    if (v == LOSE) {
+        return WIN | ((child & REMOTENESS_MASK) + 1); // LOSE becomes WIN
+    }
+    return child + 1; // DRAW remains unchanged
+}
+
 // Need to find shape of position and find its owner
 void GetBlobFileNameFromPosition(POSITION p, char *filename) {
     const POSITION c  = GetCanonicalPosition(p);
@@ -971,7 +986,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     // printf("SKIP MOVE\n");
 
     /* If skip, make one more function call */
-    return GetInfoFromBlobFile(flip(p), f);
+    return invert(GetInfoFromBlobFile(flip(p), f));
 }
 
 STRING GetPrimitiveFromInfo(UINT64 info) {
