@@ -11,14 +11,14 @@
 **************************************************************************/
 
 #include "gamesman.h"
-#include "zstd.h"
+#include <zstd.h>
 #include "stdlib.h"
 
 POSITION gNumberOfPositions;
 POSITION kBadPosition = INVALID_POSITION;
 
-POSITION gInitialPosition;
-POSITION gMinimalPosition;
+POSITION gInitialPosition = (POSITION){ 0b0000010000100000ULL, 0b0000001001000000ULL };
+POSITION gMinimalPosition = (POSITION){ 0b0ULL, 0b0ULL };
 
 CONST_STRING kAuthorName = "Abraham Hsu, Aryaman Asthana";
 CONST_STRING kGameName = "mothellofour";
@@ -225,6 +225,13 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 POSITION starting_position() {
     return (POSITION){ 0b0000010000100000ULL, 0b0000001001000000ULL };
 }
+
+void StartingPositionToString(char* buf) {
+    PositionToAutoGUIString(starting_position(), buf+2);
+    buf[0] = '1';
+    buf[1] = '_';
+    return;
+}
 /************************************************************************
 **
 ** NAME: InitializeDatabases
@@ -232,8 +239,6 @@ POSITION starting_position() {
 ** DESCRIPTION: Initialize the gDatabase, a global variable.
 **
 ************************************************************************/
-
-#ifndef TEST_ONLY
 void InitializeGame() {
     kUsesBlobGamesman = TRUE;
     gCanonicalPosition = GetCanonicalPosition;
@@ -492,7 +497,6 @@ BOOLEAN ValidTextInput(STRING input) {
     (void)input;
     return TRUE;
 }
-#endif
 
 /************************************************************************
 **
@@ -538,18 +542,54 @@ void setOption(int option) {
 }
 
 POSITION StringToPosition(char *positionString) {
-	
-	return NULL_POSITION;
+    
+    POSITION ret_pos;
+    int turn;
+    char *currBoard;
+    if (!ParseStandardOnelinePositionString(positionString, &turn, &currBoard)) {
+        return NULL_POSITION;
+	}
+    int n = strlen(currBoard);
+    ret_pos.player = 0;
+    ret_pos.opponent = 0;
+	for (int idx = 0; idx < n; idx++) {
+        if ((turn == 1 && currBoard[idx] == 'b') || (turn == 2 && currBoard[idx] == 'w')) {
+            ret_pos.player |= (1ULL << idx);
+        } else if ((turn == 2 && currBoard[idx] == 'b') || (turn == 1 && currBoard[idx] == 'w')){
+            ret_pos.opponent |= (1ULL << idx);
+        }
+    }
+	return ret_pos;
 }
 
 void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffer) {
+    for (int i = 0; i < CELLS; i++) {
+        if ((position.player >> i) & 1) {
+            autoguiPositionStringBuffer[i] = 'b';
+        } else if ((position.opponent >> i) & 1) {
+            autoguiPositionStringBuffer[i] = 'w';
+        } else {
+            autoguiPositionStringBuffer[i] = '-';
+        }
+    }
+    autoguiPositionStringBuffer[CELLS] = '\0';
     return;
-    // AutoGUIMakePositionString(turn, pieces, autoguiPositionStringBuffer);
 }
 
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    int move_idx = -1;
+    for (int i = 0; i < CELLS; i++) {
+        if ((move >> i) & 1) {
+            move_idx = i;
+            break;
+        }
+    }
+    if (move_idx == -1) {
+        snprintf(autoguiMoveStringBuffer, 16, "INVALID");
+        return;
+    }
+    snprintf(autoguiMoveStringBuffer, 16, "A_-_%d_x", move_idx);
     return;
-    // AutoGUIMakeMoveButtonStringM(w, w + COLUMNCOUNT, 'x', autoguiMoveStringBuffer);
 }
 
 BITBOARD shape(const POSITION* p) {
@@ -582,9 +622,9 @@ typedef struct PageIdxRec {
 } PageIdxRec;
 #pragma pack(pop)
 
-static_assert(sizeof(PageIdxRec)==20, "PageIdxRec must be 20 bytes");
+_Static_assert(sizeof(PageIdxRec) == 20, "PageIdxRec must be 20 bytes");
 
-uint64_t hash(POSITION *p) {
+uint64_t hash(const POSITION *p) {
     BITBOARD sh = shape(p);
 
 #if defined(__BMI2__)
@@ -740,7 +780,8 @@ uint64_t get_next_offset(const uint64_t *vec, size_t n, uint64_t curr) {
 void GetBlobFileNameFromPosition(POSITION p, char *filename) {
     const POSITION c  = GetCanonicalPosition(p);
     uint8_t tier = tier_of(shape(&c));
-    snprintf(filename, 256, "./data/tier_%02u/tier.dat", (int)tier);
+    // printf("tier: %u\n", tier);
+    snprintf(filename, 256, "./data/othellofour/tier_%02u/tier.dat", (int)tier);
     return;
 }
 
@@ -749,7 +790,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Accessing metadata and offset files*/
     uint64_t W = 0;
 
-    FILE* metadata = fopen("./data/metadata.bin", "rb");
+    FILE* metadata = fopen("./data/othellofour/metadata.bin", "rb");
     if (!metadata) {
         printf("Error: Metadata open error\n");
         return 0;
@@ -775,7 +816,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     uint64_t comp_data_offsets[W];
     uint64_t comp_idx_offsets[W];
 
-    FILE* offsets = fopen("./data/offsets.bin", "rb");
+    FILE* offsets = fopen("./data/othellofour/offsets.bin", "rb");
     if (!offsets) {
         printf("Error: Offset open error\n");
         return 0;
@@ -800,7 +841,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     fseek(f, 0, SEEK_END); 
 
     char filename[256];
-    snprintf(filename, 256, "./data/tier_%02u/tier.idx", (int)tier);
+    snprintf(filename, 256, "./data/othellofour/tier_%02u/tier.idx", (int)tier);
     FILE* rec_file = fopen(filename, "rb");
     if (!rec_file) {
         printf("Error: Record open error\n");
@@ -899,17 +940,21 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     uint8_t value;
 
     if (comp_mode == 0) {
+        // printf("Case 0\n");
         uint8_t page[1 << PAGE_BITS];
         decode_key_value_pairs(decomp, decomp_size, page);
         value = page[pos_off];
     } else if (comp_mode == 1) {
+        // printf("Case 1\n");
         // simply index into buffer
         value = decomp[pos_off];
     } else if (comp_mode == 2) {
+        // printf("Case 2\n");
         uint8_t page[1 << PAGE_BITS];
         decode_group_combinations(decomp, page);
         value = page[pos_off];
     } else {
+        // printf("Case 3\n");
         uint8_t page[1 << PAGE_BITS];
         decode_collect_leaves((const uint16_t *)decomp,
                                   decomp_size / sizeof(uint16_t),
@@ -929,8 +974,16 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     return GetInfoFromBlobFile(flip(p), f);
 }
 
-VALUE GetPrimitiveFromInfo(UINT64 info) {
-    return 0b11000000 & info;
+STRING GetPrimitiveFromInfo(UINT64 info) {
+    UINT64 prim_num = 0b11000000 & info;
+    if (prim_num == 0b11000000) {
+        return "win";
+    } else if (prim_num == 0b01000000) {
+        return "lose";
+    } else if (prim_num == 0b10000000) {
+        return "tie";
+    }
+    return "INVALID";
 }
 
 REMOTENESS GetRemotenessFromInfo(UINT64 info) {

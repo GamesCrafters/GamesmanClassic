@@ -338,8 +338,12 @@ void ServerInteractLoop(void) {
 			}
 			if (gRandomInitialPositionFunPtr != NULL) {
 				PositionToAutoGUIString(gRandomInitialPositionFunPtr(), positionStringBuffer);
-			} else {
-				PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+			} else {				
+				if (kUsesBlobGamesman) {
+					StartingPositionToString(positionStringBuffer);
+				} else {
+					PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+				}
 			}
 			if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = '1'; // Handle Impartial Games
 			printf(RESULT "{\"autoguiPosition\":\"%s\"", positionStringBuffer);

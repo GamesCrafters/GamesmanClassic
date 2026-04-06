@@ -30,6 +30,8 @@ OUTOBJSUFFIX=""								# Object file extension
 OUTRMOBJS=""								# How to remove all object files
 #OUTWISHLOC=""								# Location of wish, deprecated
 OUTPYTHONCFLAGS="-fno-strict-aliasing -DNDEBUG -fPIC -c -g"	# The flags for compiling pygamesman
+OUTZSTDCFLAGS=""
+OUTZSTDLIBFLAGS=""
 
 ###
 ### Set up arguments to configure
@@ -173,6 +175,21 @@ AC_SEARCH_LIBS(cos, m)
 AC_SEARCH_LIBS(connect, socket)
 AC_SEARCH_LIBS(gethostbyname, nsl)
 AC_SEARCH_LIBS(gzopen, z,,AC_MSG_ERROR([install zlib (http://www.zlib.org/)]))
+
+dnl Check for zstd
+AC_CHECK_HEADERS([zstd.h], [zstd_header_found=yes], [zstd_header_found=no])
+
+AC_CHECK_LIB(zstd, ZSTD_compress,
+    [zstd_lib_found=yes],
+    [zstd_lib_found=no])
+
+if test "$zstd_header_found" = "yes" -a "$zstd_lib_found" = "yes"
+then
+    OUTZSTDCFLAGS="-DHAVE_ZSTD"
+    OUTZSTDLIBFLAGS="-lzstd"
+else
+    AC_MSG_WARN([zstd not found, zstd compression support will not be enabled.])
+fi
 
 OUTLDFLAGS="$OUTLDFLAGS $LIBS"
 
@@ -565,6 +582,8 @@ AC_SUBST(GMPCFLAGS, $OUTGMPCFLAGS)
 AC_SUBST(GMPLIBFLAGS, $OUTGMPLIBFLAGS)
 AC_SUBST(XMLCFLAGS, $OUTXMLCFLAGS)
 AC_SUBST(XMLLIBFLAGS, $OUTXMLLIBFLAGS)
+AC_SUBST(ZSTDCFLAGS, $OUTZSTDCFLAGS)
+AC_SUBST(ZSTDLIBFLAGS, $OUTZSTDLIBFLAGS)
 
 ###
 ### Do output
