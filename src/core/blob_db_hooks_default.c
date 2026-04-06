@@ -14,7 +14,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 }
 
 __attribute__((weak))
-VALUE GetPrimitiveFromInfo(UINT64 info) {
+STRING GetPrimitiveFromInfo(UINT64 info) {
     (void)info;
     return 0;
 }
@@ -23,4 +23,10 @@ __attribute__((weak))
 REMOTENESS GetRemotenessFromInfo(UINT64 info) {
     (void)info;
     return 0;
+}
+
+__attribute__((weak))
+void StartingPositionToString(char* buf) {
+    (void)buf;
+    return;
 }

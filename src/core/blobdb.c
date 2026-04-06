@@ -11,6 +11,10 @@
 **
 **************************************************************************/
 
+#include <zlib.h>
+#include <sys/stat.h>
+#include "autoguistrings.h"
+#include <dirent.h>
 #include "gamesman.h"
 #include "interact.h"
 #include "blobdb.h"
@@ -22,6 +26,8 @@ REMOTENESS      blobdb_get_remoteness           (POSITION pos);
 
 BOOLEAN         blobdb_save_database            ();
 BOOLEAN         blobdb_load_database            ();
+
+POSITION        flip_pos                        (POSITION pos);
 
 void blobdb_init(DB_Table *new_db) {
 
@@ -52,6 +58,12 @@ BOOLEAN blobdb_load_database() {
 	return TRUE;
 }
 
+POSITION flip_pos(POSITION pos) {
+    POSITION new_pos;
+    new_pos.player = pos.opponent;
+    new_pos.opponent = pos.player;
+    return new_pos;
+}
 
 /* We need to print out the response in JSON format for server interaction. */
 void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
@@ -67,13 +79,9 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
 	}
 
     int boardLength = strlen(currBoard);
-    char boardArr[boardLength + 1];
-    memcpy(boardArr, currBoard, sizeof(char)*boardLength);
-
-    boardArr[boardLength] = '\0';
 
     int remoteness;
-    VALUE value;
+    STRING value;
     FILE *f;
     char filename[256];
     POSITION gameBoard;
@@ -81,25 +89,51 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     // Change this later, we need a function that changes the board encoding to a POSITION. We can define this in the m___ file.
     gameBoard = StringToPosition(board);
 
+    MOVELIST *moves = GenerateMoves(gameBoard);
+    MOVELIST *moveHead = moves;
+    char autoguiMoveStringBuffer[64];
+    int new_turn = (turn % 2) + 1;
+
     GetBlobFileNameFromPosition(gameBoard, filename);
     f = fopen(filename, "rb");
+    if (!f) {
+        printf("Blob file can't be opened.");
+        return;
+    }
     UINT64 information = GetInfoFromBlobFile(gameBoard, f);
     value = GetPrimitiveFromInfo(information);
     remoteness = GetRemotenessFromInfo(information);
+
+    // if ((moves == NULL) && remoteness != 0) {
+    //     fclose(f);
+    //     gameBoard = flip_pos(gameBoard);
+    //     moves = GenerateMoves(gameBoard);
+    //     moveHead = moves;
+    //     new_turn = turn;
+    //     GetBlobFileNameFromPosition(gameBoard, filename);
+    //     f = fopen(filename, "rb");
+    //     UINT64 information = GetInfoFromBlobFile(gameBoard, f);
+    //     value = GetPrimitiveFromInfo(information);
+    //     remoteness = GetRemotenessFromInfo(information);
+    // }
 
     printf("\"position\":\"%s\",\"autoguiPosition\":\"%s\",", board, board);
 	printf("\"remoteness\":%d,", remoteness);
     printf("\"positionValue\":\"%s\",", value);
 	printf("\"moves\":[");
 
-    AutoGUIMakePositionString(turn, boardArr, positionStringBuffer);
-
-    MOVELIST *moves = GenerateMoves(gameBoard);
-    MOVELIST *moveHead = moves;
-    char autoguiMoveStringBuffer[64];
+    char boardArr[boardLength + 1];
+    boardArr[boardLength] = '\0';
 
     while (moveHead) {
         POSITION newBoard = DoMove(gameBoard, moveHead->move);
+        if (new_turn == 2) {
+            PositionToAutoGUIString(flip_pos(newBoard), boardArr);
+        } else {
+            PositionToAutoGUIString(newBoard, boardArr);
+        }
+
+        AutoGUIMakePositionString(new_turn, boardArr, positionStringBuffer);
 
         GetBlobFileNameFromPosition(newBoard, filename);
         f = fopen(filename, "rb");
@@ -112,9 +146,12 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
         printf("\"remoteness\":%d,", remoteness);
         printf("\"positionValue\":\"%s\",", value);
-        printf("\"autoguiMove\":\"A_-_%d\",", autoguiMoveStringBuffer);
+        printf("\"autoguiMove\":\"%s\",", autoguiMoveStringBuffer);
         printf("\"move\":\"%llu\"}", moveHead->move);
         moveHead = moveHead->next;
+        if (moveHead) {
+            printf(",");
+        }
     }
 
     printf("]}");

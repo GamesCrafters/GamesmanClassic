@@ -140,5 +140,7 @@ gamesman.a: $(MODULES)
 	$(AR) $@ $(MODULES) ; $(RANLIB) $@
 	cp gamesman.a ../gamesman.a ; $(RANLIB) ../gamesman.a
 
+$(BLOBDB_OBJ): CFLAGS += -DUSE_ENCODING_POSITION
+
 $(MODULES): %.o: %.c $(INCLUDES)
 	$(CC) $(CFLAGS) -c -o $@ $<
