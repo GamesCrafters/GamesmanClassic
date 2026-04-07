@@ -73,12 +73,11 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
 
     int turn;
     char *currBoard;
+    // Check to see if the position is valid or not
 	if (!ParseStandardOnelinePositionString(board, &turn, &currBoard)) {
 		printf("}");
         return;
 	}
-
-    int boardLength = strlen(currBoard);
 
     int remoteness;
     STRING value;
@@ -86,14 +85,16 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     char filename[256];
     POSITION gameBoard;
 
-    // Change this later, we need a function that changes the board encoding to a POSITION. We can define this in the m___ file.
+    // Takes in board position string, not autogui string
     gameBoard = StringToPosition(board);
 
+    // Generates moves for current position
     MOVELIST *moves = GenerateMoves(gameBoard);
     MOVELIST *moveHead = moves;
     char autoguiMoveStringBuffer[64];
     int new_turn = (turn % 2) + 1;
 
+    // Finds information of current position in blob database
     GetBlobFileNameFromPosition(gameBoard, filename);
     f = fopen(filename, "rb");
     if (!f) {
@@ -104,46 +105,89 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     value = GetPrimitiveFromInfo(information);
     remoteness = GetRemotenessFromInfo(information);
 
-    // if ((moves == NULL) && remoteness != 0) {
-    //     fclose(f);
-    //     gameBoard = flip_pos(gameBoard);
-    //     moves = GenerateMoves(gameBoard);
-    //     moveHead = moves;
-    //     new_turn = turn;
-    //     GetBlobFileNameFromPosition(gameBoard, filename);
-    //     f = fopen(filename, "rb");
-    //     UINT64 information = GetInfoFromBlobFile(gameBoard, f);
-    //     value = GetPrimitiveFromInfo(information);
-    //     remoteness = GetRemotenessFromInfo(information);
-    // }
+    char autoguiBoardArr[MAX_POSITION_STRING_LENGTH];
+    autoguiBoardArr[MAX_POSITION_STRING_LENGTH - 1] = '\0';
 
-    printf("\"position\":\"%s\",\"autoguiPosition\":\"%s\",", board, board);
+    char positionString[MAX_POSITION_STRING_LENGTH];
+    positionString[MAX_POSITION_STRING_LENGTH - 1] = '\0';
+
+    if (turn == 2) {
+        PositionToAutoGUIString(flip_pos(gameBoard), autoguiBoardArr);
+        BlobPositionToString(flip_pos(gameBoard), positionString);
+    } else {
+        PositionToAutoGUIString(gameBoard, autoguiBoardArr);
+        BlobPositionToString(gameBoard, positionString);
+    }
+
+    AutoGUIMakePositionString(turn, positionString, positionStringBuffer);
+    printf("\"position\":\"%s\",", positionStringBuffer);
+
+    AutoGUIMakePositionString(turn, autoguiBoardArr, positionStringBuffer);
+    printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+
 	printf("\"remoteness\":%d,", remoteness);
     printf("\"positionValue\":\"%s\",", value);
 	printf("\"moves\":[");
-
-    char boardArr[boardLength + 1];
-    boardArr[boardLength] = '\0';
-
-    while (moveHead) {
-        POSITION newBoard = DoMove(gameBoard, moveHead->move);
+    POSITION newBoard;
+    if (moveHead == NULL && remoteness != 0) {
+        newBoard = DoMove(gameBoard, ~0ULL);
         if (new_turn == 2) {
-            PositionToAutoGUIString(flip_pos(newBoard), boardArr);
+            PositionToAutoGUIString(flip_pos(newBoard), autoguiBoardArr);
+            BlobPositionToString(flip_pos(newBoard), positionString);
         } else {
-            PositionToAutoGUIString(newBoard, boardArr);
+            PositionToAutoGUIString(newBoard, autoguiBoardArr);
+            BlobPositionToString(newBoard, positionString);
         }
 
-        AutoGUIMakePositionString(new_turn, boardArr, positionStringBuffer);
+        GetBlobFileNameFromPosition(newBoard, filename);
+        fclose(f);
+        f = fopen(filename, "rb");
+        information = GetInfoFromBlobFile(newBoard, f);
+        value = GetPrimitiveFromInfo(information);
+        remoteness = GetRemotenessFromInfo(information);
+
+        MoveToAutoGUIString(gameBoard, ~0ULL, autoguiMoveStringBuffer);
+
+        AutoGUIMakePositionString(new_turn, positionString, positionStringBuffer);
+        printf("{\"position\":\"%s\",", positionStringBuffer);
+
+        AutoGUIMakePositionString(new_turn, autoguiBoardArr, positionStringBuffer);
+        printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+
+        printf("\"remoteness\":%d,", remoteness);
+        printf("\"positionValue\":\"%s\",", value);
+        printf("\"autoguiMove\":\"%s\",", autoguiMoveStringBuffer);
+        printf("\"move\":\"%llu\"}", ~0ULL);
+        printf("]}");
+        fclose(f);
+        return;
+    }
+    
+    while (moveHead) {
+        newBoard = DoMove(gameBoard, moveHead->move);
+        if (new_turn == 2) {
+            PositionToAutoGUIString(flip_pos(newBoard), autoguiBoardArr);
+            BlobPositionToString(flip_pos(newBoard), positionString);
+        } else {
+            PositionToAutoGUIString(newBoard, autoguiBoardArr);
+            BlobPositionToString(newBoard, positionString);
+        }
 
         GetBlobFileNameFromPosition(newBoard, filename);
+        fclose(f);
         f = fopen(filename, "rb");
-        UINT64 information = GetInfoFromBlobFile(newBoard, f);
+        information = GetInfoFromBlobFile(newBoard, f);
         value = GetPrimitiveFromInfo(information);
         remoteness = GetRemotenessFromInfo(information);
 
         MoveToAutoGUIString(gameBoard, moveHead->move, autoguiMoveStringBuffer);
+
+        AutoGUIMakePositionString(new_turn, positionString, positionStringBuffer);
         printf("{\"position\":\"%s\",", positionStringBuffer);
+
+        AutoGUIMakePositionString(new_turn, autoguiBoardArr, positionStringBuffer);
         printf("\"autoguiPosition\":\"%s\",", positionStringBuffer);
+
         printf("\"remoteness\":%d,", remoteness);
         printf("\"positionValue\":\"%s\",", value);
         printf("\"autoguiMove\":\"%s\",", autoguiMoveStringBuffer);
