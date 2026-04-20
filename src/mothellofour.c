@@ -60,6 +60,7 @@ CONST_STRING kHelpExample = "";
 #define FULL ((1ULL << CELLS) - 1ULL)
 #define WIN 0b11000000
 #define LOSE 0b01000000
+#define SKIP 0b00000001
 #define REMOTENESS_MASK_OTHELLO 0b111111
 
 #define R0 0xFULL
@@ -1002,9 +1003,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Free resources and return if possible */
     free(decomp);
     fclose(rec_file);
-    if (value) return value;
-
-    // printf("SKIP MOVE\n");
+    if (value != SKIP) return value;
 
     /* If skip, make one more function call */
     return invert(GetInfoFromBlobFile(flip(p), f));
