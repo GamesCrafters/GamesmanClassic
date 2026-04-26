@@ -94,6 +94,8 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     char autoguiMoveStringBuffer[64];
     int new_turn = (turn % 2) + 1;
 
+    // here
+
     GetBlobFileNameFromPosition(gameBoard, filename);
     f = fopen(filename, "rb");
     if (!f) {
