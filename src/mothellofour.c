@@ -58,9 +58,10 @@ CONST_STRING kHelpExample = "";
 #define N 4
 #define CELLS (N * N)
 #define FULL ((1ULL << CELLS) - 1ULL)
-#define WIN 0b1100'0000
-#define LOSE 0b0100'0000
-#define REMOTENESS_MASK 0b1000'0000
+#define WIN 0b11000000
+#define LOSE 0b01000000
+#define SKIP 0b00000001
+#define REMOTENESS_MASK_OTHELLO 0b111111
 
 #define R0 0xFULL
 #define R1 (R0 << 4)
@@ -230,7 +231,7 @@ POSITION starting_position() {
 }
 
 void StartingPositionToString(char* buf) {
-    PositionToAutoGUIString(starting_position(), buf+2);
+    BlobPositionToString(starting_position(), buf+2);
     buf[0] = '1';
     buf[1] = '_';
     return;
@@ -301,9 +302,12 @@ BITBOARD sweep_r(BITBOARD mv, BITBOARD me, BITBOARD opp, int s, BITBOARD mask) {
 }
 
 POSITION DoMove(POSITION position, MOVE move) {
+    
     BITBOARD me = position.player & FULL;
     BITBOARD opp = position.opponent & FULL;
-
+    if (move == ~0ULL) {
+        return (POSITION){ opp & FULL , me & FULL };
+    }
     BITBOARD flips =
         sweep_l(move, me, opp, 1,    NOT_A) |  // East
         sweep_r(move, me, opp, 1,    NOT_D) |  // West
@@ -575,11 +579,29 @@ void PositionToAutoGUIString(POSITION position, char *autoguiPositionStringBuffe
             autoguiPositionStringBuffer[i] = '-';
         }
     }
-    autoguiPositionStringBuffer[CELLS] = '\0';
+    autoguiPositionStringBuffer[CELLS] = '-';
+    autoguiPositionStringBuffer[CELLS+1] = '\0';
     return;
 }
 
+void BlobPositionToString(POSITION position, char* positionStringBuffer) {
+    for (int i = 0; i < CELLS; i++) {
+        if ((position.player >> i) & 1) {
+            positionStringBuffer[i] = 'b';
+        } else if ((position.opponent >> i) & 1) {
+            positionStringBuffer[i] = 'w';
+        } else {
+            positionStringBuffer[i] = '-';
+        }
+    }
+    positionStringBuffer[CELLS] = '\0';
+}
+
 void MoveToAutoGUIString(POSITION position, MOVE move, char *autoguiMoveStringBuffer) {
+    if (move == ~0ULL) {
+        snprintf(autoguiMoveStringBuffer, 16, "A_p_%d_x", CELLS);
+        return;
+    }
     int move_idx = -1;
     for (int i = 0; i < CELLS; i++) {
         if ((move >> i) & 1) {
@@ -783,10 +805,10 @@ uint8_t invert(uint8_t child) {
     uint8_t v = child & 0b11000000; // extract value bits
 
     if (v == WIN) {
-        return LOSE | ((child & REMOTENESS_MASK) + 1); // WIN becomes LOSE
+        return LOSE | ((child & REMOTENESS_MASK_OTHELLO) + 1); // WIN becomes LOSE
     }
     if (v == LOSE) {
-        return WIN | ((child & REMOTENESS_MASK) + 1); // LOSE becomes WIN
+        return WIN | ((child & REMOTENESS_MASK_OTHELLO) + 1); // LOSE becomes WIN
     }
     return child + 1; // DRAW remains unchanged
 }
@@ -981,9 +1003,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Free resources and return if possible */
     free(decomp);
     fclose(rec_file);
-    if (value) return value;
-
-    // printf("SKIP MOVE\n");
+    if (value != SKIP) return value;
 
     /* If skip, make one more function call */
     return invert(GetInfoFromBlobFile(flip(p), f));

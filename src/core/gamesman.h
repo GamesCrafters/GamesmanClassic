@@ -69,7 +69,7 @@ void                    GetBlobFileNameFromPosition     (POSITION p, char *f);
 UINT64                  GetInfoFromBlobFile             (POSITION p, FILE *f);
 STRING                  GetPrimitiveFromInfo            (UINT64 info);
 REMOTENESS              GetRemotenessFromInfo           (UINT64 info);
-
+void                    BlobPositionToString            (POSITION position, char* positionStringBuffer);
 
 #endif /* GMCORE_GAMESMAN_H */
 

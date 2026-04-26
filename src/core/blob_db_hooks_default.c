@@ -30,3 +30,9 @@ void StartingPositionToString(char* buf) {
     (void)buf;
     return;
 }
+
+__attribute__((weak))
+void BlobPositionToString(POSITION position, char* positionStringBuffer) {
+    PositionToAutoGUIString(position, positionStringBuffer);
+    return;
+}
