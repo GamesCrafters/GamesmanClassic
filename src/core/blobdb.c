@@ -95,9 +95,9 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     int new_turn = (turn % 2) + 1;
 
     // unzip data
-    int unzipResult = system("unzip -o data.zip");
+    int unzipResult = system("7z x data.7z");
     if (unzipResult != 0) {
-        printf("Failed to unzip data.zip");
+        printf("Failed to extract data.7z\n");
         return;
     }
 

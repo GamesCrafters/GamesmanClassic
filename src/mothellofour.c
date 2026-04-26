@@ -711,7 +711,7 @@ POSITION flip(POSITION p) {
 }
 
 void decode_key_value_pairs(const uint8_t* buf, size_t len, uint8_t* page) {
-    memset(page, 0, 1 << PAGE_BITS);
+    memset(page, 0, 1ULL << PAGE_BITS);
 
     size_t i = 0;
     while (i < len) {
@@ -726,7 +726,7 @@ void decode_key_value_pairs(const uint8_t* buf, size_t len, uint8_t* page) {
 }
 
 void decode_group_combinations(const uint8_t* encoded, uint8_t* page) {
-    int limit = 1 << PAGE_BITS;
+    int limit = 1ULL << PAGE_BITS;
 
     size_t idx = 0;
     page[0] = encoded[idx++];
@@ -824,7 +824,7 @@ void GetBlobFileNameFromPosition(POSITION p, char *filename) {
 
 // Need to, given the file, find the page, then find the offset/position
 UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
-    /* Accessing metadata and offset files*/
+    /* Start: accessing metadata information */
     uint64_t W = 0;
 
     FILE* metadata = fopen("./data/metadata.bin", "rb");
@@ -835,19 +835,20 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 
     if ((fread(&W, sizeof(W)/2, 1, metadata)) != 1) {
         printf("Error: Metadata read error\n");
+        fclose(metadata);
         return 0;
     }
 
     fclose(metadata);
+    /* End: accessing metadata information */
 
-    /* Retrieving offsets to compressed data/page records (tier, owner) */
+    /* Start: retrieving offsets for compressed data/page records */
     const POSITION c  = GetCanonicalPosition(p);
     const BITBOARD sh = shape(&c);
     const uint64_t h  = hash(&c);
 
     int owner = owner_of_shape(sh, W);
     uint8_t tier = tier_of(sh);
-
     uint64_t tier_idx = (tier - 4) * 2 * (W * sizeof(W));
 
     uint64_t comp_data_offsets[W];
@@ -873,18 +874,10 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     }
 
     fclose(offsets);
+    /* End: retrieving offsets for compressed data/page records */
 
-    /* Determine size of compressed data in bytes */
+    /* Start: find correct offsets for data/page records */
     fseek(f, 0, SEEK_END); 
-
-    char filename[256];
-    snprintf(filename, 256, "./data/tier_%02u/tier.idx", (int)tier);
-    FILE* rec_file = fopen(filename, "rb");
-    if (!rec_file) {
-        printf("Error: Record open error\n");
-        return 0;
-    }
-    fseek(rec_file, 0, SEEK_END);
 
     uint64_t comp_data_size = (comp_data_offsets[owner] == array_max(comp_data_offsets, W))
     ? ftell(f) - comp_data_offsets[owner]
@@ -892,43 +885,79 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 
     fseek(f, comp_data_offsets[owner], SEEK_SET); // (tier, owner) based offset to compressed data
 
-    uint64_t comp_idx_size = (comp_idx_offsets[owner] == array_max(comp_idx_offsets, W))
-    ? ftell(rec_file) - comp_idx_offsets[owner]
-    : get_next_offset(comp_idx_offsets, W, comp_idx_offsets[owner]) - comp_idx_offsets[owner];
-    fseek(rec_file, comp_idx_offsets[owner], SEEK_SET); // (tier, owner) based offset to compressed records
+    // memory mapped record file for quick random access
+    char filename[256];
+    snprintf(filename, 256, "./data/tier_%02u/tier.idx", (int)tier);
+    FILE* rec_file = fopen(filename, "rb");
+    if (!rec_file) {
+        printf("Error: Record file open error\n");
+        return 0;
+    }
 
-    /* Load the relevant compressed data into buffers */
-    char data_buffer[comp_data_size];
-    char idx_buffer[comp_idx_size];
+    int fd = fileno(rec_file);  
+    struct stat st;
+    if (fstat(fd, &st) == -1) {
+        perror("fstat");
+        fclose(rec_file);
+        return 0;
+    }
+
+    if (comp_idx_offsets[owner] >= (uint64_t)st.st_size) {
+        printf("Error: idx offset out of bounds\n");
+        fclose(rec_file);
+        return 0;
+    }
+
+    uint8_t *record_map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    if (record_map == MAP_FAILED) {
+        perror("mmap");
+        fclose(rec_file);
+        return 0;
+    }
+
+    uint64_t comp_idx_size = (comp_idx_offsets[owner] == array_max(comp_idx_offsets, W))
+    ? st.st_size - comp_idx_offsets[owner]
+    : get_next_offset(comp_idx_offsets, W, comp_idx_offsets[owner]) - comp_idx_offsets[owner];
+
+    fclose(rec_file);
+
+    if (comp_idx_size % sizeof(struct PageIdxRec) != 0) {
+        munmap(record_map, st.st_size);
+        return 0;
+    }
+    /* End: find correct offsets for data/page records */
+
+    /* Start: load the relevant data into buffer */
+    uint8_t *data_buffer = malloc(comp_data_size);
+    if (!data_buffer) {
+        munmap(record_map, st.st_size);
+        return 0;
+    }
 
     if ((fread(data_buffer, 1, comp_data_size, f)) != comp_data_size) {
         printf("Error: Compressed data read error\n");
-        fclose(rec_file);
+        free(data_buffer);
+        munmap(record_map, st.st_size);
         return 0;
     }
+    /* End: load the relevant data into buffer */
 
-    if ((fread(idx_buffer, 1, comp_idx_size, rec_file)) != comp_idx_size) {
-        printf("Error: Compressed record read error\n");
-        fclose(rec_file);
-        return 0;
-    }
-
-    /* Find the matching page record */
-    size_t idx_size = comp_idx_size; // uncompressed page records (only gzipped)
-
-    size_t num_records = idx_size / sizeof(struct PageIdxRec);
-    struct PageIdxRec *records = (struct PageIdxRec *)idx_buffer;
+    /* Start: find the matching page record */
+    size_t num_records = (size_t)comp_idx_size / sizeof(struct PageIdxRec);
+    struct PageIdxRec *records = (struct PageIdxRec *)(record_map + comp_idx_offsets[owner]);
 
     struct PageIdxRec *match = NULL;
     for (size_t i = 0; i < num_records; i++) {
         if (records[i].shape == sh && records[i].page == (h >> PAGE_BITS)) {
             match = &records[i];
+            break;
         }
     }
 
     if (!match) {
         printf("Error: No matching page record for shape %lu\n", (unsigned long)sh);
-        fclose(rec_file);
+        free(data_buffer);
+        munmap(record_map, st.st_size);
         return 0;
     }
 
@@ -941,25 +970,34 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     if (match_index < num_records - 1) {
         next_off = records[match_index + 1].off & ~(3ULL << 62);
     } else {
-        // Last record
-        next_off = comp_data_size;
+        next_off = comp_data_size; // Last record
     }
 
+    if (raw_off >= comp_data_size || next_off > comp_data_size || raw_off >= next_off) {
+        printf("Error: invalid offsets\n");
+        free(data_buffer);
+        munmap(record_map, st.st_size);
+        return 0;
+    }
+    /* End: find the matching page record */
+
+    /* Start: decompress the relevant data */
     uint8_t *chunk = (uint8_t *)data_buffer + raw_off;
     size_t chunk_size = ZSTD_findFrameCompressedSize(chunk, next_off - raw_off);
 
-    /* Get decompressed size and allocate */
     size_t decomp_size = ZSTD_getFrameContentSize(chunk, chunk_size);
     if (decomp_size == ZSTD_CONTENTSIZE_UNKNOWN || decomp_size == ZSTD_CONTENTSIZE_ERROR) {
         printf("Error: Decompression size error\n");
-        fclose(rec_file);
+        free(data_buffer);
+        munmap(record_map, st.st_size);
         return 0;
     }
 
     uint8_t *decomp = malloc(decomp_size);
     if (!decomp) {
         printf("Error: Allocation error\n");
-        fclose(rec_file);
+        free(data_buffer);
+        munmap(record_map, st.st_size);
         return 0;
     }
 
@@ -967,42 +1005,38 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     if (ZSTD_isError(result)) {
         printf("Error: Decompression error: %s\n", ZSTD_getErrorName(result));
         free(decomp);
-        fclose(rec_file);
+        free(data_buffer);
+        munmap(record_map, st.st_size);
         return 0;
     }
 
+    free(data_buffer);
+    /* End: decompress the relevant data */
+
     /* Reformat decompressed data based on mode of compression */
-    uint16_t pos_off = (uint16_t)(h & ((1 << PAGE_BITS) - 1));
+    uint16_t pos_off = (uint16_t)(h & ((1ULL << PAGE_BITS) - 1));
     uint8_t comp_mode = (match->off >> 62) & 0b11;
     uint8_t value;
 
     if (comp_mode == 0) {
-        // printf("Case 0\n");
-        uint8_t page[1 << PAGE_BITS];
+        uint8_t page[1ULL << PAGE_BITS];
         decode_key_value_pairs(decomp, decomp_size, page);
         value = page[pos_off];
     } else if (comp_mode == 1) {
-        // printf("Case 1\n");
-        // simply index into buffer
         value = decomp[pos_off];
     } else if (comp_mode == 2) {
-        // printf("Case 2\n");
-        uint8_t page[1 << PAGE_BITS];
+        uint8_t page[1ULL << PAGE_BITS];
         decode_group_combinations(decomp, page);
         value = page[pos_off];
     } else {
-        // printf("Case 3\n");
-        uint8_t page[1 << PAGE_BITS];
-        decode_collect_leaves((const uint16_t *)decomp,
-                                  decomp_size / sizeof(uint16_t),
-                                  page,
-                                  1 << PAGE_BITS);
+        uint8_t page[1ULL << PAGE_BITS];
+        decode_collect_leaves((const uint16_t *)decomp, decomp_size / sizeof(uint16_t), page, 1ULL << PAGE_BITS);
         value = page[pos_off];
     }
 
     /* Free resources and return if possible */
     free(decomp);
-    fclose(rec_file);
+    munmap(record_map, st.st_size);
     if (value != SKIP) return value;
 
     /* If skip, make one more function call */
