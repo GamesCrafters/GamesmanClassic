@@ -12,6 +12,7 @@
 
 #include "gamesman.h"
 #include <zstd.h>
+#include <sys/mman.h>
 #include "stdlib.h"
 
 POSITION gNumberOfPositions;
@@ -818,7 +819,7 @@ void GetBlobFileNameFromPosition(POSITION p, char *filename) {
     const POSITION c  = GetCanonicalPosition(p);
     uint8_t tier = tier_of(shape(&c));
     // printf("tier: %u\n", tier);
-    snprintf(filename, 256, "./data/tier_%02u/tier.dat", (int)tier);
+    snprintf(filename, 256, "./data/mothellofour/tier_%02u/tier.dat", (int)tier);
     return;
 }
 
@@ -827,7 +828,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Start: accessing metadata information */
     uint64_t W = 0;
 
-    FILE* metadata = fopen("./data/metadata.bin", "rb");
+    FILE* metadata = fopen("./data/mothellofour/metadata.bin", "rb");
     if (!metadata) {
         printf("Error: Metadata open error\n");
         return 0;
@@ -854,7 +855,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     uint64_t comp_data_offsets[W];
     uint64_t comp_idx_offsets[W];
 
-    FILE* offsets = fopen("./data/offsets.bin", "rb");
+    FILE* offsets = fopen("./data/mothellofour/offsets.bin", "rb");
     if (!offsets) {
         printf("Error: Offset open error\n");
         return 0;
@@ -887,7 +888,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
 
     // memory mapped record file for quick random access
     char filename[256];
-    snprintf(filename, 256, "./data/tier_%02u/tier.idx", (int)tier);
+    snprintf(filename, 256, "./data/mothellofour/tier_%02u/tier.idx", (int)tier);
     FILE* rec_file = fopen(filename, "rb");
     if (!rec_file) {
         printf("Error: Record file open error\n");

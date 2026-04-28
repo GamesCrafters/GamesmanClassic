@@ -431,6 +431,9 @@ class GameProcess():
     # Parsing a result that looks like
     # result =>> {result}
     def parse_response(self, response: str) -> str:
+        print("-----------------------------------")
+        print(response.split('=>>'))
+        print("-----------------------------------")
         result = response.split('=>>')[1].strip()
         self.server.log.debug(f'Split off "result =>>"')
         parsed = json.loads(result)
