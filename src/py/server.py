@@ -31,6 +31,8 @@ log_filename: str = "server.log"
 close_on_timeout: bool = False
 
 start_time = time.time()
+_server_process = psutil.Process()
+_server_process.cpu_percent()
 
 def format_time(seconds: float) -> str:
     seconds = int(seconds)
@@ -210,17 +212,14 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         self.server.log.debug(f"Sent headers {str(self.headers)}.")
         self.server.log.debug(f"Sent response {response}")
 
-        
     def handle_health(self):
-        current_process = psutil.Process()
-        with current_process.oneshot():
+        with _server_process.oneshot():
             response = json.dumps({
                 'status': 'ok',
-                'http_code': 200,
                 'uptime': format_time(time.time() - start_time),
-                'cpu_usage': f"{current_process.cpu_percent():.2f}%",
-                'memory_usage': f"{current_process.memory_percent():.2f}%",
-                'timestamp': datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00', 'Z')
+                'cpu_usage': f"{_server_process.cpu_percent():.2f}%",
+                'memory_usage': f"{_server_process.memory_percent():.2f}%",
+                'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
             }).encode('utf-8')
         self.close_connection = True
         self.send_response(200)
@@ -228,8 +227,8 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         self.send_header('Content-Length', str(len(response)))
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
-        self.wfile.write(response)        
-
+        self.wfile.write(response)
+        
 # Represents a classic instance of GamesmanClassic running in interact mode
 # Responsible for receiving requests, and responding to them 
 class GameProcess():
