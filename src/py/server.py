@@ -14,6 +14,8 @@ import logging
 from logging.handlers import RotatingFileHandler
 import urllib.parse
 import game as game
+import psutil
+from datetime import datetime, timezone
 
 bytes_per_mb: int = 1024 ** 2
 
@@ -27,6 +29,14 @@ root_game_directory: str = "./bin/"
 log_filename: str = "server.log"
 
 close_on_timeout: bool = False
+
+start_time = time.time()
+_server_process = psutil.Process()
+_server_process.cpu_percent()
+
+def format_time(seconds: float) -> str:
+    seconds = int(seconds)
+    return f"{seconds // 86400}d {(seconds % 86400) // 3600}h {(seconds % 3600) // 60}m {seconds % 60}s"
 
 # Seconds to wait for a response from the process before sending timeout_msh
 subprocess_response_timeout: int = 5
@@ -129,6 +139,10 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         # However, we must actually respond to each 
         # request, otherwise the server will hang
         self.close_connection = False
+
+        if self.path == '/health':
+            self.handle_health()
+            return
                 
         unquoted = urllib.parse.unquote(self.path)
         parsed = urllib.parse.urlparse(unquoted)
@@ -196,7 +210,39 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         self.wfile.write(response.encode('utf-8'))
 
         self.server.log.debug(f"Sent headers {str(self.headers)}.")
-        self.server.log.debug(f"Sent response {response}")        
+        self.server.log.debug(f"Sent response {response}")
+
+    def handle_health(self):
+        cpu = _server_process.cpu_percent()
+        memory = _server_process.memory_percent()
+
+        issues = []
+        if cpu > 90:
+            issues.append(f"high CPU usage: {cpu:.2f}%")
+        if memory > 90:
+            issues.append(f"high memory usage: {memory:.2f}%")
+
+        status = 'degraded' if issues else 'ok'
+
+        body = {
+            'status': status,
+            'uptime': format_time(time.time() - start_time),
+            'cpu_usage': f"{cpu:.2f}%",
+            'memory_usage': f"{memory:.2f}%",
+            'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        }
+
+        if issues:
+            body['issues'] = issues
+
+        response = json.dumps(body).encode('utf-8')
+        self.close_connection = True
+        self.send_response(503 if issues else 200)
+        self.send_header('Content-Type', 'application/json')
+        self.send_header('Content-Length', str(len(response)))
+        self.send_header('Access-Control-Allow-Origin', '*')
+        self.end_headers()
+        self.wfile.write(response)
 
 # Represents a classic instance of GamesmanClassic running in interact mode
 # Responsible for receiving requests, and responding to them 
