@@ -213,22 +213,37 @@ class GameRequestHandler(http.server.BaseHTTPRequestHandler):#
         self.server.log.debug(f"Sent response {response}")
 
     def handle_health(self):
-        with _server_process.oneshot():
-            response = json.dumps({
-                'status': 'ok',
-                'uptime': format_time(time.time() - start_time),
-                'cpu_usage': f"{_server_process.cpu_percent():.2f}%",
-                'memory_usage': f"{_server_process.memory_percent():.2f}%",
-                'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-            }).encode('utf-8')
+        cpu = _server_process.cpu_percent()
+        memory = _server_process.memory_percent()
+
+        issues = []
+        if cpu > 90:
+            issues.append(f"high CPU usage: {cpu:.2f}%")
+        if memory > 90:
+            issues.append(f"high memory usage: {memory:.2f}%")
+
+        status = 'degraded' if issues else 'ok'
+
+        body = {
+            'status': status,
+            'uptime': format_time(time.time() - start_time),
+            'cpu_usage': f"{cpu:.2f}%",
+            'memory_usage': f"{memory:.2f}%",
+            'timestamp': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        }
+
+        if issues:
+            body['issues'] = issues
+
+        response = json.dumps(body).encode('utf-8')
         self.close_connection = True
-        self.send_response(200)
+        self.send_response(503 if issues else 200)
         self.send_header('Content-Type', 'application/json')
         self.send_header('Content-Length', str(len(response)))
         self.send_header('Access-Control-Allow-Origin', '*')
         self.end_headers()
         self.wfile.write(response)
-        
+
 # Represents a classic instance of GamesmanClassic running in interact mode
 # Responsible for receiving requests, and responding to them 
 class GameProcess():
