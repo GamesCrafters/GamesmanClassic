@@ -12,6 +12,8 @@
 **************************************************************************/
 
 #include <zlib.h>
+#include <stdlib.h>
+#include <string.h>
 #include <sys/stat.h>
 #include "autoguistrings.h"
 #include <dirent.h>
@@ -65,6 +67,91 @@ POSITION flip_pos(POSITION pos) {
     return new_pos;
 }
 
+typedef struct {
+    FILE *file;
+    void *buffer;
+} GzFileHandle;
+
+static GzFileHandle open_gzip_as_file(const char *filename) {
+    GzFileHandle handle;
+    handle.file = NULL;
+    handle.buffer = NULL;
+
+    gzFile gz = gzopen(filename, "rb");
+    if (!gz) {
+        printf("Error: gzopen failed for %s\n", filename);
+        return handle;
+    }
+
+    size_t capacity = 1024 * 1024;
+    size_t size = 0;
+
+    unsigned char *buffer = (unsigned char *)malloc(capacity);
+    if (!buffer) {
+        gzclose(gz);
+        return handle;
+    }
+
+    while (1) {
+        if (size == capacity) {
+            capacity *= 2;
+            unsigned char *new_buffer = (unsigned char *)realloc(buffer, capacity);
+            if (!new_buffer) {
+                free(buffer);
+                gzclose(gz);
+                return handle;
+            }
+            buffer = new_buffer;
+        }
+
+        int bytes_read = gzread(
+            gz,
+            buffer + size,
+            (unsigned int)(capacity - size)
+        );
+
+        if (bytes_read < 0) {
+            int errnum = 0;
+            const char *err = gzerror(gz, &errnum);
+            printf("Error: gzread failed for %s: %s\n", filename, err);
+            free(buffer);
+            gzclose(gz);
+            return handle;
+        }
+
+        if (bytes_read == 0) {
+            break;
+        }
+
+        size += (size_t)bytes_read;
+    }
+
+    gzclose(gz);
+
+    FILE *f = fmemopen(buffer, size, "rb");
+    if (!f) {
+        printf("Error: fmemopen failed for %s\n", filename);
+        free(buffer);
+        return handle;
+    }
+
+    handle.file = f;
+    handle.buffer = buffer;
+    return handle;
+}
+
+static void close_gzip_file_handle(GzFileHandle *handle) {
+    if (handle->file) {
+        fclose(handle->file);
+        handle->file = NULL;
+    }
+
+    if (handle->buffer) {
+        free(handle->buffer);
+        handle->buffer = NULL;
+    }
+}
+
 /* We need to print out the response in JSON format for server interaction. */
 void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
 
@@ -82,6 +169,7 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     int remoteness;
     STRING value;
     FILE *f;
+    GzFileHandle data_handle;
     char filename[256];
     POSITION gameBoard;
 
@@ -94,17 +182,12 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     char autoguiMoveStringBuffer[64];
     int new_turn = (turn % 2) + 1;
 
-    // unzip data
-    // int unzipResult = system("7z x data.7z");
-    // if (unzipResult != 0) {
-    //     printf("Failed to extract data.7z\n");
-    //     return;
-    // }
-
     GetBlobFileNameFromPosition(gameBoard, filename);
-    f = fopen(filename, "rb");
+    data_handle = open_gzip_as_file(filename);
+    f = data_handle.file;
+
     if (!f) {
-        printf("Blob file can't be opened.");
+        printf("Blob gz file can't be opened.");
         return;
     }
     UINT64 information = GetInfoFromBlobFile(gameBoard, f);
@@ -116,6 +199,9 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
 
     char positionString[MAX_POSITION_STRING_LENGTH];
     positionString[MAX_POSITION_STRING_LENGTH - 1] = '\0';
+
+    char moveString[MAX_MOVE_STRING_LENGTH];
+    moveString[MAX_MOVE_STRING_LENGTH - 1] = '\0';
 
     if (turn == 2) {
         PositionToAutoGUIString(flip_pos(gameBoard), autoguiBoardArr);
@@ -146,8 +232,16 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         }
 
         GetBlobFileNameFromPosition(newBoard, filename);
-        fclose(f);
-        f = fopen(filename, "rb");
+        close_gzip_file_handle(&data_handle);
+
+        data_handle = open_gzip_as_file(filename);
+        f = data_handle.file;
+
+        if (!f) {
+            printf("Blob gz file can't be opened.");
+            return;
+        }
+
         information = GetInfoFromBlobFile(newBoard, f);
         value = GetPrimitiveFromInfo(information);
         remoteness = GetRemotenessFromInfo(information);
@@ -163,9 +257,10 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         printf("\"remoteness\":%d,", remoteness);
         printf("\"positionValue\":\"%s\",", value);
         printf("\"autoguiMove\":\"%s\",", autoguiMoveStringBuffer);
-        printf("\"move\":\"%llu\"}", ~0ULL);
+        MoveToString(~0ULL, moveString);
+        printf("\"move\":\"%s\"}", moveString);
         printf("]}");
-        fclose(f);
+        close_gzip_file_handle(&data_handle);
         return;
     }
     
@@ -180,8 +275,16 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         }
 
         GetBlobFileNameFromPosition(newBoard, filename);
-        fclose(f);
-        f = fopen(filename, "rb");
+        close_gzip_file_handle(&data_handle);
+
+        data_handle = open_gzip_as_file(filename);
+        f = data_handle.file;
+
+        if (!f) {
+            printf("Blob gz file can't be opened.");
+            return;
+        }
+
         information = GetInfoFromBlobFile(newBoard, f);
         value = GetPrimitiveFromInfo(information);
         remoteness = GetRemotenessFromInfo(information);
@@ -197,7 +300,8 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
         printf("\"remoteness\":%d,", remoteness);
         printf("\"positionValue\":\"%s\",", value);
         printf("\"autoguiMove\":\"%s\",", autoguiMoveStringBuffer);
-        printf("\"move\":\"%llu\"}", moveHead->move);
+        MoveToString(moveHead->move, moveString);
+        printf("\"move\":\"%s\"}", moveString);
         moveHead = moveHead->next;
         if (moveHead) {
             printf(",");
@@ -205,5 +309,5 @@ void blobDetailedPositionResponse(STRING board, char *positionStringBuffer) {
     }
 
     printf("]}");
-    fclose(f);
+    close_gzip_file_handle(&data_handle);
 }

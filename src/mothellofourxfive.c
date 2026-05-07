@@ -20,12 +20,12 @@
 POSITION gNumberOfPositions;
 POSITION kBadPosition = INVALID_POSITION;
 
-POSITION gInitialPosition = (POSITION){ 0b0000010000100000ULL, 0b0000001001000000ULL };
+POSITION gInitialPosition = (POSITION){ 0b00000000100010000000ULL, 0b00000001000001000000ULL };
 POSITION gMinimalPosition = (POSITION){ 0b0ULL, 0b0ULL };
 
 CONST_STRING kAuthorName = "Abraham Hsu, Aryaman Asthana";
-CONST_STRING kGameName = "mothellofour";
-CONST_STRING kDBName = "mothellofourblob";
+CONST_STRING kGameName = "mothellofourxfive";
+CONST_STRING kDBName = "mothellofourxfiveblob";
 BOOLEAN kPartizan = TRUE;
 BOOLEAN kDebugMenu = FALSE;
 BOOLEAN kGameSpecificMenu = FALSE;
@@ -58,78 +58,58 @@ CONST_STRING kHelpExample = "";
 **************************************************************************/
 
 #define PAGE_BITS 12
-#define N 4
-#define CELLS (N * N)
+#define ROWS 4
+#define COLS 5
+
+#define N 5
+#define CELLS (ROWS*COLS)
 #define FULL ((1ULL << CELLS) - 1ULL)
 #define WIN 0b11000000
 #define LOSE 0b01000000
 #define SKIP 0b00000001
 #define REMOTENESS_MASK_OTHELLO 0b111111
 
-#define R0 0xFULL
-#define R1 (R0 << 4)
-#define R2 (R0 << 8)
-#define R3 (R0 << 12)
+#define R0 0b11111ULL
+#define R1 (R0 << 5)
+#define R2 (R0 << 10)
+#define R3 (R0 << 15)
 
-#define C0 0x1111ULL
-#define C1 0x2222ULL
-#define C2 0x4444ULL
-#define C3 0x8888ULL
+#define C0 ((1ULL<< 0)|(1ULL<< 5)|(1ULL<<10)|(1ULL<<15))
+#define C1 ((1ULL<< 1)|(1ULL<< 6)|(1ULL<<11)|(1ULL<<16))
+#define C2 ((1ULL<< 2)|(1ULL<< 7)|(1ULL<<12)|(1ULL<<17))
+#define C3 ((1ULL<< 3)|(1ULL<< 8)|(1ULL<<13)|(1ULL<<18))
+#define C4 ((1ULL<< 4)|(1ULL<< 9)|(1ULL<<14)|(1ULL<<19))
 
 #define A_FILE C0
-#define D_FILE C3
-#define NOT_A (FULL ^ A_FILE)
-#define NOT_D (FULL ^ D_FILE)
+#define D_FILE C4
+#define NOT_A (FULL & ~C0)
+#define NOT_D (FULL & ~C4)
 #define min(a,b) (((a) < (b)) ? (a) : (b))
 
+BITBOARD flipH(BITBOARD b) {
+        BITBOARD res = 0;
+        res |= (b & C0) << 4;   // col0 → col4
+        res |= (b & C1) << 2;   // col1 → col3
+        res |= (b & C2);         // col2 → col2  (centre, no move)
+        res |= (b & C3) >> 2;   // col3 → col1
+        res |= (b & C4) >> 4;   // col4 → col0
+        return res;
+    }
 
-/* Utility Functions for Computing Canonical Positions */
-BITBOARD vertical4(BITBOARD b) {
+
+BITBOARD flipV(BITBOARD b) {
     BITBOARD res = 0;
-    res |= ((b & C0) << 3);  // col0 -> col3
-    res |= ((b & C1) << 1);  // col1 -> col2
-    res |= ((b & C2) >> 1);  // col2 -> col1
-    res |= ((b & C3) >> 3);  // col3 -> col0
+    res |= (b & R0) << 15;  // row0 → row3
+    res |= (b & R1) <<  5;  // row1 → row2
+    res |= (b & R2) >>  5;  // row2 → row1
+    res |= (b & R3) >> 15;  // row3 → row0
     return res;
 }
 
-BITBOARD horizontal4(BITBOARD b) {
-    BITBOARD res = 0;
-    res |= ((b & R0) << 12); // row0 -> row3
-    res |= ((b & R1) << 4 ); // row1 -> row2
-    res |= ((b & R2) >> 4 ); // row2 -> row1
-    res |= ((b & R3) >> 12); // row3 -> row0
-    return res;
+    // rot180 = flipH(flipV(b))  (also equals flipV(flipH(b)))
+BITBOARD rot180(BITBOARD b) {
+    return flipH(flipV(b));
 }
-
-BITBOARD transpose4(BITBOARD b) {
-    BITBOARD res = 0;
-
-    // Diagonal stays
-    BITBOARD DIAG = (1ULL<<0) | (1ULL<<5) | (1ULL<<10) | (1ULL<<15);
-    res |= (b & DIAG);
-
-    // Offset 1: (0,1),(1,2),(2,3) <-> (1,0),(2,1),(3,2)
-    BITBOARD OFF1 = (1ULL<<1) | (1ULL<<6) | (1ULL<<11);
-    BITBOARD SWAP1 = (OFF1 << 3);
-    res |= ((b & OFF1) << 3);
-    res |= ((b & SWAP1) >> 3);
-
-    // Offset 2: (0,2),(1,3) <-> (2,0),(3,1)
-    BITBOARD OFF2 = (1ULL<<2) | (1ULL<<7);
-    BITBOARD SWAP2 = (OFF2 << 6);
-    res |= ((b & OFF2) << 6);
-    res |= ((b & SWAP2) >> 6);
-
-    // Offset 3: (0,3) <-> (3,0)
-    BITBOARD OFF3 = (1ULL<<3);
-    BITBOARD SWAP3 = (OFF3 << 9);
-    res |= ((b & OFF3) << 9);
-    res |= ((b & SWAP3) >> 9);
-
-    return res;
-}
-/* Utility Functions for Canonical Positions End Here */
 
 POSITION GetCanonicalPosition(POSITION position) {
     BITBOARD me = position.player & FULL;
@@ -138,20 +118,16 @@ POSITION GetCanonicalPosition(POSITION position) {
 
     /* Finding "blob" symmetries */
     BITBOARD occ0 = occ;
-    BITBOARD occ1 = vertical4(occ);
-    BITBOARD occ2 = horizontal4(occ);
-    BITBOARD occ3 = transpose4(occ);
-    BITBOARD occ5 = vertical4(occ3);
-    BITBOARD occ7 = horizontal4(occ3);
-    BITBOARD occ6 = horizontal4(occ1);
-    BITBOARD occ4 = horizontal4(occ5);
+    BITBOARD occ1 = flipH(occ);
+    BITBOARD occ2 = flipV(occ);
+    BITBOARD occ3 = rot180(occ);
 
     /* Find Minimal Occupancy and Best Encoding for Canonical */
     BITBOARD best_occ = occ0;
     BITBOARD best_me = me;
-    BITBOARD t = transpose4(me);
-    BITBOARD v = vertical4(me);
-    BITBOARD vt = vertical4(t);
+    BITBOARD h = flipV(me);
+    BITBOARD v = flipH(me);
+    BITBOARD vt = rot180(me);
 
     if (occ1 <= best_occ) {
         if (occ1 < best_occ) {
@@ -163,7 +139,6 @@ POSITION GetCanonicalPosition(POSITION position) {
     }
 
     if (occ2 <= best_occ) {
-        BITBOARD h = horizontal4(me);
         if (occ2 < best_occ) {
             best_occ = occ2;
             best_me = h;
@@ -175,48 +150,9 @@ POSITION GetCanonicalPosition(POSITION position) {
     if (occ3 <= best_occ) {
         if (occ3 < best_occ) {
             best_occ = occ3;
-            best_me = t;
-        } else {
-            best_me = min(t, best_me);
-        }
-    }
-
-    if (occ5 <= best_occ) {
-        if (occ5 < best_occ) {
-            best_occ = occ5;
             best_me = vt;
         } else {
             best_me = min(vt, best_me);
-        }
-    }
-
-    if (occ7 <= best_occ) {
-        BITBOARD ht = horizontal4(t);
-        if (occ7 < best_occ) {
-            best_occ = occ7;
-            best_me = ht;
-        } else {
-            best_me = min(ht, best_me);
-        }
-    }
-
-    if (occ6 <= best_occ) {
-        BITBOARD hv = horizontal4(v);
-        if (occ6 < best_occ) {
-            best_occ = occ6;
-            best_me = hv;
-        } else {
-            best_me = min(hv, best_me);
-        }
-    }
-
-    if (occ4 <= best_occ) {
-        BITBOARD hvt = horizontal4(vt);
-        if (occ4 < best_occ) {
-            best_occ = occ4;
-            best_me = hvt;
-        } else {
-            best_me = min(hvt, best_me);
         }
     }
 
@@ -230,7 +166,7 @@ void SetTclCGameSpecificOptions(int theOptions[]) {
 }
 
 POSITION starting_position() {
-    return (POSITION){ 0b0000010000100000ULL, 0b0000001001000000ULL };
+    return (POSITION){ 0b00000000100010000000ULL, 0b00000001000001000000ULL };
 }
 
 void StartingPositionToString(char* buf) {
@@ -417,10 +353,12 @@ BITBOARD ks_dir_l(BITBOARD me, BITBOARD opp, BITBOARD empty, int s, BITBOARD mas
     BITBOARD t = opp & mask & (me << s);
     t |= opp & mask & (t << s);
     t |= opp & mask & (t << s);
+    t |= opp & mask & (t << s);
     return (t << s) & mask & empty;
 }
 BITBOARD ks_dir_r(BITBOARD me, BITBOARD opp, BITBOARD empty, int s, BITBOARD mask) {
     BITBOARD t = opp & mask & (me >> s);
+    t |= opp & mask & (t >> s);
     t |= opp & mask & (t >> s);
     t |= opp & mask & (t >> s);
     return (t >> s) & mask & empty;
@@ -833,7 +771,7 @@ void GetBlobFileNameFromPosition(POSITION p, char *filename) {
     const POSITION c  = GetCanonicalPosition(p);
     uint8_t tier = tier_of(shape(&c));
     // printf("tier: %u\n", tier);
-    snprintf(filename, 256, "./data/mothellofour/tier_%02u/tier.dat.gz", (int)tier);
+    snprintf(filename, 256, "./data/mothellofourxfive/tier_%02u/tier.dat.gz", (int)tier);
     return;
 }
 
@@ -894,7 +832,7 @@ static uint8_t *read_gzip_file_to_memory(const char *filename, size_t *out_size)
 static int read_metadata_gz(uint64_t *W_out) {
     size_t metadata_size = 0;
     uint8_t *metadata = read_gzip_file_to_memory(
-        "./data/mothellofour/metadata.bin.gz",
+        "./data/mothellofourxfive/metadata.bin.gz",
         &metadata_size
     );
 
@@ -929,7 +867,7 @@ static int read_offsets_for_tier_gz(
 ) {
     size_t offsets_size = 0;
     uint8_t *offsets = read_gzip_file_to_memory(
-        "./data/mothellofour/offsets.bin.gz",
+        "./data/mothellofourxfive/offsets.bin.gz",
         &offsets_size
     );
 
@@ -955,6 +893,226 @@ static int read_offsets_for_tier_gz(
 }
 
 // Need to, given the file, find the page, then find the offset/position
+// UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
+//     /* Start: accessing metadata information */
+//     uint64_t W = 0;
+
+//     FILE* metadata = fopen("./data/mothellofourxfive/metadata.bin", "rb");
+//     if (!metadata) {
+//         printf("Error: Metadata open error\n");
+//         return 0;
+//     }
+
+//     if ((fread(&W, sizeof(W)/2, 1, metadata)) != 1) {
+//         printf("Error: Metadata read error\n");
+//         fclose(metadata);
+//         return 0;
+//     }
+
+//     fclose(metadata);
+//     /* End: accessing metadata information */
+
+//     /* Start: retrieving offsets for compressed data/page records */
+//     const POSITION c  = GetCanonicalPosition(p);
+//     const BITBOARD sh = shape(&c);
+//     const uint64_t h  = hash(&c);
+
+//     int owner = owner_of_shape(sh, W);
+//     uint8_t tier = tier_of(sh);
+//     uint64_t tier_idx = (tier - 4) * 2 * (W * sizeof(W));
+
+//     uint64_t comp_data_offsets[W];
+//     uint64_t comp_idx_offsets[W];
+
+//     FILE* offsets = fopen("./data/mothellofourxfive/offsets.bin", "rb");
+//     if (!offsets) {
+//         printf("Error: Offset open error\n");
+//         return 0;
+//     }
+
+//     fseek(offsets, tier_idx, SEEK_SET);
+//     if ((fread(comp_data_offsets, sizeof(uint64_t), W, offsets)) != W) {
+//         printf("Error: Offset read error\n");
+//         fclose(offsets);
+//         return 0;
+//     }
+
+//     if ((fread(comp_idx_offsets, sizeof(uint64_t), W, offsets)) != W) {
+//         printf("Error: Offset read error\n");
+//         fclose(offsets);
+//         return 0;
+//     }
+
+//     fclose(offsets);
+//     /* End: retrieving offsets for compressed data/page records */
+
+//     /* Start: find correct offsets for data/page records */
+//     fseek(f, 0, SEEK_END); 
+
+//     uint64_t comp_data_size = (comp_data_offsets[owner] == array_max(comp_data_offsets, W))
+//     ? ftell(f) - comp_data_offsets[owner]
+//     : get_next_offset(comp_data_offsets, W, comp_data_offsets[owner]) - comp_data_offsets[owner];
+
+//     fseek(f, comp_data_offsets[owner], SEEK_SET); // (tier, owner) based offset to compressed data
+
+//     // memory mapped record file for quick random access
+//     char filename[256];
+//     snprintf(filename, 256, "./data/mothellofourxfive/tier_%02u/tier.idx", (int)tier);
+//     FILE* rec_file = fopen(filename, "rb");
+//     if (!rec_file) {
+//         printf("Error: Record file open error\n");
+//         return 0;
+//     }
+
+//     int fd = fileno(rec_file);  
+//     struct stat st;
+//     if (fstat(fd, &st) == -1) {
+//         perror("fstat");
+//         fclose(rec_file);
+//         return 0;
+//     }
+
+//     if (comp_idx_offsets[owner] >= (uint64_t)st.st_size) {
+//         printf("Error: idx offset out of bounds\n");
+//         fclose(rec_file);
+//         return 0;
+//     }
+
+//     uint8_t *record_map = mmap(NULL, st.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+//     if (record_map == MAP_FAILED) {
+//         perror("mmap");
+//         fclose(rec_file);
+//         return 0;
+//     }
+
+//     uint64_t comp_idx_size = (comp_idx_offsets[owner] == array_max(comp_idx_offsets, W))
+//     ? st.st_size - comp_idx_offsets[owner]
+//     : get_next_offset(comp_idx_offsets, W, comp_idx_offsets[owner]) - comp_idx_offsets[owner];
+
+//     fclose(rec_file);
+
+//     if (comp_idx_size % sizeof(struct PageIdxRec) != 0) {
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+//     /* End: find correct offsets for data/page records */
+
+//     /* Start: load the relevant data into buffer */
+//     uint8_t *data_buffer = malloc(comp_data_size);
+//     if (!data_buffer) {
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+
+//     if ((fread(data_buffer, 1, comp_data_size, f)) != comp_data_size) {
+//         printf("Error: Compressed data read error\n");
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+//     /* End: load the relevant data into buffer */
+
+//     /* Start: find the matching page record */
+//     size_t num_records = (size_t)comp_idx_size / sizeof(struct PageIdxRec);
+//     struct PageIdxRec *records = (struct PageIdxRec *)(record_map + comp_idx_offsets[owner]);
+
+//     struct PageIdxRec *match = NULL;
+//     for (size_t i = 0; i < num_records; i++) {
+//         if (records[i].shape == sh && records[i].page == (h >> PAGE_BITS)) {
+//             match = &records[i];
+//             break;
+//         }
+//     }
+
+//     if (!match) {
+//         printf("Error: No matching page record for shape %lu\n", (unsigned long)sh);
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+
+//     uint64_t raw_off   = match->off & ~(3ULL << 62);
+//     uint64_t next_off  = 0;
+
+//     size_t match_index = match - records;
+
+//     // Determine compressed chunk size by peeking at the next record's offset 
+//     if (match_index < num_records - 1) {
+//         next_off = records[match_index + 1].off & ~(3ULL << 62);
+//     } else {
+//         next_off = comp_data_size; // Last record
+//     }
+
+//     if (raw_off >= comp_data_size || next_off > comp_data_size || raw_off >= next_off) {
+//         printf("Error: invalid offsets\n");
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+//     /* End: find the matching page record */
+
+//     /* Start: decompress the relevant data */
+//     uint8_t *chunk = (uint8_t *)data_buffer + raw_off;
+//     size_t chunk_size = ZSTD_findFrameCompressedSize(chunk, next_off - raw_off);
+
+//     size_t decomp_size = ZSTD_getFrameContentSize(chunk, chunk_size);
+//     if (decomp_size == ZSTD_CONTENTSIZE_UNKNOWN || decomp_size == ZSTD_CONTENTSIZE_ERROR) {
+//         printf("Error: Decompression size error\n");
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+
+//     uint8_t *decomp = malloc(decomp_size);
+//     if (!decomp) {
+//         printf("Error: Allocation error\n");
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+
+//     size_t result = ZSTD_decompress(decomp, decomp_size, chunk, chunk_size);
+//     if (ZSTD_isError(result)) {
+//         printf("Error: Decompression error: %s\n", ZSTD_getErrorName(result));
+//         free(decomp);
+//         free(data_buffer);
+//         munmap(record_map, st.st_size);
+//         return 0;
+//     }
+
+//     free(data_buffer);
+//     /* End: decompress the relevant data */
+
+//     /* Reformat decompressed data based on mode of compression */
+//     uint16_t pos_off = (uint16_t)(h & ((1ULL << PAGE_BITS) - 1));
+//     uint8_t comp_mode = (match->off >> 62) & 0b11;
+//     uint8_t value;
+
+//     if (comp_mode == 0) {
+//         uint8_t page[1ULL << PAGE_BITS];
+//         decode_key_value_pairs(decomp, decomp_size, page);
+//         value = page[pos_off];
+//     } else if (comp_mode == 1) {
+//         value = decomp[pos_off];
+//     } else if (comp_mode == 2) {
+//         uint8_t page[1ULL << PAGE_BITS];
+//         decode_group_combinations(decomp, page);
+//         value = page[pos_off];
+//     } else {
+//         uint8_t page[1ULL << PAGE_BITS];
+//         decode_collect_leaves((const uint16_t *)decomp, decomp_size / sizeof(uint16_t), page, 1ULL << PAGE_BITS);
+//         value = page[pos_off];
+//     }
+
+//     /* Free resources and return if possible */
+//     free(decomp);
+//     munmap(record_map, st.st_size);
+//     if (value != SKIP) return value;
+
+//     /* If skip, make one more function call */
+//     return invert(GetInfoFromBlobFile(flip(p), f));
+// }
+
 UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
     /* Start: accessing gzipped metadata information */
     uint64_t W = 0;
@@ -994,7 +1152,7 @@ UINT64 GetInfoFromBlobFile(POSITION p, FILE *f) {
      * This replaces fopen + fileno + fstat + mmap.
      */
     char filename[256];
-    snprintf(filename, 256, "./data/mothellofour/tier_%02u/tier.idx.gz", (int)tier);
+    snprintf(filename, 256, "./data/mothellofourxfive/tier_%02u/tier.idx.gz", (int)tier);
 
     size_t record_map_size = 0;
     uint8_t *record_map = read_gzip_file_to_memory(filename, &record_map_size);
