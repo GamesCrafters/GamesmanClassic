@@ -3,6 +3,7 @@
 #include "hashwindow.h"
 #include "sharddb.h"
 #include "quartodb.h"
+#include "blobdb.h"
 #include <stdarg.h>
 
 POSITION StringToPosition(char *positionString);
@@ -177,6 +178,10 @@ void ServerInteractLoop(void) {
 				quartoDetailedPositionResponse(inputPositionString, positionStringBuffer);
 				continue;
 			}
+			if (kUsesBlobGamesman) {
+				blobDetailedPositionResponse(inputPositionString, positionStringBuffer);
+				continue;
+			}
 			char oppTurnChar = (inputPositionString[0] == '1') ? '2' : '1';
 			position = StringToPosition(inputPositionString);
 			if (position == NULL_POSITION) {
@@ -333,8 +338,12 @@ void ServerInteractLoop(void) {
 			}
 			if (gRandomInitialPositionFunPtr != NULL) {
 				PositionToAutoGUIString(gRandomInitialPositionFunPtr(), positionStringBuffer);
-			} else {
-				PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+			} else {				
+				if (kUsesBlobGamesman) {
+					StartingPositionToString(positionStringBuffer);
+				} else {
+					PositionToAutoGUIString(gInitialPosition, positionStringBuffer);
+				}
 			}
 			if (positionStringBuffer[0] == '0' && !kPartizan) positionStringBuffer[0] = '1'; // Handle Impartial Games
 			printf(RESULT "{\"autoguiPosition\":\"%s\"", positionStringBuffer);

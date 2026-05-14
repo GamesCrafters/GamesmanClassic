@@ -164,6 +164,7 @@ BOOLEAN gSupportsMex = FALSE;
 BOOLEAN kSupportsTierGamesman = FALSE;
 BOOLEAN kSupportsShardGamesman = FALSE;
 BOOLEAN kUsesQuartoGamesman = FALSE;
+BOOLEAN kUsesBlobGamesman = FALSE;
 BOOLEAN kExclusivelyTierGamesman = FALSE;
 BOOLEAN kDebugTierMenu = FALSE;
 TIERPOSITION gInitialTierPosition = -1;

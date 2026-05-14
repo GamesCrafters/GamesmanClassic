@@ -46,6 +46,7 @@
 #include "quartodb.h"
 #include "sharddb.h"
 #include "symdb.h"
+#include "blobdb.h"
 
 /* Provide optional support for randomized-hash based collision database, dependent on GMP */
 #ifdef HAVE_GMP
@@ -296,6 +297,11 @@ void InitializeShardDB()
 void InitializeQuartoDB()
 {
 	return quartodb_init(db_functions);
+}
+
+void InitializeBlobDB()
+{
+	return blobdb_init(db_functions);
 }
 
 void DestroyDatabases()
