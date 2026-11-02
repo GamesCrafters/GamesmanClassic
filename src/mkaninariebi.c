@@ -145,6 +145,26 @@ typedef struct {
     int promote;
 } LANDING;
 
+typedef struct {
+    int rows;
+    int cols;
+    int mixedBonding;
+    const char *name;
+} VARIANT;
+
+/* Preserve existing option IDs (1-4). Dimensions are rows x columns. */
+static const VARIANT kVariants[] = {
+    {5, 5, 0, "regular"},
+    {5, 5, 1, "mixed"},
+    {3, 5, 0, "3x5"},
+    {5, 3, 0, "5x3"},
+    {4, 5, 0, "4x5"},
+    {3, 5, 1, "3x5-mixed"},
+    {4, 5, 1, "4x5-mixed"},
+    {5, 3, 1, "5x3-mixed"}
+};
+#define VARIANT_COUNT ((int)(sizeof(kVariants) / sizeof(kVariants[0])))
+
 static int gVariant = 0;
 static int gRows = 5;
 static int gCols = 5;
@@ -406,7 +426,7 @@ static int BondGroup(const int board[MAX_BOARD_SIZE], int start,
             int col = current % gCols + orthogonal[i][1];
             if (OnBoard(row, col)) {
                 int neighbor = IndexOf(row, col);
-                int matches = gVariant == 1
+                int matches = kVariants[gVariant].mixedBonding
                     ? OwnerOf(board[neighbor]) == player
                     : board[neighbor] == piece;
                 if (!visited[neighbor] && matches) {
@@ -573,11 +593,11 @@ static void ConfigureVariant(int option) {
     };
 
     gVariant = option;
-    gRows = option == 2 ? 3 : 5;
-    gCols = option == 3 ? 3 : 5;
+    gRows = kVariants[option].rows;
+    gCols = kVariants[option].cols;
     gBoardSize = gRows * gCols;
     gInitialPieces = gRows;
-    gWinCount = option == 2 ? 2 : 3;
+    gWinCount = (gRows + 1) / 2;
     gCurrentCol = gCols / 2;
     pieces[2] = gBoardSize;
     pieces[5] = gInitialPieces;
@@ -594,9 +614,9 @@ POSITION ActualNumberOfPositions(int option) {
     int cells;
     int maxPieces;
 
-    if (option < 1 || option > 4) return 0;
-    cells = (option == 3 || option == 4) ? 15 : 25;
-    maxPieces = option == 3 ? 3 : 5;
+    if (option < 1 || option > VARIANT_COUNT) return 0;
+    cells = kVariants[option - 1].rows * kVariants[option - 1].cols;
+    maxPieces = kVariants[option - 1].rows;
     return CompletionCountFor(cells, 0, 0, maxPieces) * 2;
 }
 
@@ -1002,7 +1022,7 @@ void DebugMenu(void) {}
  * @return The total number of variants supported.
  */
 int NumberOfOptions(void) {
-    return 4;
+    return VARIANT_COUNT;
 }
 
 /**
@@ -1035,10 +1055,12 @@ void GameSpecificMenu(void) {
     int option;
     int ch;
     printf("\nKani Nari Ebi variants:\n");
-    printf("1: regular (5x5, same-type bonding)\n");
-    printf("2: mixed (5x5, same-player bonding)\n");
-    printf("3: 3x5\n");
-    printf("4: 5x3\n");
+    for (option = 0; option < VARIANT_COUNT; ++option) {
+        const VARIANT *variant = &kVariants[option];
+        printf("%d: %s (%dx%d, %s bonding)\n", option + 1,
+               variant->name, variant->rows, variant->cols,
+               variant->mixedBonding ? "mixed" : "same-type");
+    }
     printf("Select variant: ");
     if (scanf("%d", &option) != 1) {
         while ((ch = getchar()) != '\n' && ch != EOF) {}
@@ -1047,7 +1069,7 @@ void GameSpecificMenu(void) {
     }
     while ((ch = getchar()) != '\n' && ch != EOF) {}
     if (option < 1 || option > NumberOfOptions()) {
-        printf("Variant must be between 1 and 4.\n");
+        printf("Variant must be between 1 and %d.\n", VARIANT_COUNT);
         return;
     }
     setOption(option);
