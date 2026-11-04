@@ -173,6 +173,104 @@ static int gInitialPieces = 5;
 static int gWinCount = 3;
 static int gCurrentCol = 2;
 
+/* Four base-(rows+1) digits: P1 crabs, P1 shrimps, P2 crabs,
+ * P2 shrimps. Exact material makes promotion and capture irreversible
+ * tier transitions; ordinary movement remains loopy within a tier. */
+#define MAX_TIERS (6 * 6 * 6 * 6)
+static int gTierContexts[MAX_TIERS];
+static int gFlatContext;
+
+static TIER EncodeTier(const int counts[5]) {
+    TIER tier = 0;
+    int piece;
+    for (piece = P2_SHRIMP; piece >= P1_CRAB; --piece)
+        tier = tier * (gRows + 1) + counts[piece];
+    return tier;
+}
+
+static int DecodeTier(TIER tier, int counts[5]) {
+    int piece, total = 0;
+    for (piece = P1_CRAB; piece <= P2_SHRIMP; ++piece) {
+        counts[piece] = tier % (gRows + 1);
+        tier /= gRows + 1;
+        total += counts[piece];
+    }
+    counts[EMPTY] = gBoardSize - total;
+    return tier == 0 && counts[EMPTY] >= 0 &&
+        counts[P1_CRAB] + counts[P1_SHRIMP] <= gRows &&
+        counts[P2_CRAB] + counts[P2_SHRIMP] <= gRows;
+}
+
+static TIERPOSITION NumberOfTierPositions(TIER tier);
+
+static void SwitchToTier(TIER tier) {
+    if (gTierContexts[tier] < 0) {
+        int counts[5], pieces[16], piece;
+        DecodeTier(tier, counts);
+        for (piece = EMPTY; piece <= P2_SHRIMP; ++piece) {
+            pieces[3 * piece] = piece;
+            pieces[3 * piece + 1] = counts[piece];
+            pieces[3 * piece + 2] = counts[piece];
+        }
+        pieces[15] = -1;
+        generic_hash_init(gBoardSize, pieces, NULL, 0);
+        gTierContexts[tier] = generic_hash_cur_context();
+    }
+    generic_hash_context_switch(gTierContexts[tier]);
+}
+
+static TIERLIST *TierChildren(TIER tier) {
+    int counts[5], player;
+    int seen[MAX_TIERS] = {0};
+    TIERLIST *children = NULL;
+    if (!DecodeTier(tier, counts)) return NULL;
+
+    /* One turn promotes at most two friendly crabs (main move + Bond)
+     * and can capture any mix of opposing pieces. Include a conservative
+     * superset, since geometry determines which captures are possible.
+     * Material never increases and crabs never reappear, so the only
+     * cycle in this graph is the self-edge required by the loopy solver. */
+    for (player = 1; player <= 2; ++player) {
+        int crab = player == 1 ? P1_CRAB : P2_CRAB;
+        int shrimp = crab + 1;
+        int otherCrab = player == 1 ? P2_CRAB : P1_CRAB;
+        int otherShrimp = otherCrab + 1;
+        int promote, capturedCrabs, capturedShrimps;
+        for (promote = 0; promote <= 2 && promote <= counts[crab]; ++promote) {
+            for (capturedCrabs = 0; capturedCrabs <= counts[otherCrab]; ++capturedCrabs) {
+                for (capturedShrimps = 0; capturedShrimps <= counts[otherShrimp]; ++capturedShrimps) {
+                    int childCounts[5];
+                    TIER child;
+                    memcpy(childCounts, counts, sizeof(childCounts));
+                    childCounts[crab] -= promote;
+                    childCounts[shrimp] += promote;
+                    childCounts[otherCrab] -= capturedCrabs;
+                    childCounts[otherShrimp] -= capturedShrimps;
+                    child = EncodeTier(childCounts);
+                    if (!seen[child]) {
+                        seen[child] = 1;
+                        children = CreateTierlistNode(child, children);
+                    }
+                }
+            }
+        }
+    }
+    return children;
+}
+
+static STRING TierToString(TIER tier) {
+    int counts[5];
+    STRING text = (STRING)SafeMalloc(80);
+    if (!DecodeTier(tier, counts)) {
+        snprintf(text, 80, "Invalid material tier");
+    } else {
+        snprintf(text, 80, "P1: %d crabs, %d shrimps; P2: %d crabs, %d shrimps",
+                 counts[P1_CRAB], counts[P1_SHRIMP],
+                 counts[P2_CRAB], counts[P2_SHRIMP]);
+    }
+    return text;
+}
+
 static int ValidPieceConfiguration(int *pieceCounts) {
     return pieceCounts[P1_CRAB] + pieceCounts[P1_SHRIMP] <= gInitialPieces &&
         pieceCounts[P2_CRAB] + pieceCounts[P2_SHRIMP] <= gInitialPieces;
@@ -231,7 +329,19 @@ static POSITION CompletionCountFor(int squares, int playerOnePieces,
     return count;
 }
 
+static TIERPOSITION NumberOfTierPositions(TIER tier) {
+    int counts[5], piece, remaining = gBoardSize;
+    TIERPOSITION size = 2; /* Both turns. */
+    if (!DecodeTier(tier, counts)) return 0;
+    for (piece = P1_CRAB; piece <= P2_SHRIMP; ++piece) {
+        size *= Binomial(remaining, counts[piece]);
+        remaining -= counts[piece];
+    }
+    return size;
+}
+
 static POSITION HashBoard(const int board[MAX_BOARD_SIZE], int turn) {
+    int counts[5] = {0};
     int playerOnePieces = 0;
     int playerTwoPieces = 0;
     char genericBoard[MAX_BOARD_SIZE];
@@ -242,6 +352,7 @@ static POSITION HashBoard(const int board[MAX_BOARD_SIZE], int turn) {
         int piece = board[square];
         if (piece < EMPTY || piece > P2_SHRIMP) return NULL_POSITION;
         genericBoard[square] = (char)piece;
+        ++counts[piece];
         if (OwnerOf(piece) == 1) ++playerOnePieces;
         if (OwnerOf(piece) == 2) ++playerTwoPieces;
         if (playerOnePieces > gInitialPieces ||
@@ -249,6 +360,12 @@ static POSITION HashBoard(const int board[MAX_BOARD_SIZE], int turn) {
             return NULL_POSITION;
         }
     }
+    if (gHashWindowInitialized) {
+        TIER tier = EncodeTier(counts);
+        SwitchToTier(tier);
+        return gHashToWindowPosition(generic_hash_hash(genericBoard, turn), tier);
+    }
+    generic_hash_context_switch(gFlatContext);
     return generic_hash_hash(genericBoard, turn);
 }
 
@@ -256,6 +373,15 @@ static int UnhashPosition(POSITION position, int board[MAX_BOARD_SIZE]) {
     char genericBoard[MAX_BOARD_SIZE];
     int square;
 
+    if (gHashWindowInitialized) {
+        TIER tier;
+        TIERPOSITION tierPosition;
+        gUnhashToTierPosition(position, &tierPosition, &tier);
+        SwitchToTier(tier);
+        position = tierPosition;
+    } else {
+        generic_hash_context_switch(gFlatContext);
+    }
     generic_hash_unhash(position, genericBoard);
     for (square = 0; square < gBoardSize; ++square) {
         board[square] = (unsigned char)genericBoard[square];
@@ -592,6 +718,20 @@ static void ConfigureVariant(int option) {
         -1
     };
 
+    int tier;
+    int initialCounts[5] = {0};
+
+    /* A new variant has different tier IDs, sizes, and hash contexts. */
+    if (gHashWindowInitialized) {
+        SafeFree(gMaxPosOffset);
+        SafeFree(gTierInHashWindow);
+        SafeFree(gTierDBExists);
+        gMaxPosOffset = NULL;
+        gTierInHashWindow = NULL;
+        gTierDBExists = NULL;
+        gHashWindowInitialized = FALSE;
+    }
+    for (tier = 0; tier < MAX_TIERS; ++tier) gTierContexts[tier] = -1;
     gVariant = option;
     gRows = kVariants[option].rows;
     gCols = kVariants[option].cols;
@@ -607,7 +747,29 @@ static void ConfigureVariant(int option) {
     generic_hash_destroy();
     gNumberOfPositions = generic_hash_init(
         gBoardSize, pieces, ValidPieceConfiguration, 0);
+    gFlatContext = generic_hash_cur_context();
     gInitialPosition = StartingPosition();
+    initialCounts[P1_CRAB] = initialCounts[P2_CRAB] = gRows;
+    gInitialTier = EncodeTier(initialCounts);
+    {
+        int board[MAX_BOARD_SIZE];
+        char genericBoard[MAX_BOARD_SIZE];
+        int square;
+        /* Keep the legacy initial position separate from its tier hash. */
+        UnhashPosition(gInitialPosition, board);
+        for (square = 0; square < gBoardSize; ++square)
+            genericBoard[square] = (char)board[square];
+        SwitchToTier(gInitialTier);
+        gInitialTierPosition = generic_hash_hash(genericBoard, 1);
+    }
+    generic_hash_context_switch(gFlatContext);
+
+    kSupportsTierGamesman = TRUE;
+    kExclusivelyTierGamesman = FALSE; /* Preserve --notiers and legacy hashes. */
+    gTierChildrenFunPtr = TierChildren;
+    gNumberOfTierPositionsFunPtr = NumberOfTierPositions;
+    gTierToStringFunPtr = TierToString;
+    if (gIsInteract) gLoadTierdbArray = FALSE;
 }
 
 POSITION ActualNumberOfPositions(int option) {
