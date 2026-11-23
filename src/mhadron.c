@@ -4,7 +4,8 @@
 **
 ** DESCRIPTION: Hadron, by Mark Steere (2022)
 **
-** AUTHOR:      GamesCrafters, UC Berkeley
+** AUTHOR:      Chengyi Zhu, Purple Huang, and
+**              María Fe Gonzalez del Riego Skrabonja
 **
 ** DETAILS:     Blue moves first. A tile may be placed on an empty cell only
 **              if it would have as many friendly orthogonal neighbours as
@@ -66,7 +67,7 @@ POSITION kBadPosition        = -1;
 POSITION gInitialPosition    = 0;
 POSITION gMinimalPosition    = 0;
 
-CONST_STRING kAuthorName         = "GamesCrafters";
+CONST_STRING kAuthorName         = "Chengyi Zhu, Purple Huang, and María Fe Gonzalez del Riego Skrabonja";
 CONST_STRING kGameName           = "Hadron";
 CONST_STRING kDBName             = "hadron";
 BOOLEAN kPartizan                = TRUE;
